@@ -115,6 +115,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .cinput{flex:1;background:rgba(0,20,48,.7);border:1px solid rgba(var(--ui-accent-rgb),.16);color:#e2e8f0;border-radius:10px;padding:10px;font-size:14px;font-family:monospace;font-weight:bold;letter-spacing:2px;text-transform:uppercase;outline:none;}
 .rbtn{background:#10b981;color:#fff;border:none;border-radius:10px;padding:10px 12px;font-weight:bold;cursor:pointer;font-size:13px;}
 
+.resetbtn{background:#ef4444;color:#fff;border:none;border-radius:13px;padding:14px;font-weight:bold;font-size:14px;cursor:pointer;margin-top:20px;width:100%;}
+
 .ft{position:fixed;pointer-events:none;z-index:30;font-weight:900;animation:spk 1.2s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.8); display:flex; align-items:center; gap:4px;}
 @keyframes spk{0%{transform:translateY(0) scale(.5);opacity:0;}15%{transform:translateY(-18px) scale(1.15);opacity:1;}100%{transform:translateY(-62px) scale(.8);opacity:0;}}
 #toast{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:14px;font-weight:bold;font-size:12px;pointer-events:none;opacity:0;transition:opacity .28s;z-index:55;color:#fff;white-space:nowrap;}
@@ -200,6 +202,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="color:#fbbf24">0</span></div>
       <div class="srow"><span>Codes Redeemed</span><span id="scodes">0</span></div>
     </div>
+
+    <!-- DEVELOPMENT TOOLS -->
+    <div class="sechead">Development Tools</div>
+    <button onclick="resetSave()" class="resetbtn">Reset Save (Development)</button>
+    <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
   </div>
 </div>
 
@@ -239,9 +246,7 @@ function setupPWA(){
 }
 setupPWA();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SVG ICON LIBRARY
-// ─────────────────────────────────────────────────────────────────────────────
+// SVG ICON LIBRARY (full)
 const svg = (path, v='0 0 24 24') => `<svg viewBox="${v}" fill="currentColor">${path}</svg>`;
 
 const ICONS = {
@@ -252,21 +257,18 @@ const ICONS = {
   clean: svg('<rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>'),
   done: svg('<polyline points="4,12 10,18 20,6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'),
   lock: svg('<rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10 V6 A 4 4 0 0 1 16 6 V10" fill="none" stroke="currentColor" stroke-width="2"/>'),
-  
   tank: svg('<path d="M20 12 L16 8 L10 10 L4 6 L4 18 L10 14 L16 16 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'),
   market: svg('<polyline points="3,20 9,12 15,16 21,4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="15,4 21,4 21,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   decor: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="10" r="2"/><circle cx="10" cy="16" r="2"/>'),
   orders: svg('<rect x="6" y="4" width="12" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="2" width="6" height="4" rx="1" fill="currentColor"/><line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/><line x1="9" y1="16" x2="15" y2="16" stroke="currentColor" stroke-width="2"/>'),
   shop: svg('<rect x="4" y="6" width="16" height="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/>'),
   social: svg('<rect x="4" y="8" width="16" height="14" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M12 8 C12 4 6 4 6 8 C6 12 12 8 12 8 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8 C12 4 18 4 18 8 C18 12 12 8 12 8 Z" fill="none" stroke="currentColor" stroke-width="2"/>'),
-  
   flakes: svg('<polygon points="12,2 14,9 21,12 14,15 12,22 10,15 3,12 10,9"/>'),
   snail: svg('<circle cx="14" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 14 C4 14 4 20 14 20" fill="none" stroke="currentColor" stroke-width="2"/>'),
   gear: svg('<circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2 V4 M12 20 V22 M2 12 H4 M20 12 H22 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   filter: svg('<rect x="6" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/><line x1="6" y1="16" x2="18" y2="16" stroke="currentColor" stroke-width="2"/>'),
   nest: svg('<path d="M4 16 Q8 6 20 16 Z" fill="currentColor"/>'),
   clam: svg('<path d="M2 18 Q12 4 22 18 Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="14" r="3" fill="currentColor"/>'),
-  
   ocean: svg('<path d="M2 12 Q6 8 10 12 T18 12 T22 12" fill="none" stroke="currentColor" stroke-width="2"/>'),
   reef: svg('<path d="M12 22 V12 M12 12 Q8 8 12 4 Q16 8 12 12" fill="none" stroke="currentColor" stroke-width="2"/>'),
   sunset: svg('<circle cx="12" cy="16" r="6" fill="currentColor"/><line x1="2" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="2"/>'),
@@ -274,7 +276,6 @@ const ICONS = {
   sand: svg('<circle cx="6" cy="16" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
   volcano: svg('<polygon points="2,22 12,6 22,22"/><path d="M12 6 Q16 2 20 6" fill="none" stroke="currentColor" stroke-width="2"/>'),
   crystal: svg('<polygon points="12,2 18,10 12,22 6,10"/>'),
-
   greedy: svg('<path d="M6 10 C6 6 18 6 18 10 L14 18 L10 18 Z" fill="currentColor"/>'), 
   shy: svg('<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4 V20" stroke="currentColor" stroke-width="2"/>'), 
   lazy: svg('<path d="M6 8 H14 L6 16 H14" fill="none" stroke="currentColor" stroke-width="2"/>'), 
@@ -282,9 +283,7 @@ const ICONS = {
   egg: svg('<ellipse cx="12" cy="12" rx="6" ry="9" fill="currentColor"/>'),
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 // UI INJECTION
-// ─────────────────────────────────────────────────────────────────────────────
 document.getElementById('lbl-lvl').innerHTML = ICONS.star + '<span id="lvl">1</span>';
 document.getElementById('lbl-cv').innerHTML = ICONS.coin + '<span id="cv">100</span>';
 document.getElementById('wvc').innerHTML = ICONS.drop + '<span id="wv">100%</span>';
@@ -305,9 +304,7 @@ document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
 document.getElementById('ph-social').innerHTML = ICONS.social + ' Social';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ACCENT COLOR CUSTOMIZATION
-// ─────────────────────────────────────────────────────────────────────────────
 const ACCENTS = [
   { hex: '#67e8f9', rgb: '103, 232, 249' }, 
   { hex: '#f472b6', rgb: '244, 114, 182' }, 
@@ -340,9 +337,7 @@ function initSwatches() {
 }
 initSwatches();
 
-// ─────────────────────────────────────────────────────────────────────────────
 // CANVAS & GLOBALS
-// ─────────────────────────────────────────────────────────────────────────────
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 let W,H;
 function resize(){
@@ -372,9 +367,7 @@ let offlinePend=null,pendingDaily=false;
 let curTheme='default', curFloor='default';
 let ownedThemes=['default'], ownedFloors=['default'];
 
-// ─────────────────────────────────────────────────────────────────────────────
 // DEFINITIONS & GENETICS
-// ─────────────────────────────────────────────────────────────────────────────
 const TYPES={
   guppy:    {name:'Neon Guppy', icon:ICONS.tank, cost:0,    val:1,  c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
   clown:    {name:'Clownfish',  icon:ICONS.tank, cost:250,  val:3,  c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
@@ -439,9 +432,7 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
   return { c1, c2, trait, isRareMut };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ENDLESS SCALING ORDERS
-// ─────────────────────────────────────────────────────────────────────────────
 const ORDER_POOL=[
   {id:'f10', icon:ICONS.flakes, desc:'Feed your fish',          metric:'feeds',       isState:false, target:15, reward:120},
   {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony (sec)',  metric:'harmonySec',  isState:false, target:120, reward:250},
@@ -456,14 +447,10 @@ const ORDER_SLOTS=3;
 let uid=localStorage.getItem('zenUID');
 if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.setItem('zenUID',uid);}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DAILY REWARD AMOUNTS (FIXED - was missing)
-// ─────────────────────────────────────────────────────────────────────────────
+// DAILY REWARD (the fix)
 const DR = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
 
-// ─────────────────────────────────────────────────────────────────────────────
 // MIGRATION & SAVE SYSTEM
-// ─────────────────────────────────────────────────────────────────────────────
 const MASTER_KEY = 'zenAqua_MasterSave';
 const LEGACY_KEYS = [
   'zenAqua_v15_clean', 'zenAqua_v14_master', 'zenAqua_v13_verified', 
@@ -491,13 +478,11 @@ function loadSave(){
   try {
     let r = localStorage.getItem(MASTER_KEY);
     if(r) return JSON.parse(r);
-    
-    // Migration Protocol: Look for old saves if master doesn't exist
     for(let oldKey of LEGACY_KEYS) {
       r = localStorage.getItem(oldKey);
       if(r) {
         const parsed = JSON.parse(r);
-        localStorage.setItem(MASTER_KEY, r); // Port old save into Master Key
+        localStorage.setItem(MASTER_KEY, r);
         return parsed;
       }
     }
@@ -538,7 +523,6 @@ function applyState(s){
   currentOrders=s.currentOrders?.length?s.currentOrders:[];
   if(!currentOrders.length) generateOrders();
   
-  // Verify order objects have startVal (migration safety check)
   for(let o of currentOrders) { if(o.startVal === undefined) o.startVal = getRawMetricValue(o); }
   
   updateHUD();
@@ -604,9 +588,7 @@ function claimDaily(){
   saveGame();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // MARKET
-// ─────────────────────────────────────────────────────────────────────────────
 function tickMarket() {
   for(let k in marketRates) {
     const drift = (Math.random() - 0.5) * 0.08;
@@ -627,7 +609,7 @@ function buildMarket() {
     return (TYPES[b.type].val * marketRates[b.type]) - (TYPES[a.type].val * marketRates[a.type]);
   });
 
-  mlist.innerHTML = sorted.map((f, i) => {
+  mlist.innerHTML = sorted.map((f) => {
     const def = TYPES[f.type];
     const rate = marketRates[f.type] || 1;
     const base = def.cost > 0 ? def.cost * 0.4 : 10; 
@@ -665,9 +647,7 @@ function sellFish(id, price) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ECOSYSTEM & SMOOTHED AI
-// ─────────────────────────────────────────────────────────────────────────────
 function updateEco(){
   const grow=fishList.length*.008,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
@@ -810,9 +790,7 @@ function updateFish(f){
   if(f.y>by){f.y=by;f.vy=-(Math.abs(f.vy)+0.1)*0.9;}
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // VISUALS
-// ─────────────────────────────────────────────────────────────────────────────
 function initDecor(){
   seaweeds=[];
   const n=Math.max(5,Math.floor(W/65));
@@ -994,9 +972,7 @@ function drawFish(f){
   ctx.restore();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // GAME LOOP
-// ─────────────────────────────────────────────────────────────────────────────
 function loop(){
   time++;updateEco();ctx.clearRect(0,0,W,H);
 
@@ -1105,9 +1081,7 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // INPUT & INTERACTION
-// ─────────────────────────────────────────────────────────────────────────────
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
@@ -1196,9 +1170,7 @@ function checkLevel(){
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // TABS, SHOP, AND DECOR
-// ─────────────────────────────────────────────────────────────────────────────
 let currentTab='tank';
 function setTab(t){
   currentTab=t;
@@ -1324,9 +1296,9 @@ function buildShop(){
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+function buildSocial(){} // stub
+
 // BOOT
-// ─────────────────────────────────────────────────────────────────────────────
 initDecor();
 const saved=loadSave();
 if(saved){
@@ -1348,6 +1320,109 @@ if(saved){
 window.addEventListener('beforeunload',saveGame);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
 loop();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDERS FUNCTIONS (full)
+// ─────────────────────────────────────────────────────────────────────────────
+function getRawMetricValue(o) {
+  switch(o.metric){
+    case'feeds':      return sm.feeds || 0;
+    case'harmonySec': return Math.floor(sm.harmonySec || 0);
+    case'cleaned':    return Math.floor(sm.cleaned || 0);
+    case'marketSales':return sm.marketSales || 0;
+    case'hatched':    return sm.hatched || 0;
+    case'fish':       return fishList.filter(f=>f.type===o.ftype).length;
+    default:          return 0;
+  }
+}
+
+function getDifficultyScale() {
+  return 1.0 + (completedOrders * 0.15);
+}
+
+function generateSingleOrder(index) {
+  const scale = getDifficultyScale();
+  const validPool = ORDER_POOL.filter(o => {
+    if(!o.isState) return true;
+    const scaledTarget = Math.ceil(o.target * scale);
+    return getRawMetricValue(o) < scaledTarget; 
+  });
+  const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
+  const template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+  const t = Math.ceil(template.target * scale);
+  const r = Math.ceil(template.reward * scale);
+
+  currentOrders[index] = {
+    id: template.id,
+    icon: template.icon,
+    desc: template.desc,
+    metric: template.metric,
+    ftype: template.ftype,
+    isState: template.isState,
+    target: t,
+    reward: r,
+    startVal: 0,
+    progress: 0,
+    complete: false,
+    claimed: false
+  };
+  if(!template.isState) currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
+}
+
+function generateOrders() {
+  currentOrders = [];
+  for(let i=0; i<ORDER_SLOTS; i++) generateSingleOrder(i);
+}
+
+function orderProg(o) {
+  if(o.claimed) return o.target;
+  const current = getRawMetricValue(o);
+  if(o.isState) return current;
+  return Math.max(0, current - o.startVal);
+}
+
+function tickOrders() {
+  let newDone = false;
+  for(const o of currentOrders){
+    if(o.claimed) continue;
+    o.progress = Math.min(orderProg(o), o.target);
+    if(!o.complete && o.progress >= o.target){ o.complete = true; newDone = true; }
+  }
+  if(newDone){ toast(ICONS.done + ' Order ready!','#10b981'); document.getElementById('nb-orders').classList.add('notify'); }
+}
+
+function claimOrder(i) {
+  const o = currentOrders[i]; if(!o || !o.complete || o.claimed) return;
+  o.claimed = true; 
+  completedOrders++;
+  addCoins(o.reward, W/2, H/3, true);
+  spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
+  generateSingleOrder(i);
+  buildOrders(); 
+  saveGame();
+}
+
+function buildOrders() {
+  const scale = getDifficultyScale();
+  document.getElementById('otimer').textContent = `Difficulty: +${Math.floor((scale - 1) * 100)}%`;
+  document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
+    const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
+      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span></div></div>
+      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
+      <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+' / '+ o.target}</span>
+        <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
+      </div></div>`;
+  }).join('');
+}
+
+// RESET SAVE
+function resetSave(){
+  if(confirm('🗑️ Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
+    localStorage.removeItem(MASTER_KEY);
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>
