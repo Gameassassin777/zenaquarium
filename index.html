@@ -173,7 +173,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="opanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-orders"></span><span style="color:#334155;font-size:10px" id="otimer">--</span></div>
+  <div class="ph"><span class="pt" id="ph-orders"></span><span style="color:#334155;font-size:10px" id="otimer">Difficulty Scale</span></div>
   <div class="pscroll" id="olist"></div>
 </div>
 
@@ -233,7 +233,7 @@ function setupPWA(){
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
   if('serviceWorker' in navigator){
-    const swCode="const V='zen15';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{const f=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);return r||f;})))});";
+    const swCode="const V='zen16_master';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{const f=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);return r||f;})))});";
     try{navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});}catch(_){}
   }
 }
@@ -364,7 +364,7 @@ let time=0,fid=0,algae=0,baseMaxFish=8;
 let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
-let currentOrders=[],lastOrderRefresh=0,completedOrders=0,codesRedeemed=0;
+let currentOrders=[],completedOrders=0,codesRedeemed=0;
 let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0};
 let claimedCodes=new Set();
 let offlinePend=null,pendingDaily=false;
@@ -440,42 +440,169 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SYSTEM CONFIGS (ORDERS)
+// ENDLESS SCALING ORDERS
 // ─────────────────────────────────────────────────────────────────────────────
 const ORDER_POOL=[
-  {id:'f10', icon:ICONS.flakes, desc:'Feed your fish 10 times',   metric:'feeds',             target:10, reward:80},
-  {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony 5 min',    metric:'harmonySec',        target:300,reward:280},
-  {id:'cl20',icon:ICONS.clean,  desc:'Clean 20 algae points',     metric:'cleaned',           target:20, reward:120},
-  {id:'mkt1',icon:ICONS.market, desc:'Sell 2 fish at the Market', metric:'marketSales',       target:2,  reward:400},
-  {id:'br1', icon:ICONS.egg,    desc:'Hatch a baby fish',         metric:'hatched',           target:1,  reward:450},
-  {id:'gu3', icon:ICONS.tank,   desc:'Have 3 Neon Guppies',       metric:'fish',ftype:'guppy',target:3,  reward:150},
+  {id:'f10', icon:ICONS.flakes, desc:'Feed your fish',          metric:'feeds',       isState:false, target:15, reward:120},
+  {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony (sec)',  metric:'harmonySec',  isState:false, target:120, reward:250},
+  {id:'cl20',icon:ICONS.clean,  desc:'Clean algae points',      metric:'cleaned',     isState:false, target:25, reward:150},
+  {id:'mkt1',icon:ICONS.market, desc:'Sell fish at Market',     metric:'marketSales', isState:false, target:2,  reward:350},
+  {id:'br1', icon:ICONS.egg,    desc:'Hatch baby fish',         metric:'hatched',     isState:false, target:1,  reward:400},
+  {id:'gu3', icon:ICONS.tank,   desc:'Own Neon Guppies',        metric:'fish',ftype:'guppy', isState:true, target:3,  reward:150},
+  {id:'cl2', icon:ICONS.tank,   desc:'Own Clownfish',           metric:'fish',ftype:'clown', isState:true, target:2,  reward:280},
 ];
 const ORDER_SLOTS=3;
-const ORDER_REFRESH=4*60*60*1000;
-const DR=[100,150,200,300,500,750,1000]; 
 
 let uid=localStorage.getItem('zenUID');
 if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.setItem('zenUID',uid);}
 
+function getRawMetricValue(o) {
+  switch(o.metric){
+    case'feeds':      return sm.feeds || 0;
+    case'harmonySec': return Math.floor(sm.harmonySec || 0);
+    case'cleaned':    return Math.floor(sm.cleaned || 0);
+    case'marketSales':return sm.marketSales || 0;
+    case'hatched':    return sm.hatched || 0;
+    case'fish':       return fishList.filter(f=>f.type===o.ftype).length;
+    default:          return 0;
+  }
+}
+
+function getDifficultyScale() {
+  return 1.0 + (completedOrders * 0.15); // +15% per order completed
+}
+
+function generateSingleOrder(index) {
+  const scale = getDifficultyScale();
+  
+  // Filter out state-based orders that the player already passively completes based on new scale
+  const validPool = ORDER_POOL.filter(o => {
+    if(!o.isState) return true;
+    const scaledTarget = Math.ceil(o.target * scale);
+    return getRawMetricValue(o) < scaledTarget; 
+  });
+  
+  const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
+  const template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+  
+  const t = Math.ceil(template.target * scale);
+  const r = Math.ceil(template.reward * scale);
+
+  currentOrders[index] = {
+    id: template.id,
+    icon: template.icon,
+    desc: template.desc,
+    metric: template.metric,
+    ftype: template.ftype,
+    isState: template.isState,
+    target: t,
+    reward: r,
+    startVal: 0,
+    progress: 0,
+    complete: false,
+    claimed: false
+  };
+
+  // Snapshot starting values so infinite progress bars start at 0
+  if(!template.isState) {
+    currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
+  }
+}
+
+function generateOrders() {
+  currentOrders = [];
+  for(let i=0; i<ORDER_SLOTS; i++) generateSingleOrder(i);
+}
+
+function orderProg(o) {
+  if(o.claimed) return o.target;
+  const current = getRawMetricValue(o);
+  if(o.isState) return current;
+  return Math.max(0, current - o.startVal);
+}
+
+function tickOrders() {
+  let newDone = false;
+  for(const o of currentOrders){
+    if(o.claimed) continue;
+    o.progress = Math.min(orderProg(o), o.target);
+    if(!o.complete && o.progress >= o.target){ o.complete = true; newDone = true; }
+  }
+  if(newDone){ toast(ICONS.done + ' Order ready!','#10b981'); document.getElementById('nb-orders').classList.add('notify'); }
+}
+
+function claimOrder(i) {
+  const o = currentOrders[i]; if(!o || !o.complete || o.claimed) return;
+  o.claimed = true; 
+  completedOrders++;
+  addCoins(o.reward, W/2, H/3, true);
+  spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
+  
+  // Instantly slide a new, harder order into this slot
+  generateSingleOrder(i);
+  buildOrders(); 
+  saveGame();
+}
+
+function buildOrders() {
+  const scale = getDifficultyScale();
+  document.getElementById('otimer').textContent = `Difficulty: +${Math.floor((scale - 1) * 100)}%`;
+  
+  document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
+    const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
+      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span></div></div>
+      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
+      <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+' / '+ o.target}</span>
+        <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
+      </div></div>`;
+  }).join('');
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
-// SAVE / LOAD / OFFLINE
+// MIGRATION & SAVE SYSTEM
 // ─────────────────────────────────────────────────────────────────────────────
-const SK='zenAqua_v15_clean';
+const MASTER_KEY = 'zenAqua_MasterSave';
+const LEGACY_KEYS = [
+  'zenAqua_v15_clean', 'zenAqua_v14_master', 'zenAqua_v13_verified', 
+  'zenAqua_v12_noemojis', 'zenAqua_v11_customization', 'zenAqua_v10_final', 
+  'zenAqua_v9_polish', 'zenAqua_v8_complete', 'zenAqua_v7_genes', 
+  'zenAqua_v4_market', 'zenAqua_v4'
+];
+
 let saveTimer=0;
 
 function buildSave(){
   return{
-    v:15,ts:Date.now(),coins,totalCoins,playerLevel,algae,
+    v:16,ts:Date.now(),coins,totalCoins,playerLevel,algae,
     dailyStreak,lastDailyTs,completedOrders,codesRedeemed,
     upgrades:Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     fish:fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0})),
-    clams:clams.length,currentOrders,lastOrderRefresh,sm,
+    clams:clams.length,currentOrders,sm,
     claimedCodes:[...claimedCodes], marketRates, curTheme, curFloor, ownedThemes, ownedFloors
   };
 }
 
-function saveGame(){try{localStorage.setItem(SK,JSON.stringify(buildSave()));}catch(_){}}
-function loadSave(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):null;}catch(_){return null;}}
+function saveGame(){try{localStorage.setItem(MASTER_KEY,JSON.stringify(buildSave()));}catch(_){}}
+
+function loadSave(){
+  try {
+    let r = localStorage.getItem(MASTER_KEY);
+    if(r) return JSON.parse(r);
+    
+    // Migration Protocol: Look for old saves if master doesn't exist
+    for(let oldKey of LEGACY_KEYS) {
+      r = localStorage.getItem(oldKey);
+      if(r) {
+        const parsed = JSON.parse(r);
+        localStorage.setItem(MASTER_KEY, r); // Port old save into Master Key
+        return parsed;
+      }
+    }
+    return null;
+  } catch(_) { return null; }
+}
 
 function applyState(s){
   coins=s.coins??100;totalCoins=s.totalCoins??coins;playerLevel=s.playerLevel??1;algae=s.algae??0;
@@ -507,9 +634,12 @@ function applyState(s){
   for(let i=0;i<(s.clams??0);i++)
     clams.push({x:60+Math.random()*(W-120),timer:Math.floor(Math.random()*600)});
   
-  lastOrderRefresh=s.lastOrderRefresh??0;
   currentOrders=s.currentOrders?.length?s.currentOrders:[];
-  if(!currentOrders.length)generateOrders();
+  if(!currentOrders.length) generateOrders();
+  
+  // Verify order objects have startVal (migration safety check)
+  for(let o of currentOrders) { if(o.startVal === undefined) o.startVal = getRawMetricValue(o); }
+  
   updateHUD();
 }
 
@@ -571,92 +701,6 @@ function claimDaily(){
   addCoins(r,W/2,H/3,true);
   document.getElementById('dmodal').classList.remove('show');
   saveGame();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SOCIAL & ORDERS
-// ─────────────────────────────────────────────────────────────────────────────
-function myCode(){
-  const d=new Date(),key=uid+`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  let h=0;for(const c of key)h=((h<<5)-h+c.charCodeAt(0))&0x7FFFFFFF;
-  const ch='ACDEFGHJKLMNPQRUVWXY34679';let code='Z';
-  for(let i=0;i<7;i++){h=(h*1103515245+12345)&0x7FFFFFFF;code+=ch[Math.abs(h)%ch.length];}
-  return code;
-}
-function copyCode(){
-  const c=myCode();
-  try{navigator.clipboard.writeText(c).catch(()=>{});}catch(_){}
-  toast(ICONS.done + ' Code copied!','#10b981');
-}
-function redeemCode(raw){
-  const code=raw.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(code.length<4){toast('Enter a valid code!','#ef4444');return;}
-  if(code===myCode()){toast("Can't redeem your own code!",'#ef4444');return;}
-  if(claimedCodes.has(code)){toast('Already redeemed!','#ef4444');return;}
-  if(code.startsWith('Z')&&code.length===8){
-    claimedCodes.add(code);codesRedeemed++;
-    const r=100+Math.floor(Math.random()*101);
-    addCoins(r,W/2,H/3,true);
-    toast(ICONS.social + ` Gift received! +${r}`,'#10b981');
-    document.getElementById('codein').value='';
-    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${r} coins`;
-    saveGame();buildSocial();
-  }else{toast('Invalid code format!','#ef4444');}
-}
-function buildSocial(){
-  document.getElementById('mycode').textContent=myCode();
-  document.getElementById('sstreak').textContent=dailyStreak+' days';
-  document.getElementById('sorders').textContent=completedOrders;
-  document.getElementById('stotal').textContent=totalCoins.toLocaleString();
-  document.getElementById('scodes').textContent=codesRedeemed;
-}
-
-function generateOrders(){
-  lastOrderRefresh=Date.now();
-  currentOrders=ORDER_POOL.sort(()=>Math.random()-.5).slice(0,ORDER_SLOTS).map(o=>({...o,progress:0,complete:false,claimed:false}));
-}
-function orderProg(o){
-  if(o.claimed)return o.target;
-  switch(o.metric){
-    case'feeds':      return sm.feeds;
-    case'harmonySec': return Math.floor(sm.harmonySec);
-    case'cleaned':    return Math.floor(sm.cleaned);
-    case'marketSales':return sm.marketSales || 0;
-    case'hatched':    return sm.hatched;
-    case'fish':       return fishList.filter(f=>f.type===o.ftype).length;
-    default:          return 0;
-  }
-}
-function tickOrders(){
-  let newDone=false;
-  for(const o of currentOrders){
-    if(o.claimed)continue;
-    o.progress=Math.min(orderProg(o),o.target);
-    if(!o.complete&&o.progress>=o.target){o.complete=true;newDone=true;}
-  }
-  if(newDone){toast(ICONS.done + ' Order ready!','#10b981');document.getElementById('nb-orders').classList.add('notify');}
-  if(Date.now()-lastOrderRefresh>ORDER_REFRESH){generateOrders();toast(ICONS.orders + ' New orders!','var(--ui-accent)');}
-}
-function claimOrder(i){
-  const o=currentOrders[i];if(!o||!o.complete||o.claimed)return;
-  o.claimed=true;completedOrders++;
-  addCoins(o.reward,W/2,H/3,true);
-  spawnJuice(W/2,H/3, ICONS.done + ' DONE!','#10b981',1.4);
-  buildOrders();saveGame();
-}
-function buildOrders(){
-  const rem=Math.max(0,ORDER_REFRESH-(Date.now()-lastOrderRefresh));
-  const hh=Math.floor(rem/3600000),mm=Math.floor((rem%3600000)/60000);
-  document.getElementById('otimer').textContent=`Refreshes ${hh}h ${String(mm).padStart(2,'0')}m`;
-  document.getElementById('olist').innerHTML=currentOrders.map((o,i)=>{
-    const p=o.progress,pct=Math.min(100,(p/o.target)*100),done=o.complete||p>=o.target;
-    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
-      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span></div></div>
-      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
-      <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+'/'+ o.target}</span>
-        <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
-      </div></div>`;
-  }).join('');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
