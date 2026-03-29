@@ -14,11 +14,11 @@
   --ui-accent-rgb: 103, 232, 249;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{overflow:hidden;background:#001428;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{width:100vw;height:100dvh;position:fixed;overflow:hidden;background:#001428;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
 canvas{position:fixed;top:0;left:0;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
-#ui{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:max(14px,env(safe-area-inset-top)) 13px 0;z-index:10;pointer-events:none;gap:7px;}
+#ui{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:max(25px,env(safe-area-inset-top)) 15px 0;z-index:10;pointer-events:none;gap:7px;}
 .dash{background:rgba(0,10,25,.9);border:1px solid rgba(var(--ui-accent-rgb),.2);border-radius:22px;padding:7px 10px;display:flex;gap:10px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 4px 14px rgba(0,0,0,.4);transition:all .3s;}
 .dash.harmony{border-color:#fbbf24;box-shadow:0 0 16px rgba(251,191,36,.3);background:rgba(20,15,0,.9);}
 .stat{display:flex;flex-direction:column;align-items:center;padding:0 6px;border-right:1px solid rgba(255,255,255,.07);}
@@ -34,13 +34,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #modebtn{background:rgba(0,20,50,.9);color:var(--ui-accent);border:1px solid rgba(var(--ui-accent-rgb),.3);}
 #modebtn.cleaning{background:#065f46;color:#fff;border-color:#34d399;}
 
-#combo-ui{position:fixed;top:68px;left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;}
+#combo-ui{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;}
 #combo-ui.on{transform:translateX(-50%) scale(1);opacity:1;}
 .cbar{width:100%;height:3px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
-#seabanner{position:fixed;top:calc(68px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(251,207,232,.92);color:#9d174d;padding:4px 12px;border-radius:12px;font-size:10px;font-weight:700;pointer-events:none;z-index:8;white-space:nowrap;opacity:0;transition:opacity .5s;}
 
-#nav{position:fixed;bottom:0;left:0;right:0;height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
+#nav{position:fixed;bottom:0;left:0;right:0;height:calc(65px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:#334155;font-size:7.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;box-shadow:none;border-radius:0;transition:color .18s;-webkit-tap-highlight-color:transparent;position:relative;padding:6px 0;}
 .nb svg {font-size:18px;}
 .nb.active{color:var(--ui-accent);}
@@ -48,7 +47,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 #sov{position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:20;opacity:0;pointer-events:none;transition:opacity .28s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:#00091a;border-top:1px solid rgba(var(--ui-accent-rgb),.15);border-radius:22px 22px 0 0;padding:18px 14px calc(72px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);height:86vh;display:flex;flex-direction:column;}
+.panel{position:fixed;bottom:0;left:0;right:0;background:#00091a;border-top:1px solid rgba(var(--ui-accent-rgb),.15);border-radius:22px 22px 0 0;padding:18px 14px calc(85px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);height:85dvh;display:flex;flex-direction:column;}
 .panel.open{transform:translateY(0);}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-shrink:0;}
 .pt{color:var(--ui-accent);font-size:18px;font-weight:bold; display:flex; align-items:center; gap:6px;}
@@ -118,10 +117,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 .ft{position:fixed;pointer-events:none;z-index:30;font-weight:900;animation:spk 1.2s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.8); display:flex; align-items:center; gap:4px;}
 @keyframes spk{0%{transform:translateY(0) scale(.5);opacity:0;}15%{transform:translateY(-18px) scale(1.15);opacity:1;}100%{transform:translateY(-62px) scale(.8);opacity:0;}}
-#toast{position:fixed;top:calc(68px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:14px;font-weight:bold;font-size:12px;pointer-events:none;opacity:0;transition:opacity .28s;z-index:55;color:#fff;white-space:nowrap;}
+#toast{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:14px;font-weight:bold;font-size:12px;pointer-events:none;opacity:0;transition:opacity .28s;z-index:55;color:#fff;white-space:nowrap;}
 .trait-icon{display:inline-flex; align-items:center; justify-content:center; width:14px;height:14px;border-radius:50%;font-size:9px;margin-right:4px;background:rgba(0,0,0,0.3); color:#fff;}
 
-/* Subcustomization Swatches */
 .swatch-row { display:flex; gap:10px; justify-content:center; margin: 5px 0 15px 0; }
 .swatch { width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
 .swatch:active { transform:scale(0.8); }
@@ -140,7 +138,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <button class="hbtn" id="modebtn" onclick="toggleMode()"></button>
 </div>
 <div id="combo-ui"><div id="ctxt">Combo x1.0</div><div class="cbar"><div class="cfill" id="cfill"></div></div></div>
-<div id="seabanner"></div>
 
 <nav id="nav">
   <button class="nb active" id="nb-tank"   onclick="setTab('tank')"><span class="ni" id="ic-nav-tank"></span>Tank</button>
@@ -198,9 +195,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div id="soclog" style="color:#334155;font-size:11px;margin-bottom:14px;min-height:18px;"></div>
     <span class="slbl">Lifetime Stats</span>
     <div style="background:rgba(0,18,42,.6);border-radius:11px;padding:10px 12px;">
-      <div class="srow"><span>Daily Streak</span><span id="sstreak" style="color:#fbbf24">0 days 🔥</span></div>
+      <div class="srow"><span>Daily Streak</span><span id="sstreak" style="color:#fbbf24">0 days</span></div>
       <div class="srow"><span>Orders Completed</span><span id="sorders">0</span></div>
-      <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="color:#fbbf24">0🪙</span></div>
+      <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="color:#fbbf24">0</span></div>
       <div class="srow"><span>Codes Redeemed</span><span id="scodes">0</span></div>
     </div>
   </div>
@@ -227,6 +224,21 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="toast"></div>
 
 <script>
+// ─────────────────────────────────────────────────────────────────────────────
+// PWA & UPDATER SETUP
+// ─────────────────────────────────────────────────────────────────────────────
+function setupPWA(){
+  const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
+  const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
+  try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
+  
+  if('serviceWorker' in navigator){
+    const swCode="const V='zen15';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{const f=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);return r||f;})))});";
+    try{navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});}catch(_){}
+  }
+}
+setupPWA();
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG ICON LIBRARY
 // ─────────────────────────────────────────────────────────────────────────────
@@ -297,11 +309,11 @@ document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 // ACCENT COLOR CUSTOMIZATION
 // ─────────────────────────────────────────────────────────────────────────────
 const ACCENTS = [
-  { hex: '#67e8f9', rgb: '103, 232, 249' }, // Cyan
-  { hex: '#f472b6', rgb: '244, 114, 182' }, // Pink
-  { hex: '#fbbf24', rgb: '251, 191, 36'  }, // Amber
-  { hex: '#34d399', rgb: '52, 211, 153'  }, // Emerald
-  { hex: '#a855f7', rgb: '168, 85, 247'  }  // Amethyst
+  { hex: '#67e8f9', rgb: '103, 232, 249' }, 
+  { hex: '#f472b6', rgb: '244, 114, 182' }, 
+  { hex: '#fbbf24', rgb: '251, 191, 36'  }, 
+  { hex: '#34d399', rgb: '52, 211, 153'  }, 
+  { hex: '#a855f7', rgb: '168, 85, 247'  }  
 ];
 
 let curAccent = localStorage.getItem('zenAccent') || 0;
@@ -347,7 +359,7 @@ const FOOD_FL=()=>H-90;
 const SWIM_BOT=()=>H-80;
 
 let playerLevel=1,totalCoins=100,isClean=false;
-let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],seasonParts=[];
+let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
 let time=0,fid=0,algae=0,baseMaxFish=8;
 let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
@@ -428,12 +440,8 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SYSTEM CONFIGS
+// SYSTEM CONFIGS (ORDERS)
 // ─────────────────────────────────────────────────────────────────────────────
-const MO=new Date().getMonth();
-const SEASON=MO>=2&&MO<=4?'spring':MO===9?'halloween':MO===11||MO<=1?'winter':'normal';
-const SEA_MSG={spring:'Spring Festival — Breeding bonus active!',halloween:'Spooky Season — Rare fish more likely!',winter:'Winter Solstice — Snails earn double!'};
-
 const ORDER_POOL=[
   {id:'f10', icon:ICONS.flakes, desc:'Feed your fish 10 times',   metric:'feeds',             target:10, reward:80},
   {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony 5 min',    metric:'harmonySec',        target:300,reward:280},
@@ -452,12 +460,12 @@ if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.s
 // ─────────────────────────────────────────────────────────────────────────────
 // SAVE / LOAD / OFFLINE
 // ─────────────────────────────────────────────────────────────────────────────
-const SK='zenAqua_v13_verified';
+const SK='zenAqua_v15_clean';
 let saveTimer=0;
 
 function buildSave(){
   return{
-    v:13,ts:Date.now(),coins,totalCoins,playerLevel,algae,
+    v:15,ts:Date.now(),coins,totalCoins,playerLevel,algae,
     dailyStreak,lastDailyTs,completedOrders,codesRedeemed,
     upgrades:Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     fish:fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0})),
@@ -716,8 +724,7 @@ function sellFish(id, price) {
 // ECOSYSTEM & SMOOTHED AI
 // ─────────────────────────────────────────────────────────────────────────────
 function updateEco(){
-  const snailBonus=SEASON==='winter'?2:1;
-  const grow=fishList.length*.008,reduce=snails.length*.015*snailBonus+(UPGRADES.filter.owned>0?.08:0);
+  const grow=fishList.length*.008,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
   const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
   isHarmony=algae<15&&allFed;
@@ -769,8 +776,7 @@ function triggerEat(f,fd,def){
   
   const rareMult=f.isRare?2.5:1;
   const bondMult=f.bonded>0?1.5:1; 
-  const seaMult=(SEASON==='halloween'?1.3:1);
-  const total=Math.ceil(def.val*rareMult*(UPGRADES.flakes.owned>0?2:1)*cm*(isHarmony?1.5:1)*(algae>60?.5:1)*bondMult*seaMult);
+  const total=Math.ceil(def.val*rareMult*(UPGRADES.flakes.owned>0?2:1)*cm*(isHarmony?1.5:1)*(algae>60?.5:1)*bondMult);
   addCoins(total,f.x,f.y,isHarmony || f.bonded>0);
 }
 
@@ -868,32 +874,6 @@ function initDecor(){
   for(let i=0;i<n;i++)seaweeds.push({x:(i+.3+Math.random()*.4)*(W/n),segs:6+Math.floor(Math.random()*5),h:70+Math.random()*90,ph:Math.random()*Math.PI*2,hue:130+Math.random()*30,sat:40+Math.random()*30});
 }
 
-function showSeasonBanner(){
-  if(SEASON==='normal')return;
-  const b=document.getElementById('seabanner');
-  b.textContent=SEA_MSG[SEASON]||'';b.style.opacity=1;
-  setTimeout(()=>b.style.opacity=0,5000);
-}
-
-function tickSeasonParts(){
-  if(SEASON==='normal')return;
-  if(Math.random()<.04){
-    if(SEASON==='spring')seasonParts.push({x:Math.random()*W,y:-8,vx:(Math.random()-.5)*1.4,vy:.6+Math.random()*.7,rot:Math.random()*Math.PI*2,rs:(Math.random()-.5)*.04,sz:4+Math.random()*5,c:Math.random()<.6?'#fbcfe8':'#fce7f3'});
-    else if(SEASON==='winter')seasonParts.push({x:Math.random()*W,y:-8,vx:(Math.random()-.5)*.5,vy:.4+Math.random()*.5,rot:0,rs:.02,sz:2+Math.random()*4,c:'#dbeafe'});
-    else if(SEASON==='halloween')seasonParts.push({x:Math.random()*W,y:-8,vx:(Math.random()-.5),vy:.5+Math.random()*.6,rot:0,rs:.03,sz:3+Math.random()*5,c:Math.random()<.5?'#f97316':'#9333ea'});
-  }
-  for(let i=seasonParts.length-1;i>=0;i--){
-    const p=seasonParts[i];p.x+=p.vx+Math.sin(time*.01+i)*.3;p.y+=p.vy;p.rot+=p.rs;
-    if(p.y>H+10){seasonParts.splice(i,1);continue;}
-    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.globalAlpha=.78;
-    if(SEASON==='spring'){ctx.fillStyle=p.c;ctx.beginPath();ctx.ellipse(0,0,p.sz,p.sz*.5,0,0,Math.PI*2);ctx.fill();}
-    else if(SEASON==='winter'){ctx.strokeStyle=p.c;ctx.lineWidth=1.2;for(let a=0;a<6;a++){ctx.save();ctx.rotate(a/6*Math.PI*2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-p.sz);ctx.stroke();ctx.restore();}}
-    else{ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(0,0,p.sz*.6,0,Math.PI*2);ctx.fill();}
-    ctx.restore();
-  }
-  ctx.globalAlpha=1;
-}
-
 function updateSnail(s){
   s.timer++;
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
@@ -902,8 +882,7 @@ function updateSnail(s){
     if(s.y>=H-25){if(s.x<15){s.x=15;s.y-=2;s.wall='left';}else if(s.x>W-15){s.x=W-15;s.y-=2;s.wall='right';}}
     else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-25){s.y=H-25;s.wall='floor';}}
   }
-  const snailEarn=SEASON==='winter'?2:1;
-  if(s.timer%360===0){addCoins(isHarmony?6*snailEarn:3*snailEarn,s.x,s.y-30,isHarmony);}
+  if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
 }
 
 function drawSnail(s){
@@ -1167,8 +1146,6 @@ function loop(){
     ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
   }ctx.globalAlpha=1;
 
-  tickSeasonParts();
-
   fishList.sort((a,b)=>a.scale-b.scale);
   for(const f of fishList){updateFish(f);drawFish(f);}
 
@@ -1319,7 +1296,7 @@ function buildDecor() {
     const c = document.createElement('div');
     c.className = `card ${canBuy||isOwned ? 'buyable' : ''} ${isEquipped ? 'equipped' : ''} ${lk ? 'locked' : ''}`;
     c.setAttribute('data-req', def.req);
-    c.innerHTML = `<span class="ci">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
+    c.innerHTML = `<span class="ci" style="color:${def.c1}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
     
     if(!lk) {
       c.onclick = () => {
@@ -1351,7 +1328,7 @@ function buildDecor() {
     const c = document.createElement('div');
     c.className = `card ${canBuy||isOwned ? 'buyable' : ''} ${isEquipped ? 'equipped' : ''} ${lk ? 'locked' : ''}`;
     c.setAttribute('data-req', def.req);
-    c.innerHTML = `<span class="ci">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
+    c.innerHTML = `<span class="ci" style="color:${def.c}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
     
     if(!lk) {
       c.onclick = () => {
@@ -1423,7 +1400,6 @@ if(saved){
   if(needsDaily())showDailyModal();
 }
 
-showSeasonBanner();
 window.addEventListener('beforeunload',saveGame);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
 loop();
