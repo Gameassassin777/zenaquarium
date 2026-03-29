@@ -14,7 +14,7 @@
   --ui-accent-rgb: 103, 232, 249;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{width:100vw;height:100dvh;position:fixed;overflow:hidden;background:#001428;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
+body{width:100vw;height:100dvh;position:fixed;overflow:hidden;background:#001428;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;padding-bottom:env(safe-area-inset-bottom);}
 canvas{position:fixed;top:0;left:0;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
@@ -39,7 +39,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .cbar{width:100%;height:3px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
 
-#nav{position:fixed;bottom:0;left:0;right:0;height:calc(65px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
+#nav{position:fixed;bottom:0;left:0;right:0;height:65px;padding-bottom:env(safe-area-inset-bottom);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:#334155;font-size:7.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;box-shadow:none;border-radius:0;transition:color .18s;-webkit-tap-highlight-color:transparent;position:relative;padding:6px 0;}
 .nb svg {font-size:18px;}
 .nb.active{color:var(--ui-accent);}
@@ -233,7 +233,7 @@ function setupPWA(){
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
   if('serviceWorker' in navigator){
-    const swCode="const V='zen16_master';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{const f=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);return r||f;})))});";
+    const swCode="const V='zen16_master';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(V).then(c=>c.match(e.request).then(r=>{const f=fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}).catch(()=>r);return r||f;}))});";
     try{navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}))).catch(()=>{});}catch(_){}
   }
 }
@@ -456,109 +456,10 @@ const ORDER_SLOTS=3;
 let uid=localStorage.getItem('zenUID');
 if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.setItem('zenUID',uid);}
 
-function getRawMetricValue(o) {
-  switch(o.metric){
-    case'feeds':      return sm.feeds || 0;
-    case'harmonySec': return Math.floor(sm.harmonySec || 0);
-    case'cleaned':    return Math.floor(sm.cleaned || 0);
-    case'marketSales':return sm.marketSales || 0;
-    case'hatched':    return sm.hatched || 0;
-    case'fish':       return fishList.filter(f=>f.type===o.ftype).length;
-    default:          return 0;
-  }
-}
-
-function getDifficultyScale() {
-  return 1.0 + (completedOrders * 0.15); // +15% per order completed
-}
-
-function generateSingleOrder(index) {
-  const scale = getDifficultyScale();
-  
-  // Filter out state-based orders that the player already passively completes based on new scale
-  const validPool = ORDER_POOL.filter(o => {
-    if(!o.isState) return true;
-    const scaledTarget = Math.ceil(o.target * scale);
-    return getRawMetricValue(o) < scaledTarget; 
-  });
-  
-  const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
-  const template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
-  
-  const t = Math.ceil(template.target * scale);
-  const r = Math.ceil(template.reward * scale);
-
-  currentOrders[index] = {
-    id: template.id,
-    icon: template.icon,
-    desc: template.desc,
-    metric: template.metric,
-    ftype: template.ftype,
-    isState: template.isState,
-    target: t,
-    reward: r,
-    startVal: 0,
-    progress: 0,
-    complete: false,
-    claimed: false
-  };
-
-  // Snapshot starting values so infinite progress bars start at 0
-  if(!template.isState) {
-    currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
-  }
-}
-
-function generateOrders() {
-  currentOrders = [];
-  for(let i=0; i<ORDER_SLOTS; i++) generateSingleOrder(i);
-}
-
-function orderProg(o) {
-  if(o.claimed) return o.target;
-  const current = getRawMetricValue(o);
-  if(o.isState) return current;
-  return Math.max(0, current - o.startVal);
-}
-
-function tickOrders() {
-  let newDone = false;
-  for(const o of currentOrders){
-    if(o.claimed) continue;
-    o.progress = Math.min(orderProg(o), o.target);
-    if(!o.complete && o.progress >= o.target){ o.complete = true; newDone = true; }
-  }
-  if(newDone){ toast(ICONS.done + ' Order ready!','#10b981'); document.getElementById('nb-orders').classList.add('notify'); }
-}
-
-function claimOrder(i) {
-  const o = currentOrders[i]; if(!o || !o.complete || o.claimed) return;
-  o.claimed = true; 
-  completedOrders++;
-  addCoins(o.reward, W/2, H/3, true);
-  spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
-  
-  // Instantly slide a new, harder order into this slot
-  generateSingleOrder(i);
-  buildOrders(); 
-  saveGame();
-}
-
-function buildOrders() {
-  const scale = getDifficultyScale();
-  document.getElementById('otimer').textContent = `Difficulty: +${Math.floor((scale - 1) * 100)}%`;
-  
-  document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
-    const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
-    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
-      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span></div></div>
-      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
-      <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+' / '+ o.target}</span>
-        <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
-      </div></div>`;
-  }).join('');
-}
-
+// ─────────────────────────────────────────────────────────────────────────────
+// DAILY REWARD AMOUNTS (FIXED - was missing)
+// ─────────────────────────────────────────────────────────────────────────────
+const DR = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MIGRATION & SAVE SYSTEM
