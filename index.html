@@ -53,14 +53,14 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #sov{position:fixed;inset:0;background:rgba(0,0,0,0.04);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
 .panel{position:fixed;bottom:0;left:0;right:0;background:rgba(10,18,32,0.88);border-top:1px solid rgba(255,255,255,0.15);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -5px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);will-change:transform;}
-.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px;}
+.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
-.panel.open{transform:translateY(32%);pointer-events:auto;}
+.panel.open{transform:translateY(50%);pointer-events:auto;}
 .panel.full{transform:translateY(0);pointer-events:auto;}
 .panel.dragging{transition:none;}
-.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
-.pscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:calc(80px + env(safe-area-inset-bottom, 0px));}
+
 .xbtn{background:none;border:none;color:#4b5563;font-size:21px;cursor:pointer;box-shadow:none;padding:0;line-height:1;}
 
 .sechead{color:var(--ui-accent);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;margin:20px 0 10px;text-shadow:0 0 10px rgba(103,232,249,.4);}
@@ -1489,69 +1489,53 @@ function closeAll(){
   currentTab='tank';
 }
 
-let py=0, pstartY=0, pstartPos=0, pdragging=null, plastTime=0, pV=0, pisHeader=false;
-document.querySelectorAll('.panel').forEach(p=>{
-  p.addEventListener('touchstart', e=>{
-    pisHeader = !!e.target.closest('.ph');
-    const sc = p.querySelector('.pscroll');
-    if(!pisHeader && sc && sc.scrollTop > 5) return;
-    pdragging = p;
-    pstartY = e.touches[0].clientY;
-    pstartPos = p.getBoundingClientRect().top - (window.innerHeight - p.offsetHeight);
+// ─── PANEL DRAG SYSTEM ────────────────────────────────────────────────────────
+// Only the .ph header handle triggers panel drag. Content area = pure native scroll.
+const HALF_PCT = 50;
+let _dp=null,_dSY=0,_dS0=0,_dLY=0,_dLT=0,_dVel=0,_dCur=0;
+
+function _pSetPct(p,pct){
+  pct=Math.max(-4,Math.min(105,pct)); _dCur=pct;
+  p.style.transform=`translateY(${pct}%)`;
+  document.getElementById('sov').style.opacity=Math.max(0,Math.min(1,(1-pct/100)*0.7));
+}
+function _pSnap(p){
+  p.classList.remove('dragging');
+  p.style.transform='';
+  document.getElementById('sov').style.opacity='';
+  const pct=_dCur, v=_dVel;
+  if(v>0.5){       if(pct<35){p.classList.remove('full');p.classList.add('open');}else closeAll(); }
+  else if(v<-0.5){ p.classList.add('full','open'); }
+  else if(pct<25){ p.classList.add('full','open'); }
+  else if(pct<70){ p.classList.remove('full');p.classList.add('open'); }
+  else{            closeAll(); }
+  _dp=null;
+}
+
+document.querySelectorAll('.ph').forEach(ph=>{
+  ph.addEventListener('touchstart',e=>{
+    const p=ph.closest('.panel');
+    if(!p||!p.classList.contains('open'))return;
+    _dp=p; _dSY=e.touches[0].clientY;
+    _dS0=p.classList.contains('full')?0:HALF_PCT;
+    _dCur=_dS0; _dLY=_dSY; _dLT=Date.now(); _dVel=0;
     p.classList.add('dragging');
-    plastTime = Date.now();
-    pV = 0;
-  }, {passive:true});
+  },{passive:true});
 });
 
-window.addEventListener('touchmove', e=>{
-  if(!pdragging) return;
-  const y = e.touches[0].clientY;
-  const dy = y - pstartY;
-  
-  if(!pisHeader){
-    const sc = pdragging.querySelector('.pscroll');
-    if(dy < 0) { pdragging=null; return; } // NEVER expand via list touch
-    if(sc && sc.scrollTop > 1) { pdragging=null; return; } // Allow list scrolling
-  }
-  
-  if(e.cancelable) e.preventDefault();
-  const h = pdragging.offsetHeight;
-  let newY = pstartPos + dy;
-  if(newY < 0) newY = newY * 0.3; // Rubber band top
-  pdragging.style.transform = `translateY(${newY}px)`;
-  
-  const progress = 1 - (newY / h);
-  document.getElementById('sov').style.opacity = Math.max(0, Math.min(1, progress * 0.7));
-  
-  const now = Date.now();
-  const dt = now - plastTime;
-  if(dt > 0) pV = (y - pstartY) / dt;
-  plastTime = now;
-}, {passive:false});
+window.addEventListener('touchmove',e=>{
+  if(!_dp)return;
+  if(e.cancelable)e.preventDefault();
+  const y=e.touches[0].clientY;
+  const pct=_dS0+((y-_dSY)/_dp.offsetHeight)*100;
+  _pSetPct(_dp,pct);
+  const now=Date.now(),dt=now-_dLT;
+  if(dt>0)_dVel=(y-_dLY)/dt;
+  _dLY=y; _dLT=now;
+},{passive:false});
 
-window.addEventListener('touchend', e=>{
-  if(!pdragging) return;
-  pdragging.classList.remove('dragging');
-  const h = pdragging.offsetHeight;
-  const rect = pdragging.getBoundingClientRect();
-  const pos = rect.top - (window.innerHeight - h);
-  const mid = h * 0.32;
-  
-  pdragging.style.transform = '';
-  
-  if(pV > 0.6) { // Swipe down
-    if(pos < mid * 0.6) { pdragging.classList.add('open'); pdragging.classList.remove('full'); }
-    else closeAll();
-  } else if(pV < -0.6) { // Swipe up
-    pdragging.classList.add('full','open');
-  } else { // Release
-    if(pos < mid * 0.5) pdragging.classList.add('full','open');
-    else if(pos < h * 0.75) { pdragging.classList.add('open'); pdragging.classList.remove('full'); }
-    else closeAll();
-  }
-  pdragging = null;
-});
+window.addEventListener('touchend',()=>{ if(_dp)_pSnap(_dp); });
+window.addEventListener('touchcancel',()=>{ if(_dp)_pSnap(_dp); });
 
 // ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
 const TYPE_MAP  = ['guppy','clown','angel','betta','puffer','koi'];
