@@ -395,8 +395,8 @@ function resize(){
 resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
 
-const FOOD_FL=()=>H-15;
-const SWIM_BOT=()=>H-30;
+const FOOD_FL=()=>H-85;
+const SWIM_BOT=()=>H-100;
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
@@ -441,7 +441,7 @@ const UPGRADES={
 };
 
 const THEMES={
-  default:  {name:'Midnight Ocean',   icon:ICONS.ocean,   cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
+  default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
   reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#0284c7', c2:'#0369a1', c3:'#082f49', req:3},
   sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#be185d', c2:'#831843', c3:'#4c0519', req:5},
   abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
@@ -616,7 +616,7 @@ function applyState(s){
   }
   
   for(let i=0;i<UPGRADES.snail.owned;i++)
-    snails.push({x:100+Math.random()*(W-200),y:H-15,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+    snails.push({x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
   for(let i=0;i<(s.clams??0);i++)
     clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
   
@@ -847,7 +847,7 @@ function updateFish(f){
       const childGenes = mendelianCross(f.genes, mate.genes, def);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
-      eggs.push({x:(f.x+mate.x)/2,y:H-15,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      eggs.push({x:(f.x+mate.x)/2,y:H-85,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -917,8 +917,8 @@ function updateSnail(s){
     s.x+=s.spd*s.dir;s.ph+=.08;
     if(s.x<20)s.x=20;
     if(s.x>W-20)s.x=W-20;
-    if(s.y>=H-15){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
-    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-90){s.y=H-90;s.dir*=-1;}if(s.y>=H-15){s.y=H-15;s.wall='floor';}}
+    if(s.y>=H-85){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
+    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-90){s.y=H-90;s.dir*=-1;}if(s.y>=H-85){s.y=H-85;s.wall='floor';}}
   }
   if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
 }
@@ -1217,7 +1217,12 @@ function drawFish(f){
 function loop(){
   time++;updateEco();ctx.clearRect(0,0,W,H);
 
-  const theme = THEMES[curTheme];
+  let theme = THEMES[curTheme] || THEMES['default'];
+  if(curTheme === 'default') {
+    const hr = new Date().getHours();
+    const isDay = hr >= 7 && hr < 19;
+    if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
+  }
   const g=ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0, theme.c1);
   g.addColorStop(.5, theme.c2);
@@ -1253,7 +1258,7 @@ function loop(){
   for(const f of fishList) {
     const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
     ctx.beginPath();
-    ctx.ellipse(f.x, H-10, s*1.2, s*0.4, 0, 0, Math.PI*2);
+    ctx.ellipse(f.x, H-80, s*1.2, s*0.4, 0, 0, Math.PI*2);
     ctx.fill();
   }
 
@@ -1279,7 +1284,7 @@ function loop(){
   for(const s of snails){updateSnail(s);drawSnail(s);}
 
   for(const c of clams){
-    c.timer++;ctx.save();ctx.translate(c.x,H-5);
+    c.timer++;ctx.save();ctx.translate(c.x,H-75);
     ctx.scale(1,1+Math.sin(c.timer*.02)*.05);
     ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,10,15,5,0,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.arc(0,0,18,Math.PI,0);ctx.fillStyle='#64748b';ctx.fill();
@@ -1287,7 +1292,7 @@ function loop(){
       ctx.beginPath();ctx.arc(0,-10,4,0,Math.PI*2);ctx.fillStyle='#f8fafc';ctx.shadowBlur=10;ctx.shadowColor='#fff';ctx.fill();ctx.shadowBlur=0;
     }
     ctx.rotate(-Math.max(0,Math.sin(c.timer*.02))*.5);ctx.beginPath();ctx.arc(0,0,19,Math.PI,0);ctx.fillStyle='#94a3b8';ctx.fill();ctx.restore();
-    if(c.timer%1200===0){addCoins(150,c.x,H-30,true);spawnJuice(c.x,H-50, ICONS.star + ' PEARL!','#f8fafc',1.5);}
+    if(c.timer%1200===0){addCoins(150,c.x,H-100,true);spawnJuice(c.x,H-750, ICONS.star + ' PEARL!','#f8fafc',1.5);}
   }
 
   for(let i=bubbles.length-1;i>=0;i--){
@@ -1323,8 +1328,8 @@ function loop(){
   for(const f of fishList){updateFish(f);drawFish(f);}
 
   ctx.fillStyle = FLOORS[curFloor].c;
-  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-15);
-  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-15+Math.sin(i*.05)*5);
+  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-85);
+  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-85+Math.sin(i*.05)*5);
   ctx.lineTo(W,H+5);ctx.fill();
 
   saveTimer++;
@@ -1337,7 +1342,7 @@ function loop(){
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
-    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-15))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
   }
 }
 
@@ -1428,7 +1433,7 @@ function setTab(t){
   currentTab=t;
   ['market','decor','orders','shop','social'].forEach(id=>{
     document.getElementById('nb-'+id).classList.toggle('active',id===t);
-    const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id]??'');
+    const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id] || '');
     if(el) el.classList.toggle('open',id===t);
   });
   document.getElementById('sov').classList.toggle('open',t!=='tank');
@@ -1591,7 +1596,7 @@ function buildShop(){
     c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
-      if(id==='snail')snails.push({x:W/2,y:H-15,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+      if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
@@ -1608,7 +1613,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
       const g = generateRandomGenes(type);
-      eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
@@ -1644,7 +1649,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -1726,26 +1731,39 @@ function importSaveClick() {
 }
 
 // BOOT
-initDecor();
-const saved=loadSave();
-if(saved){
-  const offline=calcOffline(saved);
-  applyState(saved);
-  if(offline&&offline.total>0){
-    if(needsDaily()){pendingDaily=true;showWelcome(offline);}
-    else showWelcome(offline);
-  }else if(needsDaily()){
-    showDailyModal();
+try {
+  initDecor();
+  const saved=loadSave();
+  if(saved){
+    const offline=calcOffline(saved);
+    applyState(saved);
+    if(offline&&offline.total>0){
+      if(needsDaily()){pendingDaily=true;showWelcome(offline);}
+      else showWelcome(offline);
+    }else if(needsDaily()){
+      showDailyModal();
+    }
+  }else{
+    const def=TYPES['guppy'];
+    for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?1:-1,vy:0,phase:0,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:5000,scale:1,bonded:0,bcd:0,genes:generateRandomGenes('guppy'),isRare:false});
+    updateHUD();
+    if(needsDaily())showDailyModal();
   }
-}else{
-  const def=TYPES['guppy'];
-  for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?1:-1,vy:0,phase:0,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:5000,scale:1,bonded:0,bcd:0,genes:generateRandomGenes('guppy'),isRare:false});
-  updateHUD();
-  if(needsDaily())showDailyModal();
-}
-applyBorder();
+  applyBorder();
 
-window.addEventListener('beforeunload',saveGame);
+  window.addEventListener('beforeunload',saveGame);
+  requestAnimationFrame(function t(ts){
+    if(!lt)lt=ts;
+    const dt=ts-lt;
+    if(dt>16){lt=ts-dt%16;loop();}
+    requestAnimationFrame(t);
+  });
+} catch (crashError) {
+  const errBox = document.createElement('div');
+  errBox.style.cssText = 'position:fixed;inset:0;background:black;color:red;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
+  errBox.innerHTML = '<h2>CRASH DETECTED</h2>' + crashError.message + '<br><br>' + crashError.stack;
+  document.body.appendChild(errBox);
+}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
 loop();
 
@@ -1843,7 +1861,7 @@ function claimOrder(i) {
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
