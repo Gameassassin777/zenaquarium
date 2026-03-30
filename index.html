@@ -39,7 +39,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .cbar{width:100%;height:3px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
 
-#nav{position:fixed;bottom:0;left:0;right:0;height:65px;padding-bottom:env(safe-area-inset-bottom);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
+#nav{position:fixed;bottom:0;left:0;right:0;height:calc(65px + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(0,5,16,.97);border-top:1px solid rgba(var(--ui-accent-rgb),.1);display:flex;z-index:25;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
+/* extend nav bg colour behind home indicator on all iPhones */
+#nav::after{content:'';position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0px);background:rgba(0,5,16,.97);z-index:26;pointer-events:none;}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:#334155;font-size:7.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;box-shadow:none;border-radius:0;transition:color .18s;-webkit-tap-highlight-color:transparent;position:relative;padding:6px 0;}
 .nb svg {font-size:18px;}
 .nb.active{color:var(--ui-accent);}
@@ -126,6 +128,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .swatch { width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
 .swatch:active { transform:scale(0.8); }
 .swatch.active { border-color:#fff; box-shadow:0 0 10px currentColor; }
+.srow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;color:#94a3b8;font-size:12px;}
+.gift-fish-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(0,20,48,.55);border-radius:9px;margin-bottom:6px;}
+.gift-fish-row span{color:#e2e8f0;font-size:12px;display:flex;align-items:center;gap:6px;}
+.giftbtn{background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:9px;padding:5px 12px;font-weight:bold;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 </style>
 </head>
 <body>
@@ -163,6 +169,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div class="swatch-row" id="swatches"></div>
     <div class="sechead">Water Themes</div><div class="cards" id="tcards"></div>
     <div class="sechead">Substrates</div><div class="cards" id="scards"></div>
+    <div class="sechead">Bubble Styles</div><div class="cards" id="bcards"></div>
+    <div class="sechead">Tank Border</div><div class="cards" id="brcards"></div>
   </div>
 </div>
 
@@ -189,12 +197,19 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <span class="chint">Changes daily at midnight</span><br>
       <button class="copybtn" onclick="copyCode()">Copy Code</button>
     </div>
-    <span class="slbl">Redeem a Friend's Code</span>
+    <span class="slbl">Redeem a Code</span>
     <div class="irow">
-      <input class="cinput" id="codein" type="text" placeholder="ZXXXXXXX" maxlength="10">
+      <input class="cinput" id="codein" type="text" placeholder="ZXXXXXXX or FISHXXXXX" maxlength="12">
       <button class="rbtn" onclick="redeemCode(document.getElementById('codein').value)">Claim</button>
     </div>
     <div id="soclog" style="color:#334155;font-size:11px;margin-bottom:14px;min-height:18px;"></div>
+    <span class="slbl">Gift a Fish</span>
+    <div id="gift-code-box" class="codebox" style="display:none;margin-bottom:10px;">
+      <span style="color:#334155;font-size:11px">Send this code to a friend!</span>
+      <span class="cbig" id="gift-code-val">---------</span>
+      <button class="copybtn" onclick="copyGiftCode()">Copy Code</button>
+    </div>
+    <div id="gift-list" style="margin-bottom:14px;"></div>
     <span class="slbl">Lifetime Stats</span>
     <div style="background:rgba(0,18,42,.6);border-radius:11px;padding:10px 12px;">
       <div class="srow"><span>Daily Streak</span><span id="sstreak" style="color:#fbbf24">0 days</span></div>
@@ -202,8 +217,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="color:#fbbf24">0</span></div>
       <div class="srow"><span>Codes Redeemed</span><span id="scodes">0</span></div>
     </div>
-
-    <!-- DEVELOPMENT TOOLS -->
     <div class="sechead">Development Tools</div>
     <button onclick="resetSave()" class="resetbtn">Reset Save (Development)</button>
     <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
@@ -313,7 +326,7 @@ const ACCENTS = [
   { hex: '#a855f7', rgb: '168, 85, 247'  }  
 ];
 
-let curAccent = localStorage.getItem('zenAccent') || 0;
+let curAccent = parseInt(localStorage.getItem('zenAccent') || '0');
 
 function setAccent(idx) {
   curAccent = idx;
@@ -364,8 +377,8 @@ let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0};
 let claimedCodes=new Set();
 let offlinePend=null,pendingDaily=false;
 
-let curTheme='default', curFloor='default';
-let ownedThemes=['default'], ownedFloors=['default'];
+let curTheme='default', curFloor='default', curBubble='default', curBorder='none';
+let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], ownedBorders=['none'];
 
 // DEFINITIONS & GENETICS
 const TYPES={
@@ -388,17 +401,41 @@ const UPGRADES={
 };
 
 const THEMES={
-  default: {name:'Midnight Ocean', icon:ICONS.ocean,  cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
-  reef:    {name:'Tropical Reef',  icon:ICONS.reef,   cost:5000,  c1:'#0284c7', c2:'#0369a1', c3:'#082f49', req:3},
-  sunset:  {name:'Sunset Bay',     icon:ICONS.sunset, cost:15000, c1:'#be185d', c2:'#831843', c3:'#4c0519', req:5},
-  abyss:   {name:'Abyssal Trench', icon:ICONS.abyss,  cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6}
+  default:  {name:'Midnight Ocean',   icon:ICONS.ocean,   cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
+  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#0284c7', c2:'#0369a1', c3:'#082f49', req:3},
+  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#be185d', c2:'#831843', c3:'#4c0519', req:5},
+  abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
+  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000, c1:'#065f46', c2:'#1e3a5f', c3:'#0f172a', req:4},
+  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000, c1:'#7c2d12', c2:'#450a0a', c3:'#1c0202', req:5},
+  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000, c1:'#0c0a1e', c2:'#0a1628', c3:'#050310', req:6},
+  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000, c1:'#4a1942', c2:'#2d0f2b', c3:'#150810', req:6}
 };
 
 const FLOORS={
-  default: {name:'Dark Slate',     icon:ICONS.nest,   cost:0,     c:'#0c1529', req:1},
-  sand:    {name:'White Sand',     icon:ICONS.sand,   cost:3000,  c:'#fef08a', req:3},
-  gravel:  {name:'Volcanic Rock',  icon:ICONS.volcano,cost:10000, c:'#3f3f46', req:4},
-  crystal: {name:'Amethyst Geode', icon:ICONS.crystal,cost:25000, c:'#7e22ce', req:6}
+  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'#0c1529', req:1},
+  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'#fef08a', req:3},
+  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'#3f3f46', req:4},
+  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'#7e22ce', req:6},
+  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'#f97316', req:3},
+  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'#1c1917', req:5},
+  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'#92400e', req:6},
+  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'#bfdbfe', req:4}
+};
+
+const BUBBLES={
+  default:  {name:'Classic',    icon:ICONS.drop,   cost:0,     col:'rgba(255,255,255,{a})', req:1},
+  gold:     {name:'Golden',     icon:ICONS.coin,   cost:5000,  col:'rgba(251,191,36,{a})',  req:3},
+  pink:     {name:'Rose',       icon:ICONS.social, cost:8000,  col:'rgba(244,114,182,{a})', req:4},
+  green:    {name:'Emerald',    icon:ICONS.reef,   cost:10000, col:'rgba(52,211,153,{a})',  req:4},
+  rainbow:  {name:'Rainbow',    icon:ICONS.star,   cost:25000, col:'rainbow',               req:6}
+};
+
+const BORDERS={
+  none:     {name:'None',       icon:ICONS.abyss,   cost:0,     style:'none',         req:1},
+  glow:     {name:'Neon Glow',  icon:ICONS.star,    cost:6000,  style:'glow',         req:3},
+  coral:    {name:'Coral Reef', icon:ICONS.reef,    cost:12000, style:'coral',        req:4},
+  gold:     {name:'Gold Frame', icon:ICONS.coin,    cost:20000, style:'gold',         req:5},
+  pulse:    {name:'Pulse',      icon:ICONS.active,  cost:30000, style:'pulse',        req:6}
 };
 
 const TRAITS = ['greedy', 'shy', 'lazy', 'active'];
@@ -468,7 +505,9 @@ function buildSave(){
     upgrades:Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     fish:fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0})),
     clams:clams.length,currentOrders,sm,
-    claimedCodes:[...claimedCodes], marketRates, curTheme, curFloor, ownedThemes, ownedFloors
+    claimedCodes:[...claimedCodes], marketRates,
+    curTheme, curFloor, curBubble, curBorder,
+    ownedThemes, ownedFloors, ownedBubbles, ownedBorders
   };
 }
 
@@ -500,8 +539,12 @@ function applyState(s){
 
   curTheme = s.curTheme || 'default';
   curFloor = s.curFloor || 'default';
+  curBubble = s.curBubble || 'default';
+  curBorder = s.curBorder || 'none';
   ownedThemes = s.ownedThemes || ['default'];
   ownedFloors = s.ownedFloors || ['default'];
+  ownedBubbles = s.ownedBubbles || ['default'];
+  ownedBorders = s.ownedBorders || ['none'];
   
   for(const[k,v] of Object.entries(s.upgrades??{}))if(UPGRADES[k])UPGRADES[k].owned=v;
   
@@ -518,7 +561,7 @@ function applyState(s){
   for(let i=0;i<UPGRADES.snail.owned;i++)
     snails.push({x:100+Math.random()*(W-200),y:H-25,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
   for(let i=0;i<(s.clams??0);i++)
-    clams.push({x:60+Math.random()*(W-120),timer:Math.floor(Math.random()*600)});
+    clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
   
   currentOrders=s.currentOrders?.length?s.currentOrders:[];
   if(!currentOrders.length) generateOrders();
@@ -688,7 +731,6 @@ function updateEco(){
 
   if(time%300===0) tickOrders();
   if(time%1200===0) tickMarket();
-  if(time%1800===0) saveGame();
 }
 
 function triggerEat(f,fd,def){
@@ -1197,71 +1239,107 @@ function closeAll(){
   currentTab='tank';
 }
 
+// ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
+const TYPE_MAP  = ['guppy','clown','angel','betta','puffer','koi'];
+const TRAIT_MAP = ['greedy','shy','lazy','active'];
+
+function encodeFish(f) {
+  const ti = TYPE_MAP.indexOf(f.type);
+  const t1 = TRAIT_MAP.indexOf(f.genes.trait[0]);
+  const t2 = TRAIT_MAP.indexOf(f.genes.trait[1]);
+  const r  = f.isRare ? 1 : 0;
+  const raw = `${ti}${t1}${t2}${r}`;
+  let sum = raw.split('').reduce((a,c)=>a+parseInt(c),0);
+  const check = (sum % 36).toString(36).toUpperCase();
+  return `FISH${raw}${check}`;
+}
+
+function decodeFish(code) {
+  if(!code.startsWith('FISH') || code.length !== 9) return null;
+  const raw = code.slice(4,8), check = code[8];
+  if(!/^[0-9]+$/.test(raw)) return null;
+  let sum = raw.split('').reduce((a,c)=>a+parseInt(c),0);
+  if((sum%36).toString(36).toUpperCase() !== check) return null;
+  const type  = TYPE_MAP[parseInt(raw[0])];
+  const t1    = TRAIT_MAP[parseInt(raw[1])];
+  const t2    = TRAIT_MAP[parseInt(raw[2])];
+  const isRare = raw[3] === '1';
+  if(!type||!t1||!t2) return null;
+  return {type, t1, t2, isRare};
+}
+
+let lastGiftCode = '';
+function giftFish(id) {
+  const idx = fishList.findIndex(f=>f.id===id);
+  if(idx < 0) return;
+  const f = fishList[idx];
+  const code = encodeFish(f);
+  lastGiftCode = code;
+  fishList.splice(idx, 1);
+  updateHUD();
+  document.getElementById('gift-code-val').textContent = code;
+  document.getElementById('gift-code-box').style.display = 'block';
+  toast(ICONS.social + ' Fish gifted! Share the code.', '#10b981');
+  buildSocial(); saveGame();
+}
+function copyGiftCode() {
+  try { navigator.clipboard.writeText(lastGiftCode).catch(()=>{}); } catch(_) {}
+  toast(ICONS.done + ' Gift code copied!', '#10b981');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip) {
+  const canBuy = !isOwned && !lk && coins >= def.cost;
+  let btnHtml = '';
+  if(isEquipped) btnHtml = `<span class="cpr" style="color:var(--ui-accent)">${ICONS.done} EQUIPPED</span>`;
+  else if(isOwned) btnHtml = `<span class="cpr" style="color:#10b981">OWNED</span>`;
+  else btnHtml = `<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`;
+  const c = document.createElement('div');
+  c.className = `card ${(canBuy||isOwned)?'buyable':''} ${isEquipped?'equipped':''} ${lk?'locked':''}`;
+  c.setAttribute('data-req', def.req);
+  c.innerHTML = `<span class="ci" style="color:${colorVal}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
+  if(!lk) c.onclick = () => {
+    if(isEquipped) return;
+    if(isOwned) { onEquip(); spawnJuice(W/2,H/2,ICONS.done+' Equipped!','var(--ui-accent)',1.4); }
+    else if(canBuy) { coins-=def.cost; document.getElementById('cv').textContent=coins; onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
+    buildDecor(); saveGame();
+  };
+  return c;
+}
+
 function buildDecor() {
   const tc = document.getElementById('tcards'); tc.innerHTML = '';
-  for(const [id, def] of Object.entries(THEMES)) {
-    const isOwned = ownedThemes.includes(id);
-    const isEquipped = curTheme === id;
-    const lk = playerLevel < def.req;
-    const canBuy = !isOwned && !lk && coins >= def.cost;
-    
-    let btnHtml = '';
-    if(isEquipped) btnHtml = `<span class="cpr" style="color:var(--ui-accent)">${ICONS.done} EQUIPPED</span>`;
-    else if(isOwned) btnHtml = `<span class="cpr" style="color:#10b981">OWNED (Tap to Equip)</span>`;
-    else btnHtml = `<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`;
-
-    const c = document.createElement('div');
-    c.className = `card ${canBuy||isOwned ? 'buyable' : ''} ${isEquipped ? 'equipped' : ''} ${lk ? 'locked' : ''}`;
-    c.setAttribute('data-req', def.req);
-    c.innerHTML = `<span class="ci" style="color:${def.c1}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
-    
-    if(!lk) {
-      c.onclick = () => {
-        if(isEquipped) return;
-        if(isOwned) { curTheme = id; spawnJuice(W/2,H/2, ICONS.done + ' Equipped!','var(--ui-accent)',1.4); }
-        else if(canBuy) {
-          coins -= def.cost; document.getElementById('cv').textContent = coins;
-          ownedThemes.push(id); curTheme = id;
-          spawnJuice(W/2,H/2, ICONS.lock + ' Unlocked!','#10b981',1.4);
-        }
-        buildDecor(); saveGame();
-      };
-    }
-    tc.appendChild(c);
-  }
+  for(const [id,def] of Object.entries(THEMES))
+    tc.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
+      ()=>{ ownedThemes.push(id); curTheme=id; }, ()=>{ curTheme=id; }));
 
   const sc = document.getElementById('scards'); sc.innerHTML = '';
-  for(const [id, def] of Object.entries(FLOORS)) {
-    const isOwned = ownedFloors.includes(id);
-    const isEquipped = curFloor === id;
-    const lk = playerLevel < def.req;
-    const canBuy = !isOwned && !lk && coins >= def.cost;
-    
-    let btnHtml = '';
-    if(isEquipped) btnHtml = `<span class="cpr" style="color:var(--ui-accent)">${ICONS.done} EQUIPPED</span>`;
-    else if(isOwned) btnHtml = `<span class="cpr" style="color:#10b981">OWNED (Tap to Equip)</span>`;
-    else btnHtml = `<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`;
+  for(const [id,def] of Object.entries(FLOORS))
+    sc.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
+      ()=>{ ownedFloors.push(id); curFloor=id; }, ()=>{ curFloor=id; }));
 
-    const c = document.createElement('div');
-    c.className = `card ${canBuy||isOwned ? 'buyable' : ''} ${isEquipped ? 'equipped' : ''} ${lk ? 'locked' : ''}`;
-    c.setAttribute('data-req', def.req);
-    c.innerHTML = `<span class="ci" style="color:${def.c}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
-    
-    if(!lk) {
-      c.onclick = () => {
-        if(isEquipped) return;
-        if(isOwned) { curFloor = id; spawnJuice(W/2,H/2, ICONS.done + ' Equipped!','var(--ui-accent)',1.4); }
-        else if(canBuy) {
-          coins -= def.cost; document.getElementById('cv').textContent = coins;
-          ownedFloors.push(id); curFloor = id;
-          spawnJuice(W/2,H/2, ICONS.lock + ' Unlocked!','#10b981',1.4);
-        }
-        buildDecor(); saveGame();
-      };
-    }
-    sc.appendChild(c);
-  }
+  const bc = document.getElementById('bcards'); bc.innerHTML = '';
+  for(const [id,def] of Object.entries(BUBBLES))
+    bc.appendChild(makeCosmCard(id,def,ownedBubbles.includes(id),curBubble===id,playerLevel<def.req,'var(--ui-accent)',
+      ()=>{ ownedBubbles.push(id); curBubble=id; }, ()=>{ curBubble=id; }));
+
+  const brc = document.getElementById('brcards'); brc.innerHTML = '';
+  for(const [id,def] of Object.entries(BORDERS))
+    brc.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
+      ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
 }
+
+function applyBorder() {
+  const b = BORDERS[curBorder];
+  const cv = document.getElementById('c');
+  cv.style.boxShadow = 'none'; cv.style.outline = 'none';
+  if(b.style==='glow') cv.style.boxShadow = `inset 0 0 40px rgba(var(--ui-accent-rgb),0.25), inset 0 0 8px rgba(var(--ui-accent-rgb),0.15)`;
+  if(b.style==='coral') cv.style.boxShadow = 'inset 0 0 30px rgba(249,115,22,0.2), inset 0 0 6px rgba(249,115,22,0.1)';
+  if(b.style==='gold') cv.style.boxShadow = 'inset 0 0 40px rgba(251,191,36,0.22), inset 0 0 8px rgba(251,191,36,0.12)';
+  if(b.style==='pulse') { cv.style.animation = 'none'; cv.style.boxShadow = 'inset 0 0 60px rgba(var(--ui-accent-rgb),0.18)'; }
+}
+
+
 
 function buildShop(){
   const mF=baseMaxFish+UPGRADES.tank.owned*4;
@@ -1274,7 +1352,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
       if(id==='snail')snails.push({x:W/2,y:H-25,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
-      if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:0});
+      if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
       spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
     };
     uc.appendChild(c);
@@ -1296,7 +1374,75 @@ function buildShop(){
   }
 }
 
-function buildSocial(){} // stub
+function myCode(){
+  const d=new Date(),key=uid+`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  let h=0;for(const c of key)h=((h<<5)-h+c.charCodeAt(0))&0x7FFFFFFF;
+  const ch='ACDEFGHJKLMNPQRUVWXY34679';let code='Z';
+  for(let i=0;i<7;i++){h=(h*1103515245+12345)&0x7FFFFFFF;code+=ch[Math.abs(h)%ch.length];}
+  return code;
+}
+function copyCode(){
+  const c=myCode();
+  try{navigator.clipboard.writeText(c).catch(()=>{});}catch(_){}
+  toast(ICONS.done + ' Code copied!','#10b981');
+}
+function redeemCode(raw){
+  const code=raw.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.startsWith('FISH')) {
+    const fData = decodeFish(code);
+    if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
+    if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
+    const mF=baseMaxFish+UPGRADES.tank.owned*4;
+    if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
+    
+    claimedCodes.add(code); codesRedeemed++;
+    const def = TYPES[fData.type];
+    const genes = { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: [fData.t1, fData.t2] };
+    if(fData.isRare) {
+        if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
+        else genes.c2[0] = def.rare.c2;
+    }
+    fishList.push({id:fid++,type:fData.type,x:W/2,y:H/2,vx:def.spd,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:1,bonded:3600,bcd:0,genes:genes,isRare:fData.isRare});
+    updateHUD();
+    toast(ICONS.social + ' Fish received!','#10b981');
+    document.getElementById('codein').value='';
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Claimed fish code!`;
+    saveGame(); buildSocial();
+    return;
+  }
+  
+  if(code.length<8){toast('Enter a valid code!','#ef4444');return;}
+  if(code===myCode()){toast("Can't redeem your own code!",'#ef4444');return;}
+  if(claimedCodes.has(code)){toast('Already redeemed!','#ef4444');return;}
+  if(code.startsWith('Z')&&code.length===8){
+    claimedCodes.add(code);codesRedeemed++;
+    const r=100+Math.floor(Math.random()*101);
+    addCoins(r,W/2,H/3,true);
+    toast(ICONS.social + ` Gift received! +${r}`,'#10b981');
+    document.getElementById('codein').value='';
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${r} coins`;
+    saveGame();buildSocial();
+  }else{toast('Invalid code format!','#ef4444');}
+}
+function buildSocial(){
+  document.getElementById('mycode').textContent=myCode();
+  document.getElementById('sstreak').textContent=dailyStreak+' days';
+  document.getElementById('sorders').textContent=completedOrders;
+  document.getElementById('stotal').textContent=totalCoins.toLocaleString();
+  document.getElementById('scodes').textContent=codesRedeemed;
+  
+  const gl = document.getElementById('gift-list');
+  if(!fishList.length) { gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; return; }
+  
+  gl.innerHTML = fishList.map(f => {
+    const def = TYPES[f.type];
+    const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
+    return `<div class="gift-fish-row">
+      <span><span class="trait-icon">${traitIco}</span> ${f.isRare? ICONS.star : ''}${def.name}</span>
+      <button class="giftbtn" onclick="giftFish(${f.id})">Send Gift</button>
+    </div>`;
+  }).join('');
+}
 
 // BOOT
 initDecor();
@@ -1316,6 +1462,7 @@ if(saved){
   updateHUD();
   if(needsDaily())showDailyModal();
 }
+applyBorder();
 
 window.addEventListener('beforeunload',saveGame);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
