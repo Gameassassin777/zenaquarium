@@ -181,8 +181,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="spanel" class="panel">
   <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">✕</button></div>
   <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:15px;flex-shrink:0;">
-    <button class="cbtn2" style="flex:1" onclick="switchShop('upgrades')" id="tab-upgrades">Upgrades</button>
-    <button class="cbtn2" style="flex:1;background:rgba(255,255,255,.05);" onclick="switchShop('fish')" id="tab-fish">Fish</button>
+    <button class="tabbtn active" onclick="switchShop('upgrades')" id="tab-upgrades">Upgrades</button>
+    <button class="tabbtn" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
   </div>
   <div class="pscroll" id="shop-upgrades">
     <div class="cards" id="ucards"></div>
@@ -504,6 +504,12 @@ const ORDER_POOL=[
   {id:'gu3', icon:ICONS.tank,   desc:'Own Neon Guppies',        metric:'fish',ftype:'guppy', isState:true, target:3,  reward:150},
   {id:'cl2', icon:ICONS.tank,   desc:'Own Clownfish',           metric:'fish',ftype:'clown', isState:true, target:2,  reward:280},
 ];
+const TRADE_POOL=[
+  {id:'tr1', icon:ICONS.social, desc:'Trade 1 Adult Guppy', isTrade:true, ftypereq:'guppy', ftyperew:'neon', target:1, reward:0},
+  {id:'tr2', icon:ICONS.social, desc:'Trade 1 Adult Clown', isTrade:true, ftypereq:'clown', ftyperew:'angel', target:1, reward:0},
+  {id:'tr3', icon:ICONS.social, desc:'Trade 1 Adult Betta', isTrade:true, ftypereq:'betta', ftyperew:'discus', target:1, reward:0},
+  {id:'tr4', icon:ICONS.social, desc:'Trade 1 Adult Puffer', isTrade:true, ftypereq:'puffer', ftyperew:'koi', target:1, reward:0}
+];
 const ORDER_SLOTS=3;
 
 let uid=localStorage.getItem('zenUID');
@@ -590,8 +596,10 @@ function applyState(s){
   
   currentOrders=s.currentOrders?.length?s.currentOrders:[];
   if(!currentOrders.length) generateOrders();
-  
-  for(let o of currentOrders) { if(o.startVal === undefined) o.startVal = getRawMetricValue(o); }
+  for(let o of currentOrders) { 
+    if(o.isState && o.ftype && TYPES[o.ftype]) o.target = Math.min(o.target, TYPES[o.ftype].max);
+    if(o.startVal === undefined) o.startVal = getRawMetricValue(o); 
+  }
   
   updateHUD();
 }
@@ -1428,8 +1436,8 @@ function applyBorder() {
 function switchShop(tab) {
   document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
   document.getElementById('shop-fish').style.display = tab==='fish' ? 'block' : 'none';
-  document.getElementById('tab-upgrades').style.background = tab==='upgrades' ? '' : 'rgba(255,255,255,.05)';
-  document.getElementById('tab-fish').style.background = tab==='fish' ? '' : 'rgba(255,255,255,.05)';
+  document.getElementById('tab-upgrades').className = tab==='upgrades' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-fish').className = tab==='fish' ? 'tabbtn active' : 'tabbtn';
 }
 
 function buildShop(){
@@ -1615,20 +1623,31 @@ function getRawMetricValue(o) {
 }
 
 function getDifficultyScale() {
-  return 1.0 + (completedOrders * 0.15);
+  return 1.0 + Math.min(completedOrders * 0.05, 2.5);
 }
 
 function generateSingleOrder(index) {
   const scale = getDifficultyScale();
-  const validPool = ORDER_POOL.filter(o => {
-    if(!o.isState) return true;
-    const scaledTarget = Math.ceil(o.target * scale);
-    return getRawMetricValue(o) < scaledTarget; 
-  });
-  const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
-  const template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
-  const t = Math.ceil(template.target * scale);
-  const r = Math.ceil(template.reward * scale);
+  let template;
+  let forceTrade = (completedOrders > 0 && completedOrders % 4 === 0 && index === 0);
+
+  if(forceTrade) {
+    const validTrades = TRADE_POOL.filter(o => playerLevel >= TYPES[o.ftyperew].req);
+    template = validTrades.length > 0 ? validTrades[Math.floor(Math.random() * validTrades.length)] : TRADE_POOL[0];
+  } else {
+    const validPool = ORDER_POOL.filter(o => {
+      if(!o.isState) return true;
+      const scaledTarget = Math.ceil(o.target * scale);
+      const maxPoss = TYPES[o.ftype]?.max || 999;
+      return getRawMetricValue(o) < Math.min(scaledTarget, maxPoss); 
+    });
+    const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
+    template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+  }
+
+  let t = template.isTrade ? template.target : Math.ceil(template.target * scale);
+  if(template.isState && template.ftype) t = Math.min(t, TYPES[template.ftype].max);
+  const r = template.isTrade ? 0 : Math.ceil(template.reward * scale);
 
   currentOrders[index] = {
     id: template.id,
@@ -1637,6 +1656,9 @@ function generateSingleOrder(index) {
     metric: template.metric,
     ftype: template.ftype,
     isState: template.isState,
+    isTrade: template.isTrade,
+    ftypereq: template.ftypereq,
+    ftyperew: template.ftyperew,
     target: t,
     reward: r,
     startVal: 0,
@@ -1644,7 +1666,7 @@ function generateSingleOrder(index) {
     complete: false,
     claimed: false
   };
-  if(!template.isState) currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
+  if(!template.isState && !template.isTrade) currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
 }
 
 function generateOrders() {
@@ -1654,6 +1676,7 @@ function generateOrders() {
 
 function orderProg(o) {
   if(o.claimed) return o.target;
+  if(o.isTrade) return fishList.some(f=>f.type===o.ftypereq && f.scale>=1) ? 1 : 0;
   const current = getRawMetricValue(o);
   if(o.isState) return current;
   return Math.max(0, current - o.startVal);
@@ -1673,8 +1696,18 @@ function claimOrder(i) {
   const o = currentOrders[i]; if(!o || !o.complete || o.claimed) return;
   o.claimed = true; 
   completedOrders++;
-  addCoins(o.reward, W/2, H/3, true);
-  spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
+  if(o.isTrade) {
+    const fIdx = fishList.findIndex(f=>f.type===o.ftypereq && f.scale>=1);
+    if(fIdx>=0) fishList.splice(fIdx, 1);
+    const def = TYPES[o.ftyperew];
+    const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'] };
+    fishList.push({id:fid++,type:o.ftyperew,x:W/2,y:H/2,vx:def.spd,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:0.25,bonded:3600,bcd:0,genes:genes,isRare:true});
+    spawnJuice(W/2, H/3, ICONS.star + ' RARE FISH!','#fbbf24', 1.4);
+    updateHUD();
+  } else {
+    addCoins(o.reward, W/2, H/3, true);
+    spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
+  }
   generateSingleOrder(i);
   buildOrders(); 
   saveGame();
@@ -1686,7 +1719,7 @@ function buildOrders() {
   document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
     const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
     return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
-      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span></div></div>
+      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;${o.isTrade?'color:#fbbf24;':''}">${o.isTrade ? ICONS.tank + ' Rare ' + TYPES[o.ftyperew].name : ICONS.coin + ' ' + o.reward}</span></div></div>
       <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
       <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+' / '+ o.target}</span>
         <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
