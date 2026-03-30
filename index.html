@@ -600,7 +600,7 @@ function updateHUD(){
   document.getElementById('cv').textContent=coins;
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
-  const mF = baseMaxFish + ((playerLevel-1)*3) + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let pct = 100;
@@ -804,7 +804,7 @@ function updateFish(f){
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
-  const mF = baseMaxFish + ((playerLevel-1)*3) + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
   
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
@@ -1433,7 +1433,7 @@ function switchShop(tab) {
 }
 
 function buildShop(){
-  const mF = baseMaxFish + ((playerLevel-1)*3) + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
   const uc=document.getElementById('ucards');uc.innerHTML='';
   for(const[id,u] of Object.entries(UPGRADES)){
     const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
@@ -1484,7 +1484,7 @@ function redeemCode(raw){
     const fData = decodeFish(code);
     if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
     if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
-    const mF = baseMaxFish + ((playerLevel-1)*3) + (UPGRADES.tank.owned*4);
+    const mF = baseMaxFish + (UPGRADES.tank.owned*4);
     if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
     
     claimedCodes.add(code); codesRedeemed++;
