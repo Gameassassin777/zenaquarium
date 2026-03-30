@@ -42,7 +42,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .xpb{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:3px;overflow:hidden;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);}
 .xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.3s ease;}
 
-#nav{position:fixed;bottom:0;left:0;right:0;padding:20px 0 max(2px, calc(env(safe-area-inset-bottom, 0px) - 20px)) 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.65) 40%, rgba(0,0,0,.9) 100%);display:flex;z-index:25;pointer-events:none;}
+#nav{position:fixed;bottom:0;left:0;right:0;padding:10px 0 2px 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.6) 30%, rgba(0,0,0,.85) 100%);display:flex;z-index:25;pointer-events:none;}
 /* docked into safe area */
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;color:#94a3b8;font-size:9px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:15px 0 0 0;pointer-events:auto;}
 .nb svg {font-size:24px; transition:transform .2s; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));}
@@ -236,7 +236,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.6.0</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.6.3</span></div>
     <button onclick="resetSave()" class="resetbtn">Reset Save (Development)</button>
     <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
   </div>
@@ -328,7 +328,6 @@ document.getElementById('wvc').innerHTML = ICONS.drop + '<span id="wv">100%</spa
 document.getElementById('lbl-fv').innerHTML = ICONS.tank + '<span id="fv">3/8</span>';
 document.getElementById('modebtn').innerHTML = ICONS.feed + ' Feed';
 
-document.getElementById('ic-nav-tank').innerHTML = ICONS.tank;
 document.getElementById('ic-nav-market').innerHTML = ICONS.market;
 document.getElementById('ic-nav-decor').innerHTML = ICONS.decor;
 document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
@@ -384,10 +383,10 @@ initSwatches();
 
 // CANVAS & GLOBALS
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H;
+let W,H,lt=0;
 function resize(){
-  W = cv.clientWidth;
-  H = cv.clientHeight;
+  W = cv.clientWidth || window.innerWidth;
+  H = cv.clientHeight || window.innerHeight;
   const d=window.devicePixelRatio||1;
   cv.width=W*d;cv.height=H*d;
   ctx.scale(d,d);
@@ -579,9 +578,9 @@ function loadSave(){
 }
 
 function applyState(s){
-  coins=s.coins??100;totalCoins=s.totalCoins??coins;playerLevel=s.playerLevel??1;algae=s.algae??0;
-  dailyStreak=s.dailyStreak??0;lastDailyTs=s.lastDailyTs??0;completedOrders=s.completedOrders??0;codesRedeemed=s.codesRedeemed??0;
-  claimedCodes=new Set(s.claimedCodes??[]);
+  coins=(s.coins!==undefined?s.coins:100);totalCoins=(s.totalCoins!==undefined?s.totalCoins:coins);playerLevel=(s.playerLevel!==undefined?s.playerLevel:1);algae=(s.algae!==undefined?s.algae:0);
+  dailyStreak=(s.dailyStreak!==undefined?s.dailyStreak:0);lastDailyTs=(s.lastDailyTs!==undefined?s.lastDailyTs:0);completedOrders=(s.completedOrders!==undefined?s.completedOrders:0);codesRedeemed=(s.codesRedeemed!==undefined?s.codesRedeemed:0);
+  claimedCodes=new Set(s.claimedCodes || []);
   
   if(s.marketRates) marketRates = {...marketRates, ...s.marketRates};
   if(s.sm) sm={...sm, ...s.sm}; sm.marketSales = sm.marketSales || 0; 
@@ -595,32 +594,32 @@ function applyState(s){
   ownedBubbles = s.ownedBubbles || ['default'];
   ownedBorders = s.ownedBorders || ['none'];
   
-  for(const[k,v] of Object.entries(s.upgrades??{}))if(UPGRADES[k])UPGRADES[k].owned=v;
+  for(const[k,v] of Object.entries(s.upgrades || {}))if(UPGRADES[k])UPGRADES[k].owned=v;
   
   const elapsedSec = (Date.now() - (s.ts||Date.now())) / 1000;
   const elapsedFrames = elapsedSec * 60;
   
   eggs = [];
-  for(const e of (s.eggs??[])){
+  for(const e of (s.eggs || [])){
     eggs.push({...e, timer: Math.max(0, e.timer - elapsedFrames)});
   }
 
-  for(const f of(s.fish??[])){
+  for(const f of(s.fish || [])){
     const def=TYPES[f.type];if(!def)continue;
     const genes = f.genes || generateRandomGenes(f.type);
     fishList.push({id:fid++,type:f.type,x:80+Math.random()*(W-160),y:110+Math.random()*(SWIM_BOT()-150),
       vx:(Math.random()-.5)*def.spd,vy:(Math.random()-.5)*.5,phase:Math.random()*Math.PI*2,
-      timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger??80,age:f.age??5000,
-      scale:Math.min(1,(f.age??5000)/20000),bonded:f.bonded??0, bcd:f.bcd??0,
+      timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger!==undefined?f.hunger:80,age:f.age!==undefined?f.age:5000,
+      scale:Math.min(1,(f.age!==undefined?f.age:5000)/20000),bonded:f.bonded!==undefined?f.bonded:0, bcd:f.bcd!==undefined?f.bcd:0,
       genes, isRare: (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2), name:f.name});
   }
   
   for(let i=0;i<UPGRADES.snail.owned;i++)
     snails.push({x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
-  for(let i=0;i<(s.clams??0);i++)
+  for(let i=0;i<(s.clams || 0);i++)
     clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
   
-  currentOrders=s.currentOrders?.length?s.currentOrders:[];
+  currentOrders=(s.currentOrders && s.currentOrders.length)?s.currentOrders:[];
   if(!currentOrders.length) generateOrders();
   for(let o of currentOrders) { 
     if(o.isState && o.ftype && TYPES[o.ftype]) o.target = Math.min(o.target, TYPES[o.ftype].max);
@@ -652,12 +651,12 @@ function calcOffline(s){
   const elapsed=Math.min((Date.now()-s.ts)/1000,4*3600);
   if(elapsed<90)return null;
   let total=0;const items=[];
-  const sc=s.upgrades?.snail??0;
+  const sc=(s.upgrades && s.upgrades.snail) || 0;
   if(sc>0){const e=Math.floor(sc*.4*elapsed);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
-  if((s.clams??0)>0){const e=Math.floor(s.clams*.8*elapsed);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
-  const fish=s.fish??[];
+  if((s.clams || 0)>0){const e=Math.floor(s.clams*.8*elapsed);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
+  const fish=s.fish || [];
   if(fish.length>0){
-    const avg=fish.reduce((a,f)=>a+(TYPES[f.type]?.val??1),0)/fish.length;
+    const avg=fish.reduce((a,f)=>a+((TYPES[f.type] && TYPES[f.type].val) || 1),0)/fish.length;
     const e=Math.floor(fish.length*avg*.03*elapsed);
     total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});
   }
@@ -1216,6 +1215,7 @@ function drawFish(f){
 // GAME LOOP
 function loop(){
 try {
+  if(!W || !H) resize();
   time++;updateEco();ctx.clearRect(0,0,W,H);
 
   let theme = THEMES[curTheme] || THEMES['default'];
@@ -1336,6 +1336,7 @@ try {
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
 
+  requestAnimationFrame(loop);
 } catch(crashError) {
   if(!window.crashedAlready) {
     window.crashedAlready=true;
@@ -1505,7 +1506,7 @@ function decodeFish(code) {
 }
 
 function getEggTimerFrames(type) {
-  const req = TYPES[type]?.req || 1;
+  const req = (TYPES[type] && TYPES[type].req) || 1;
   let mins = 5;
   if(req === 2) mins = 10;
   if(req === 3) mins = 20;
@@ -1761,12 +1762,8 @@ try {
   applyBorder();
 
   window.addEventListener('beforeunload',saveGame);
-  requestAnimationFrame(function t(ts){
-    if(!lt)lt=ts;
-    const dt=ts-lt;
-    if(dt>16){lt=ts-dt%16;loop();}
-    requestAnimationFrame(t);
-  });
+  // No more recursive t(ts) loop. loop() handles its own requestAnimationFrame.
+  loop(); 
 } catch (crashError) {
   const errBox = document.createElement('div');
   errBox.style.cssText = 'position:fixed;inset:0;background:black;color:red;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
@@ -1774,7 +1771,7 @@ try {
   document.body.appendChild(errBox);
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
-loop();
+// End of script. loop() was already called above.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ORDERS FUNCTIONS (full)
@@ -1807,7 +1804,7 @@ function generateSingleOrder(index) {
     const validPool = ORDER_POOL.filter(o => {
       if(!o.isState) return true;
       const scaledTarget = Math.ceil(o.target * scale);
-      const maxPoss = TYPES[o.ftype]?.max || 999;
+      const maxPoss = (TYPES[o.ftype] && TYPES[o.ftype].max) || 999;
       return getRawMetricValue(o) < Math.min(scaledTarget, maxPoss); 
     });
     const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
