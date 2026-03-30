@@ -50,13 +50,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(103,232,249,.6));}
 .nb.notify::after{content:'';position:absolute;top:2px;right:calc(50% - 12px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(0,0,0,.5);box-shadow:0 0 10px rgba(244,63,94,.6);}
 
-#sov{position:fixed;inset:0;background:rgba(0,0,0,0.04);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
-#sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgb(10,18,32);border-top:1px solid rgba(255,255,255,0.15);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1),height .4s cubic-bezier(.2,.8,.2,1);height:52dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -5px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);will-change:transform;}
+#sov.open{opacity:1;pointer-events:all;background:rgba(0,0,0,0.15);backdrop-filter:blur(3px);}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(10,18,32,0.8);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid rgba(255,255,255,0.14);border-radius:32px 32px 0 0;padding:24px 20px 0;z-index:21;transform:translateY(102%);transition:transform .55s cubic-bezier(.34, 1.56, .64, 1), height .55s cubic-bezier(.34, 1.56, .64, 1);height:54dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -10px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);will-change:transform;}
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
-.panel.open{transform:translateY(0);pointer-events:auto;height:52dvh;opacity:1;filter:none;}
-.panel.full{transform:translateY(0);pointer-events:auto;height:92dvh;opacity:1;filter:none;background:rgb(10,18,32);}
+.panel.open{transform:translateY(0);pointer-events:auto;height:82dvh;opacity:1;filter:none;}
+.panel.full{transform:translateY(0);pointer-events:auto;height:94dvh;opacity:1;filter:none;background:rgba(10,18,32,0.9);}
 .panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
@@ -85,15 +84,34 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .locked::after{content:'LOCKED Lv'attr(data-req);position:absolute;inset:0;background:rgba(0,5,16,.82);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#475569;border-radius:13px;}
 
 /* MARKET REVAMP */
-.m-header { background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; }
-.m-header::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); animation:mshine 4s infinite; }
+.m-header { background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; box-shadow:inset 0 0 20px rgba(251,191,36,0.05); }
+.m-header::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent); animation:mshine 3s infinite; }
 .m-badge { font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px; }
 .b-trait { background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
 .b-age { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.25); }
 .b-rare { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
 .m-price { font-weight:900; color:#fbbf24; font-size:13.5px; text-shadow:0 0 10px rgba(251,191,36,0.25); }
-.m-surge-hl { border:1.5px solid rgba(245,158,11,0.5) !important; background:rgba(245,158,11,0.04) !important; }
-@keyframes mshine { 0% { left:-100%; } 100% { left:300%; } }
+.m-surge-hl { border:1.5px solid rgba(245,158,11,0.5) !important; background:rgba(245,158,11,0.04) !important; box-shadow:0 0 15px rgba(245,158,11,0.1); }
+@keyframes mshine { 0% { left:-150%; } 100% { left:150%; } }
+
+/* FISH COLORS & FINDER */
+.c-dot { width:12px; height:12px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 8px rgba(0,0,0,0.5); position:relative; }
+.c-dot::after { content:''; position:absolute; inset:0; border-radius:50%; box-shadow:0 0 10px inherit; opacity:0.6; }
+.finder-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:16px; margin-bottom:12px; transition:transform 0.2s; position:relative; overflow:hidden;}
+.finder-card:active { transform:scale(0.98); }
+.finder-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--ui-accent); opacity:0.3; }
+.f-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:11px; color:#94a3b8; }
+.f-val { color:#fff; font-weight:800; text-shadow:0 0 10px rgba(255,255,255,0.2); }
+.f-trait-desc { font-style:italic; font-size:10px; color:#475569; margin-top:3px; padding-left:4px; }
+.f-personality { background:rgba(103,232,249,0.08); border:1px solid rgba(103,232,249,0.15); border-radius:10px; padding:10px; margin-top:12px; color:#67e8f9; font-size:11px; line-height:1.4; text-shadow:0 0 8px rgba(103,232,249,0.2); }
+
+/* HUD POLISH */
+.stat { background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:4px 10px; backdrop-filter:blur(4px); transition:all 0.3s; }
+.stat:hover { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); }
+.vl { color:var(--ui-accent) !important; text-shadow:0 0 12px var(--ui-accent); }
+.vg { color:#fbbf24 !important; text-shadow:0 0 12px rgba(251,191,36,0.4); }
+#combo-ui { background:rgba(15,23,42,0.6) !important; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); }
+
 
 
 .ci{font-size:32px;display:block;margin-bottom:6px; color:#e2e8f0; filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
@@ -148,7 +166,15 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .cinput{flex:1;background:rgba(0,20,48,.7);border:1px solid rgba(var(--ui-accent-rgb),.16);color:#e2e8f0;border-radius:10px;padding:10px;font-size:14px;font-family:monospace;font-weight:bold;letter-spacing:2px;text-transform:uppercase;outline:none;}
 .rbtn{background:#10b981;color:#fff;border:none;border-radius:10px;padding:10px 12px;font-weight:bold;cursor:pointer;font-size:13px;}
 
-.resetbtn{background:#ef4444;color:#fff;border:none;border-radius:13px;padding:14px;font-weight:bold;font-size:14px;cursor:pointer;margin-top:20px;width:100%;}
+.o-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px; }
+@media (max-width:768px) {
+  .o-grid { grid-template-columns:repeat(2, 1fr); gap:8px; }
+  .ocard { padding:10px; }
+  .odesc { font-size:10px; }
+  .orew { font-size:9px; }
+}
+.resetbtn{background:#ef4444;color:#fff;border:none;border-radius:13px;padding:14px;font-weight:bold;font-size:14px;cursor:pointer;margin-top:20px;width:100%;transition:opacity 0.2s;}
+.resetbtn:active{opacity:0.75;}
 
 .ft{position:fixed;pointer-events:none;z-index:30;font-weight:900;animation:spk 1.2s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.8); display:flex; align-items:center; gap:4px;}
 @keyframes spk{0%{transform:translateY(0) scale(.5);opacity:0;}15%{transform:translateY(-18px) scale(1.15);opacity:1;}100%{transform:translateY(-62px) scale(.8);opacity:0;}}
@@ -183,6 +209,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <nav id="nav">
   <button class="nb" id="nb-market" onclick="setTab('market')"><span class="ni" id="ic-nav-market"></span>Market</button>
   <button class="nb" id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
+  <button class="nb" id="nb-finder" onclick="setTab('finder')"><span class="ni" id="ic-nav-finder"></span>Finder</button>
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
@@ -221,7 +248,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="opanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-orders"></span><span style="color:#334155;font-size:10px" id="otimer">Difficulty Scale</span></div>
+  <div class="ph"><span class="pt" id="ph-orders"></span></div>
   <div class="pscroll" id="olist"></div>
 </div>
 
@@ -240,39 +267,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <input class="cinput" id="codein" type="text" placeholder="ZXXXXXXX or FISHXXXXX" maxlength="12">
       <button class="rbtn" onclick="redeemCode(document.getElementById('codein').value)">Claim</button>
     </div>
-    <div id="soclog" style="color:#334155;font-size:11px;margin-bottom:14px;min-height:18px;"></div>
-    <span class="slbl">Gift a Fish</span>
-    <div id="gift-code-box" class="codebox" style="display:none;margin-bottom:10px;">
-      <span style="color:#334155;font-size:11px">Send this code to a friend!</span>
-      <span class="cbig" id="gift-code-val">---------</span>
-      <button class="copybtn" onclick="copyGiftCode()">Copy Code</button>
-    </div>
-    <div id="gift-list" style="margin-bottom:14px;"></div>
-    <span class="slbl">Achievements & Milestones</span>
-    <div id="milestone-log" style="background:rgba(0,18,42,.4); border-radius:11px; padding:10px 12px; margin-bottom:14px; font-size:11px; color:#475569;">
-      <div id="m-list" style="display:flex; flex-direction:column; gap:6px;">
-        <span style="opacity:0.5; font-style:italic;">Complete quests to unlock achievements...</span>
-      </div>
-    </div>
-    <span class="slbl">Lifetime Stats</span>
-    <div style="background:rgba(0,18,42,.6);border-radius:11px;padding:10px 12px;margin-bottom:14px;">
-      <div class="srow"><span>Daily Streak</span><span id="sstreak" style="color:#fbbf24">0 days</span></div>
-      <div class="srow"><span>Orders Completed</span><span id="sorders">0</span></div>
-      <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="color:#fbbf24">0</span></div>
-      <div class="srow"><span>Codes Redeemed</span><span id="scodes">0</span></div>
-    </div>
-    <span class="slbl">Save Data Management</span>
-    <div class="srow" style="margin-bottom:6px;">
-      <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
-      <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
-    </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.9.0</span></div>
-    <div style="display:flex;gap:5px;margin-bottom:10px;">
-      <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
-      <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
-    </div>
-    <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
-  </div>
+  <div class="pscroll" id="socdiv" style="padding:15px;"></div>
+</div>
+
+<div id="fpanel" class="panel">
+  <div class="ph"><span class="pt" id="ph-finder">Fish Finder</span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="pscroll" id="flist"></div>
 </div>
 
 <div id="wmodal" class="modal">
@@ -431,7 +431,8 @@ const FOOD_FL=()=>H-85;
 const SWIM_BOT=()=>H-100;
 
 let playerLevel=1,totalCoins=100,isClean=false;
-let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
+let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
+for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200,s:0.5+Math.random()*1.8,o:0.15+Math.random()*0.4,v:0.15+Math.random()*0.3});
 let time=0,fid=0,algae=0,baseMaxFish=8;
 let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
@@ -441,32 +442,34 @@ let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0};
 let claimedCodes=new Set();
 let offlinePend=null,pendingDaily=false;
 
+
 let curTheme='default', curFloor='default', curBubble='default', curBorder='none';
 let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], ownedBorders=['none'];
 
 // DEFINITIONS & GENETICS
-const TYPES={
-  guppy:    {name:'Neon Guppy',   icon:ICONS.tank, cost:0,      val:1,   c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
-  neon:     {name:'Neon Tetra',   icon:ICONS.tank, cost:150,    val:2,   c1:'#06b6d4',c2:'#ef4444',sz:12,spd:2.5,max:15,req:1,rare:{c1:'#fbbf24',c2:'#f59e0b'}},
-  seahorse: {name:'Seahorse',     icon:ICONS.tank, cost:450,    val:4,   c1:'#fef08a',c2:'#f59e0b',sz:18,spd:0.4,max:4, req:2,rare:{c1:'#fb7185',c2:'#be123c'}},
-  clown:    {name:'Clownfish',    icon:ICONS.tank, cost:250,    val:3,   c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
-  angel:    {name:'Angelfish',    icon:ICONS.tank, cost:800,    val:7,   c1:'#6366f1',c2:'#c7d2fe',sz:28,spd:0.8,max:4, req:3,rare:{c1:'#fde047',c2:'#fef08a'}},
-  idol:     {name:'Moorish Idol', icon:ICONS.tank, cost:1200,   val:10,  c1:'#fef08a',c2:'#1c1917',sz:24,spd:1.0,max:3, req:3,rare:{c1:'#38bdf8',c2:'#1d4ed8'}},
-  betta:    {name:'Betta Fish',   icon:ICONS.tank, cost:2500,   val:15,  c1:'#1d4ed8',c2:'#8b5cf6',sz:22,spd:1.0,max:3, req:4,rare:{c1:'#be123c',c2:'#fb7185'}},
-  lionfish: {name:'Lionfish',     icon:ICONS.tank, cost:3500,   val:20,  c1:'#b91c1c',c2:'#fca5a5',sz:28,spd:0.7,max:2, req:4,rare:{c1:'#1e3a5f',c2:'#60a5fa'}},
-  discus:   {name:'Royal Discus', icon:ICONS.tank, cost:5000,   val:25,  c1:'#ec4899',c2:'#3b82f6',sz:30,spd:0.6,max:3, req:5,rare:{c1:'#fde047',c2:'#22d3ee'}},
-  puffer:   {name:'Puffer',       icon:ICONS.tank, cost:9500,   val:45,  c1:'#16a34a',c2:'#86efac',sz:26,spd:0.5,max:2, req:5,rare:{c1:'#f8fafc',c2:'#e2e8f0'}},
-  shark:    {name:'Reef Shark',   icon:ICONS.tank, cost:12000,  val:55,  c1:'#94a3b8',c2:'#f8fafc',sz:40,spd:2.2,max:1, req:5,rare:{c1:'#1e293b',c2:'#000000'}},
-  koi:      {name:'Golden Koi',   icon:ICONS.tank, cost:18000,  val:100, c1:'#ca8a04',c2:'#fef08a',sz:38,spd:1.4,max:2, req:6,rare:{c1:'#0284c7',c2:'#7dd3fc'}},
-  arowana:  {name:'Arowana',      icon:ICONS.tank, cost:40000,  val:180, c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}},
-  manta:    {name:'Manta Ray',    icon:ICONS.tank, cost:30000,  val:120, c1:'#1e3a8a',c2:'#93c5fd',sz:45,spd:0.8,max:1, req:6,rare:{c1:'#581c87',c2:'#d8b4fe'}},
-  jellyfish:{name:'Jellyfish',    icon:ICONS.drop, cost:60000,  val:200, c1:'#c084fc',c2:'#f0abfc',sz:30,spd:0.3,max:3, req:7,rare:{c1:'#fbbf24',c2:'#fef08a'}},
-  hammer:   {name:'Hammerhead',   icon:ICONS.tank, cost:80000,  val:220, c1:'#64748b',c2:'#cbd5e1',sz:44,spd:2.4,max:1, req:7,rare:{c1:'#1e3a5f',c2:'#38bdf8'}},
-  octopus:  {name:'Octopus',      icon:ICONS.tank, cost:150000, val:400, c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,max:2, req:8,rare:{c1:'#fb923c',c2:'#c2410c'}},
-  turtle:   {name:'Sea Turtle',   icon:ICONS.tank, cost:200000, val:450, c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,max:2, req:8,rare:{c1:'#fbbf24',c2:'#ca8a04'}},
-  whaleshark:{name:'Whale Shark', icon:ICONS.tank, cost:500000, val:900, c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,max:1, req:9,rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
+const TYPES = {
+  guppy:    {name:'Neon Guppy',   icon:ICONS.tank, cost:50,     val:12,  c1:'#22d3ee',c2:'#0891b2',sz:22,spd:1.2,req:1, rare:{c1:'#f472b6',c2:'#db2777'}},
+  tetra:    {name:'Neon Tetra',    icon:ICONS.tank, cost:150,    val:25,  c1:'#38bdf8',c2:'#1d4ed8',sz:18,spd:1.5,req:2, rare:{c1:'#fbbf24',c2:'#d97706'}},
+  goldfish: {name:'Goldfish',      icon:ICONS.tank, cost:400,    val:55,  c1:'#fb923c',c2:'#ea580c',sz:28,spd:0.8,req:3, rare:{c1:'#fef08a',c2:'#facc15'}},
+  betta:    {name:'Royal Betta',   icon:ICONS.tank, cost:1200,   val:110, c1:'#f43f5e',c2:'#9f1239',sz:30,spd:1.0,req:4, rare:{c1:'#a78bfa',c2:'#7c3aed'}},
+  angelfish:{name:'Angelfish',     icon:ICONS.tank, cost:4500,   val:280, c1:'#e2e8f0',c2:'#475569',sz:42,spd:0.7,req:5, rare:{c1:'#fbbf24',c2:'#22c55e'}},
+  discus:   {name:'Blue Discus',   icon:ICONS.tank, cost:12000,  val:650, c1:'#60a5fa',c2:'#1e40af',sz:45,spd:0.6,req:6, rare:{c1:'#fdba74',c2:'#f97316'}},
+  jellyfish:{name:'Moon Jelly',    icon:ICONS.tank, cost:40000,  val:350, c1:'#cbd5e1',c2:'#94a3b8',sz:32,spd:0.4,req:7, rare:{c1:'#c4b5fd',c2:'#8b5cf6'}},
+  octopus:  {name:'Octopus',      icon:ICONS.tank, cost:150000, val:400, c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,req:8, rare:{c1:'#fb923c',c2:'#c2410c'}},
+  turtle:   {name:'Sea Turtle',   icon:ICONS.tank, cost:200000, val:450, c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,req:8, rare:{c1:'#fbbf24',c2:'#ca8a04'}},
+  whaleshark:{name:'Whale Shark', icon:ICONS.tank, cost:500000, val:900, c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,req:9, rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
   narwhal:  {name:'Narwhal',      icon:ICONS.tank, cost:1500000,val:2000,c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6,max:1, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}}
 };
+
+let ownedFlora = ['seaweed', 'grass'];
+let boughtCounts={}; 
+for(let k in TYPES) boughtCounts[k]=0;
+
+function getFishPrice(type) {
+  const base = TYPES[type].cost;
+  const count = boughtCounts[type] || 0;
+  return count >= 5 ? base * 2 : base;
+}
 
 const UPGRADES={
   flakes:  {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,    info:'Double base coin value',          max:1,owned:0,req:2},
@@ -477,6 +480,8 @@ const UPGRADES={
   nest:    {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,  info:'Adult fish naturally breed',        max:1,owned:0,req:3},
   clam:    {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,  info:'Passive gold + filters water',     max:3,owned:0,req:6},
   heater:  {name:'Water Heater',   icon:ICONS.gear,   cost:50000,  info:'+25% coin value for all fish',     max:1,owned:0,req:7},
+  kelp:    {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,  info:'Unlocks Purple Kelp in tank',      max:1,owned:0,req:3},
+  coral:   {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,  info:'Unlocks Red Fan Coral in tank',    max:1,owned:0,req:5},
   oxygen:  {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,  info:'Fish hunger drains 20% slower',    max:1,owned:0,req:6},
   uvlight: {name:'UV Light',       icon:ICONS.star,   cost:75000,  info:'Rare mutation chance +5%',         max:1,owned:0,req:7}
 };
@@ -564,19 +569,11 @@ const ORDER_POOL=[
   {id:'q3_nar',icon:ICONS.star,  desc:'Earn 5M total coins',      metric:'milestone_5m',isState:false, target:1,   reward:0, ftyperew:'narwhal'},
   {id:'f30', icon:ICONS.flakes, desc:'Feed fish 30 times',        metric:'feeds',       isState:false, target:30,  reward:220},
   {id:'h10', icon:ICONS.star,   desc:'Harmony for 3 min',         metric:'harmonySec',  isState:false, target:180, reward:400},
-  {id:'mkt3',icon:ICONS.market, desc:'Sell 3 fish at Market',     metric:'marketSales', isState:false, target:3,   reward:600},
+  {id:'mkt3', icon:ICONS.market, desc:'Sell 3 fish at Market',     metric:'marketSales', isState:false, target:3,   reward:600},
   {id:'br3', icon:ICONS.egg,    desc:'Hatch 3 baby fish',         metric:'hatched',     isState:false, target:3,   reward:900},
   {id:'ra1', icon:ICONS.star,   desc:'Hatch a Rare mutant',       metric:'rares',       isState:false, target:1,   reward:800},
-  {id:'an2', icon:ICONS.tank,   desc:'Own 2 Angelfish',           metric:'fish',ftype:'angel', isState:true, target:2,  reward:500},
-  {id:'bt1', icon:ICONS.tank,   desc:'Own a Betta Fish',          metric:'fish',ftype:'betta', isState:true, target:1,  reward:700},
-];
-const TRADE_POOL=[
-  {id:'tr1', icon:ICONS.social, desc:'Trade 1 Adult Guppy', isTrade:true, ftypereq:'guppy', ftyperew:'neon', target:1, reward:0},
-  {id:'tr2', icon:ICONS.social, desc:'Trade 1 Adult Clown', isTrade:true, ftypereq:'clown', ftyperew:'seahorse', target:1, reward:0},
-  {id:'tr3', icon:ICONS.social, desc:'Trade 1 Adult Angel', isTrade:true, ftypereq:'angel', ftyperew:'idol', target:1, reward:0},
-  {id:'tr4', icon:ICONS.social, desc:'Trade 1 Adult Betta', isTrade:true, ftypereq:'betta', ftyperew:'lionfish', target:1, reward:0},
-  {id:'tr5', icon:ICONS.social, desc:'Trade 1 Adult Discus',isTrade:true, ftypereq:'discus', ftyperew:'shark', target:1, reward:0},
-  {id:'tr6', icon:ICONS.social, desc:'Trade 1 Adult Koi',   isTrade:true, ftypereq:'koi', ftyperew:'manta', target:1, reward:0}
+  {id:'an2', icon:ICONS.tank,   desc:'Own 2 Angelfish',           metric:'fish',ftype:'angelfish', isState:true, target:2,  reward:500},
+  {id:'bt1', icon:ICONS.tank,   desc:'Own a Royal Betta',          metric:'fish',ftype:'betta', isState:true, target:1,  reward:700},
 ];
 const ORDER_SLOTS=3;
 
@@ -607,7 +604,7 @@ function buildSave(){
     clams:clams.length,currentOrders,sm,
     claimedCodes:[...claimedCodes], marketRates,
     curTheme, curFloor, curBubble, curBorder,
-    ownedThemes, ownedFloors, ownedBubbles, ownedBorders
+    ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, boughtCounts
   };
 }
 
@@ -633,6 +630,9 @@ function applyState(s){
   coins=(s.coins!==undefined?s.coins:100);totalCoins=(s.totalCoins!==undefined?s.totalCoins:coins);playerLevel=(s.playerLevel!==undefined?s.playerLevel:1);algae=(s.algae!==undefined?s.algae:0);
   dailyStreak=(s.dailyStreak!==undefined?s.dailyStreak:0);lastDailyTs=(s.lastDailyTs!==undefined?s.lastDailyTs:0);completedOrders=(s.completedOrders!==undefined?s.completedOrders:0);codesRedeemed=(s.codesRedeemed!==undefined?s.codesRedeemed:0);
   claimedCodes=new Set(s.claimedCodes || []);
+  ownedFlora = s.ownedFlora || ['seaweed','grass'];
+  boughtCounts = s.boughtCounts || {};
+  for(let k in TYPES) if(boughtCounts[k]===undefined) boughtCounts[k]=0;
   
   if(s.marketRates) marketRates = {...marketRates, ...s.marketRates};
   if(s.sm) sm={...sm, ...s.sm}; sm.marketSales = sm.marketSales || 0; 
@@ -674,7 +674,7 @@ function applyState(s){
   currentOrders=(s.currentOrders && s.currentOrders.length)?s.currentOrders:[];
   if(!currentOrders.length) generateOrders();
   for(let o of currentOrders) { 
-    if(o.isState && o.ftype && TYPES[o.ftype]) o.target = Math.min(o.target, TYPES[o.ftype].max);
+    if(o.isState && o.ftype && TYPES[o.ftype]) o.target = Math.min(o.target, 100);
     if(o.startVal === undefined) o.startVal = getRawMetricValue(o); 
   }
   
@@ -682,21 +682,27 @@ function applyState(s){
 }
 
 function updateHUD(){
-  document.getElementById('cv').textContent=coins;
+  document.getElementById('cv').textContent=Math.floor(coins);
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
   const mF = baseMaxFish + (UPGRADES.tank.owned*4);
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let pct = 100;
-  const th = [0, 1000, 4000, 15000, 45000, 150000];
-  if(playerLevel < 6) {
+  const th = LEVEL_THRESHOLDS;
+  if(playerLevel < 10) {
     const base = th[playerLevel-1] || 0;
     const next = th[playerLevel];
     pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
   }
   const xpe = document.getElementById('xpf');
-  if(xpe) xpe.style.width = pct + '%';
+  if(xpe) {
+    xpe.style.width = pct + '%';
+    if(playerLevel >= 10) { 
+      xpe.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)'; 
+      xpe.style.boxShadow = '0 0 10px rgba(251,191,36,0.6)';
+    }
+  }
 }
 
 function calcOffline(s){
@@ -710,8 +716,7 @@ function calcOffline(s){
   if(fish.length>0){
     const avg=fish.reduce((a,f)=>a+((TYPES[f.type] && TYPES[f.type].val) || 1),0)/fish.length;
     const e=Math.floor(fish.length*avg*.03*elapsed);
-    total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});
-  }
+    total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});}
   const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
   return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
 }
@@ -769,34 +774,6 @@ function tickMarket() {
   if(currentTab === 'market') buildMarket();
 }
 
-function sellAllAdults(type) {
-  const adults = fishList.filter(f => f.type === type && f.age >= 18000);
-  if(!adults.length) { toast('No adults of this type to sell!', '#475569'); return; }
-  
-  if(confirm(`Sell ALL ${adults.length} adult ${TYPES[type].name}s?`)) {
-    let total = 0;
-    adults.forEach(f => {
-      const def = TYPES[f.type];
-      const rate = marketRates[f.type] || 1;
-      const surgeMult = (f.type === surgingType) ? 1.5 : 1.0;
-      const base = def.cost > 0 ? def.cost * 0.4 : 10;
-      const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
-      const rareMult = f.isRare ? 3 : 1;
-      const price = Math.floor(base * rate * rareMult * traitMult * f.scale * surgeMult);
-      total += price;
-      
-      const idx = fishList.indexOf(f);
-      if(idx > -1) fishList.splice(idx, 1);
-    });
-    addCoins(total, W/2, H/2, true);
-    spawnJuice(W/2, H/2, `SOLD ALL: +${total}`, '#f59e0b', 2.0);
-    sm.marketSales = (sm.marketSales || 0) + adults.length;
-    updateHUD();
-    buildMarket();
-    saveGame();
-  }
-}
-
 function buildMarket() {
   const mlist = document.getElementById('mlist');
   if(!fishList.length) {
@@ -812,14 +789,10 @@ function buildMarket() {
         <div style="font-size:11px; font-weight:bold; color:#fbbf24; text-transform:uppercase; letter-spacing:1px;">Market Surge</div>
         <div style="font-size:14px; font-weight:900; color:#f8fafc;">${surgeDef.name} Prices x1.5!</div>
       </div>
-      <button class="cbtn2" style="font-size:10px; padding:6px 10px;" onclick="sellAllAdults('${surgingType}')">Bulk Sell Adults</button>
     </div>
   `;
 
-  const sorted = [...fishList].sort((a,b) => {
-    const pa = getPrice(a); const pb = getPrice(b);
-    return pb - pa;
-  });
+  const sorted = [...fishList].sort((a,b) => getPrice(b) - getPrice(a));
 
   mlist.innerHTML = hhtml + sorted.map((f) => {
     const def = TYPES[f.type];
@@ -828,9 +801,7 @@ function buildMarket() {
     const trend = rate > 1.4 ? 'SURGING' : rate < 0.8 ? 'CRASHING' : 'STABLE';
     const tcol = rate > 1.4 ? '#ef4444' : rate < 0.8 ? '#38bdf8' : '#94a3b8';
     
-    let ageTxt = "Baby";
-    if(f.age > 18000) ageTxt = "Adult";
-    else if(f.age > 6000) ageTxt = "Juvenile";
+    let ageTxt = f.age > 18000 ? "Adult" : f.age > 6000 ? "Juvenile" : "Baby";
 
     return `<div class="ocard ${f.type===surgingType?'m-surge-hl':''}">
       <div class="ohead">
@@ -839,11 +810,14 @@ function buildMarket() {
           <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
             <span class="odesc">${f.isRare? ICONS.star : ''}${def.name}</span>
             <span class="m-badge b-age">${ageTxt}</span>
-            ${f.isRare?'<span class="m-badge b-rare">RARE</span>':''}
+            <div style="display:flex;gap:3px;margin-left:auto;">
+              <div class="c-dot" style="background:${f.genes.c1[0]}"></div>
+              <div class="c-dot" style="background:${f.genes.c2[0]}"></div>
+            </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="color:${tcol};font-size:10px;font-weight:800;">${trend} ${rate.toFixed(1)}x</span>
-            <span class="m-badge b-trait">${ICONS[f.genes.trait[0]]} ${f.genes.trait[0].toUpperCase()} x${TRAIT_MARKET_MULT[f.genes.trait[0]]}</span>
+            <span class="m-badge b-trait">${ICONS[f.genes.trait[0]]} ${f.genes.trait[0].toUpperCase()}</span>
           </div>
         </div>
       </div>
@@ -868,7 +842,7 @@ function getPrice(f) {
 function sellFish(id, price) {
   const f = fishList.find(x => x.id === id);
   if(!f) return;
-  const realPrice = getPrice(f); // Recalculate to prevent stale price issues
+  const realPrice = getPrice(f);
   
   const idx = fishList.indexOf(f);
   addCoins(realPrice, W/2, H/3, true);
@@ -1030,8 +1004,38 @@ function updateFish(f){
 // VISUALS
 function initDecor(){
   seaweeds=[];
-  const n=Math.max(10,Math.floor(W/35));
-  for(let i=0;i<n;i++)seaweeds.push({x:(i+.2+Math.random()*.6)*(W/n),segs:5+Math.floor(Math.random()*6),h:50+Math.random()*100,ph:Math.random()*Math.PI*2,hue:130+Math.random()*30,sat:40+Math.random()*30});
+  const n = Math.max(15, Math.floor(W/25));
+  for(let i=0; i<n; i++) {
+    const type = ownedFlora[Math.floor(Math.random() * ownedFlora.length)];
+    let h = 40 + Math.random()*110;
+    let hue = 130 + Math.random()*30;
+    let sat = 40 + Math.random()*30;
+    
+    if(type === 'seaweed') {
+      h = 35 + Math.random()*130;
+      hue = 120 + Math.random()*45;
+      sat = 35 + Math.random()*45;
+    } else if(type === 'grass') {
+      h = 20 + Math.random()*60;
+      hue = 100 + Math.random()*30;
+      sat = 50 + Math.random()*20;
+    } else if(type === 'kelp') {
+      hue = 260 + Math.random()*40;
+    } else if(type === 'coral') {
+      hue = 0 + Math.random()*25;
+    }
+
+    seaweeds.push({
+      x: (i + .2 + Math.random()*.6) * (W/n),
+      type,
+      z: Math.random() > 0.5 ? 'front' : 'back',
+      segs: 4 + Math.floor(Math.random()*4),
+      h: h,
+      ph: Math.random() * Math.PI*2,
+      hue: hue,
+      sat: sat
+    });
+  }
 }
 
 function updateSnail(s){
@@ -1105,12 +1109,6 @@ function drawFish(f){
   const fs = f.scale * (f.genes.szMod||1);
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
   
-  if(f.bonded > 0) {
-    // no shadow glow
-  } else if(f.isRare){
-    // no shadow glow
-  }
-  
   if(f.hunger<25){
     drawExclamation(ctx, 0, -s-15, 11);
   }
@@ -1139,76 +1137,7 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c2[0]+'99';
     ctx.beginPath();ctx.ellipse(s*.1, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.1, 0, Math.PI*2);ctx.fill();
   }
-  else if(f.type==='clown'){
-    ctx.fillStyle=f.genes.c1[0];
-    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.lineTo(-s*1.2,-s*.6+wag);ctx.lineTo(-s*1.2,s*.6+wag);ctx.fill();
-    const bp=new Path2D();bp.ellipse(0,0,s*.85,s*.5,0,0,Math.PI*2);
-    ctx.fillStyle=bg;ctx.fill(bp);
-    ctx.save();ctx.clip(bp);
-    ctx.fillStyle=f.isRare?'#000':'#fff';
-    for(const sx of[-s*.3,s*.2]){ctx.beginPath();ctx.rect(sx-s*.15,-s,s*.3,s*2);ctx.fill();}
-    ctx.restore();
-    drawEye(ctx, s*.55, -s*.1, s*.12);
-    ctx.fillStyle=f.isRare?'#333':'#ea580c';
-    ctx.beginPath();ctx.ellipse(0, s*.15, s*.25, s*.1, Math.PI/8 + paddle*.1, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='angel'){
-    ctx.fillStyle=f.genes.c2[0]+'aa';
-    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s*1.8,-s*1.5+wag*.5);ctx.lineTo(-s*.2,0);ctx.lineTo(-s*1.8,s*1.5+wag*.5);ctx.fill();
-    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(0, s*.8);ctx.quadraticCurveTo(-s*.5, s*2.5, -s+wag, s*3);ctx.stroke();
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.6,s*.9,0,0,Math.PI*2);ctx.fill();
-    drawEye(ctx, s*.25, -s*.2, s*.1);
-    ctx.fillStyle=f.genes.c2[0]+'66';
-    ctx.beginPath();ctx.ellipse(s*.1, 0, s*.2, s*.4, Math.PI/4 + paddle*.05, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='betta'){
-    ctx.fillStyle=f.genes.c2[0]+'77';
-    ctx.beginPath();ctx.moveTo(s*.2,-s*.1);ctx.bezierCurveTo(-s*.5, -s*2.5+wag, -s*2, -s*1.5, -s*1.8,-s*.5);ctx.fill();
-    ctx.beginPath();ctx.moveTo(s*.2,s*.1);ctx.bezierCurveTo(-s*.5, s*2.5+wag, -s*2, s*1.5, -s*1.8,s*.5);ctx.fill();
-    ctx.fillStyle=f.genes.c1[0]+'99';
-    ctx.beginPath();ctx.moveTo(-s*.4,0);ctx.bezierCurveTo(-s*1.5,-s*2+wag*2,-s*3.5,-s*.5+wag*1.5,-s*2.5,0);ctx.bezierCurveTo(-s*3.5,s*.5+wag*1.5,-s*1.5,s*2+wag*2,-s*.4,0);ctx.fill();
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.25,0,0,Math.PI*2);ctx.fill();
-    drawEye(ctx, s*.4, -s*.05, s*.08);
-    ctx.fillStyle=f.genes.c2[0]+'aa';
-    ctx.beginPath();ctx.ellipse(s*.2, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.2, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='puffer'){
-    const bl=eating?1.5:1+Math.sin(time*.05)*.05;
-    ctx.fillStyle=f.genes.c1[0]+'aa';ctx.beginPath();ctx.moveTo(-s*.6*bl,0);ctx.lineTo(-s*1.2,-s*.4+wag*2);ctx.lineTo(-s*1.2,s*.4+wag*2);ctx.fill();
-    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,s*.6*bl,0,Math.PI*2);ctx.fill();
-    if(eating) {
-      ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1.5;
-      for(let i=0;i<8;i++){
-        const a=i/8*Math.PI*2;
-        ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.6*bl,Math.sin(a)*s*.6*bl);
-        ctx.lineTo(Math.cos(a)*s*.8*bl,Math.sin(a)*s*.8*bl);ctx.stroke();
-      }
-    }
-    ctx.fillStyle=f.isRare?'#94a3b8':'#ecfdf5';ctx.beginPath();ctx.arc(s*.1,s*.2,s*.4*bl,0,Math.PI*2);ctx.fill();
-    drawEye(ctx, s*.3, -s*.1, s*.1);
-    ctx.fillStyle=f.genes.c2[0]+'cc';
-    ctx.beginPath();ctx.ellipse(0, s*.2, s*.15, s*.08, paddle*.4, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='koi'){
-    ctx.fillStyle=f.genes.c2[0]+'cc';
-    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.quadraticCurveTo(-s*1.2,-s*.6+wag,-s*1.6,wag);ctx.quadraticCurveTo(-s*1.2,s*.6+wag,-s*.5,0);ctx.fill();
-    const kp=new Path2D();kp.ellipse(0,0,s*.9,s*.4,0,0,Math.PI*2);
-    ctx.fillStyle=bg;ctx.fill(kp);
-    ctx.save();ctx.clip(kp);
-    ctx.fillStyle=f.isRare?'#38bdf8':'#ef4444';
-    ctx.beginPath();ctx.arc(s*.2, -s*.1, s*.3, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(-s*.3, s*.1, s*.25, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(s*.6, s*.15, s*.2, 0, Math.PI*2);ctx.fill();
-    ctx.restore();
-    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(s*.85,s*.15);ctx.quadraticCurveTo(s*1,s*.3,s*1.1,s*.4+pw*.1);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(s*.85,-s*.15);ctx.quadraticCurveTo(s*1,-s*.3,s*1.1,-s*.4-pw*.1);ctx.stroke();
-    drawEye(ctx, s*.5, -s*.15, s*.08);
-    ctx.fillStyle=f.genes.c2[0]+'99';
-    ctx.beginPath();ctx.ellipse(s*.2, s*.2, s*.35, s*.15, Math.PI/4 + paddle*.1, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='neon'){
+  else if(f.type==='tetra'){
     ctx.fillStyle=f.genes.c1[0];
     ctx.beginPath();ctx.moveTo(-s*.8,0);ctx.lineTo(-s*1.4,-s*.4+wag);ctx.lineTo(-s*1.4,s*.4+wag);ctx.fill();
     ctx.fillStyle=f.genes.c2[0];
@@ -1216,30 +1145,6 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c1[0];
     ctx.fillRect(-s*.6,-s*.05,s*1.2,s*.1);
     drawEye(ctx, s*.5, -s*.05, s*.06);
-  }
-  else if(f.type==='discus'){
-    ctx.fillStyle=f.genes.c2[0]+'aa';
-    ctx.beginPath();ctx.moveTo(-s*.6,0);ctx.lineTo(-s*1.5,-s*.8+wag);ctx.lineTo(-s*1.5,s*.8+wag);ctx.fill();
-    ctx.fillStyle=bg;
-    ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=f.genes.c1[0];ctx.lineWidth=2;
-    for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(0,0,s*.25*i,-Math.PI/2,Math.PI/2);ctx.stroke();}
-    drawEye(ctx, s*.6, -s*.1, s*.12);
-    ctx.fillStyle=f.genes.c2[0];
-    ctx.beginPath();ctx.ellipse(0, s*.6, s*.4, s*.2, paddle*.2, 0, Math.PI*2);ctx.fill();
-  }
-  else if(f.type==='arowana'){
-    ctx.fillStyle=f.genes.c2[0]+'cc';
-    ctx.beginPath();ctx.moveTo(s*.5,0);ctx.quadraticCurveTo(-s,-s*.2+wag*2,-s*2,0);ctx.quadraticCurveTo(-s,s*.2+wag*2,s*.5,0);ctx.fill();
-    const kp=new Path2D();kp.ellipse(0,0,s*.9,s*.25,0,0,Math.PI*2);
-    ctx.fillStyle=bg;ctx.fill(kp);
-    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=1;
-    for(let k=0;k<4;k++){ctx.beginPath();ctx.moveTo(-s*.5+k*s*.3,-s*.2);ctx.lineTo(-s*.3+k*s*.3,s*.2);ctx.stroke();}
-    drawEye(ctx, s*.6, -s*.08, s*.06);
-    ctx.strokeStyle=f.genes.c1[0];
-    ctx.beginPath();ctx.moveTo(s*.8,s*.1);ctx.lineTo(s*.9,s*.3);ctx.stroke();
-    ctx.fillStyle=f.genes.c2[0]+'99';
-    ctx.beginPath();ctx.ellipse(s*.3, s*.25, s*.4, s*.1, 0, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='seahorse'){
     const bob = Math.sin(time*0.1+f.id)*s*0.1;
@@ -1252,7 +1157,7 @@ function drawFish(f){
     ctx.quadraticCurveTo(-s*.3, -s*.2, -s*.3, s*.3);
     ctx.quadraticCurveTo(-s*.6, s*1.2, 0, s);
     ctx.quadraticCurveTo(s*.2, s*.7, -s*.1, s*.4);
-    ctx.quadraticCurveTo(s*.6, s*.2, 0, -s*.2);
+    ctx.quadraticCurveTo(s*.6, s*2.2, 0, -s*.2);
     ctx.lineTo(s*.4, -s*.3); ctx.lineTo(s*.4, -s*.5);
     ctx.closePath(); ctx.fill();
     ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
@@ -1261,20 +1166,35 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c2[0]+'99';
     ctx.beginPath();ctx.ellipse(-s*.4, s*.1, s*.15, s*.2, -paddle*.5, 0, Math.PI*2);ctx.fill();
   }
-  else if(f.type==='idol'){
-    ctx.fillStyle=f.genes.c2[0]+'cc'; 
-    ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*1.2,-s*.4+wag);ctx.lineTo(-s*1.2,s*.4+wag);ctx.fill();
-    ctx.fillStyle=bg; 
-    const mb = new Path2D(); mb.ellipse(0,0,s*.8,s,0,0,Math.PI*2); ctx.fill(mb);
-    ctx.save(); ctx.clip(mb);
+  else if(f.type==='goldfish'){
+    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.beginPath();ctx.moveTo(-s*.2,0);
+    ctx.bezierCurveTo(-s*1.2, -s*.6+wag, -s*1.5, -s*1.2+wag, -s*1.8, wag*0.5);
+    ctx.bezierCurveTo(-s*1.5, s*1.2+wag, -s*1.2, s*.6+wag, -s*.2, 0); ctx.fill();
+    ctx.fillStyle=bg; ctx.beginPath(); ctx.ellipse(0,0,s*1.1,s*.6,0,0,Math.PI*2); ctx.fill();
+    drawEye(ctx, s*.6, -s*.1, s*.15);
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.ellipse(s*.2, s*.2, s*.4, s*.2, Math.PI/4 + paddle*.1, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='angelfish'){
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s*1.8,-s*1.5+wag*.5);ctx.lineTo(-s*.2,0);ctx.lineTo(-s*1.8,s*1.5+wag*.5);ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0, s*.8);ctx.quadraticCurveTo(-s*.5, s*2.5, -s+wag, s*3);ctx.stroke();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.6,s*.9,0,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.25, -s*.2, s*.1);
+    ctx.fillStyle=f.genes.c2[0]+'66';
+    ctx.beginPath();ctx.ellipse(s*.1, 0, s*.2, s*.4, Math.PI/4 + paddle*.05, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='discus'){
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.6,0);ctx.lineTo(-s*1.5,-s*.8+wag);ctx.lineTo(-s*1.5,s*.8+wag);ctx.fill();
+    ctx.fillStyle=bg; ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0];ctx.lineWidth=2;
+    for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(0,0,s*.25*i,-Math.PI/2,Math.PI/2);ctx.stroke();}
+    drawEye(ctx, s*.6, -s*.1, s*.12);
     ctx.fillStyle=f.genes.c2[0];
-    ctx.fillRect(-s*.3, -s, s*.25, s*2); ctx.fillRect(s*.2, -s, s*.15, s*2);
-    ctx.restore();
-    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; 
-    ctx.beginPath(); ctx.moveTo(0, -s*.9); ctx.quadraticCurveTo(-s, -s*1.5, -s*2+wag, -s*1.2); ctx.stroke();
-    ctx.fillStyle=f.genes.c1[0];
-    ctx.beginPath(); ctx.moveTo(s*.6, -s*.2); ctx.lineTo(s*1.1, -s*.1); ctx.lineTo(s*1.1, s*.1); ctx.lineTo(s*.7, s*.2); ctx.fill();
-    drawEye(ctx, s*.4, -s*.3, s*.08);
+    ctx.beginPath();ctx.ellipse(0, s*.6, s*.4, s*.2, paddle*.2, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='lionfish'){
     ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
@@ -1291,20 +1211,31 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c1[0]+'88';
     ctx.beginPath();ctx.ellipse(0,s*.2,s*.6,s*.6,paddle*.5,0,Math.PI);ctx.fill();
   }
-  else if(f.type==='shark'){
-    ctx.fillStyle=bg;
-    ctx.beginPath(); ctx.moveTo(s*1.2, 0); 
-    ctx.quadraticCurveTo(s*.5, -s*.4, -s*1.5, -s*.1+wag*1.5); 
-    ctx.lineTo(-s*2, -s*.6+wag*2); ctx.lineTo(-s*1.8, wag*1.5); 
-    ctx.lineTo(-s*2, s*.4+wag*2); ctx.lineTo(-s*1.5, s*.1+wag*1.5); 
-    ctx.quadraticCurveTo(0, s*.3, s*1.2, 0); 
-    ctx.fill();
+  else if(f.type==='idol'){
+    ctx.fillStyle=f.genes.c2[0]+'cc'; 
+    ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*1.2,-s*.4+wag);ctx.lineTo(-s*1.2,s*.4+wag);ctx.fill();
+    ctx.fillStyle=bg; 
+    const mb = new Path2D(); mb.ellipse(0,0,s*.8,s,0,0,Math.PI*2); ctx.fill(mb);
+    ctx.save(); ctx.clip(mb);
     ctx.fillStyle=f.genes.c2[0];
-    ctx.beginPath(); ctx.moveTo(s*.2, -s*.35); ctx.lineTo(-s*.2, -s*.8); ctx.lineTo(-s*.4, -s*.3); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(s*.3, s*.2); ctx.lineTo(0, s*.7); ctx.lineTo(-s*.2, s*.25); ctx.fill();
-    ctx.strokeStyle='#334155'; ctx.lineWidth=1.5;
-    for(let i=0;i<3;i++){ ctx.beginPath();ctx.moveTo(s*.6-i*s*.1, -s*.1);ctx.lineTo(s*.6-i*s*.1, s*.1);ctx.stroke(); }
-    drawEye(ctx, s*.9, -s*.1, s*.05);
+    ctx.fillRect(-s*.3, -s, s*.25, s*2); ctx.fillRect(s*.2, -s, s*.15, s*2);
+    ctx.restore();
+    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; 
+    ctx.beginPath(); ctx.moveTo(0, -s*.9); ctx.quadraticCurveTo(-s, -s*1.5, -s*2+wag, -s*1.2); ctx.stroke();
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath(); ctx.moveTo(s*.6, -s*.2); ctx.lineTo(s*1.1, -s*.1); ctx.lineTo(s*1.1, s*.1); ctx.lineTo(s*.7, s*.2); ctx.fill();
+    drawEye(ctx, s*.4, -s*.3, s*.08);
+  }
+  else if(f.type==='betta'){
+    ctx.fillStyle=f.genes.c2[0]+'77';
+    ctx.beginPath();ctx.moveTo(s*.2,-s*.1);ctx.bezierCurveTo(-s*.5, -s*2.5+wag, -s*2, -s*1.5, -s*1.8,-s*.5);ctx.fill();
+    ctx.beginPath();ctx.moveTo(s*.2,s*.1);ctx.bezierCurveTo(-s*.5, s*2.5+wag, -s*2, s*1.5, -s*1.8,s*.5);ctx.fill();
+    ctx.fillStyle=f.genes.c1[0]+'99';
+    ctx.beginPath();ctx.moveTo(-s*.4,0);ctx.bezierCurveTo(-s*1.5,-s*2+wag*2,-s*3.5,-s*.5+wag*1.5,-s*2.5,0);ctx.bezierCurveTo(-s*3.5,s*.5+wag*1.5,-s*1.5,s*2+wag*2,-s*.4,0);ctx.fill();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.25,0,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.4, -s*.05, s*.08);
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.ellipse(s*.2, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.2, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='jellyfish'){
     const pulse = Math.sin(time*0.1 + f.id)*0.2;
@@ -1315,14 +1246,6 @@ function drawFish(f){
       ctx.beginPath(); ctx.moveTo(i*s*.15, 0); 
       ctx.quadraticCurveTo(i*s*.3, s+wag, i*s*.2, s*1.5+wag); ctx.stroke();
     }
-  }
-  else if(f.type==='hammer'){
-    ctx.fillStyle=bg;
-    ctx.beginPath();ctx.ellipse(0,0,s*1.4,s*.4,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.rect(s*.6,-s*.6,s*.4,s*1.2);ctx.fill();
-    ctx.fillStyle=f.genes.c2[0];
-    ctx.beginPath();ctx.moveTo(0, -s*.35); ctx.lineTo(-s*.4, -s*.8); ctx.lineTo(-s*.6, -s*.3); ctx.fill();
-    drawEye(ctx, s*.8, -s*.5, s*.06); drawEye(ctx, s*.8, s*.5, s*.06);
   }
   else if(f.type==='octopus'){
     ctx.fillStyle=bg;
@@ -1370,8 +1293,7 @@ function drawFish(f){
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = s*0.1;
   ctx.beginPath();
-  if(f.type==='angel') ctx.ellipse(0,0,s*.5,s*.8,0, Math.PI, Math.PI*1.5);
-  else if(f.type==='puffer') ctx.arc(0,0,s*.5, Math.PI, Math.PI*1.5);
+  if(f.type==='angelfish') ctx.ellipse(0,0,s*.5,s*.8,0, Math.PI, Math.PI*1.5);
   else ctx.ellipse(0,0,s*.7,s*.25,0, Math.PI, Math.PI*1.5);
   ctx.stroke();
 
@@ -1409,12 +1331,24 @@ try {
   g.addColorStop(1, theme.c3);
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
 
+  // Marine Snow
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  for(let i=0;i<marineSnow.length;i++){
+    const p=marineSnow[i];
+    p.y -= p.v; p.x += Math.sin(time*0.01 + i)*0.2;
+    if(p.y < -10) p.y = H+10;
+    if(p.x < -10) p.x = W+10; if(p.x > W+10) p.x = -10;
+    ctx.globalAlpha = p.o;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
   ctx.globalCompositeOperation='screen';
-  for(let i=0;i<3;i++){
-    ctx.beginPath();const rx=(W/3)*i+Math.sin(time*.005+i)*50;
-    ctx.moveTo(rx,0);ctx.lineTo(rx-100,H);ctx.lineTo(rx+150,H);
+  for(let i=0;i<4;i++){
+    ctx.beginPath();const rx=(W/4)*i+Math.sin(time*.005+i)*60;
+    ctx.moveTo(rx,0);ctx.lineTo(rx-120,H);ctx.lineTo(rx+180,H);
     const rg=ctx.createLinearGradient(0,0,0,H);
-    rg.addColorStop(0,'rgba(255,255,255,.07)');rg.addColorStop(1,'rgba(255,255,255,0)');
+    rg.addColorStop(0,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
     ctx.fillStyle=rg;ctx.fill();
   }
   ctx.globalCompositeOperation='source-over';
@@ -1422,17 +1356,75 @@ try {
   if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.003})`;ctx.fillRect(0,0,W,H);}
   if(isHarmony){ctx.fillStyle='rgba(251,191,36,.055)';ctx.fillRect(0,0,W,H);}
 
-  for(const sw of seaweeds){
-    ctx.beginPath();let px=sw.x,py=H;ctx.moveTo(px,py);
-    const sh=sw.h/sw.segs;
-    for(let i=0;i<sw.segs;i++){
-      const sv=Math.sin(time*.0011+sw.ph+i*.8)*(6+(i/sw.segs)*16);
-      const nx=sw.x+sv,ny=py-sh;
-      ctx.quadraticCurveTo(px+sv*.55,py-sh*.5,nx,ny);px=nx;py=ny;
+  function drawFlora(sw) {
+    // Slower, more subtle swaying for organic look
+    const timeMod = time * 0.006 + sw.ph;
+    const swayBase = Math.sin(timeMod) * (4 + sw.h * 0.06);
+    const swayExtra = Math.sin(timeMod * 2.4 - sw.ph) * 1; 
+    const sway = swayBase + swayExtra;
+    ctx.lineCap = 'round';
+    
+    if(sw.type === 'seaweed') {
+      for(let b=0; b<3; b++) {
+        ctx.beginPath();
+        let px = sw.x + (b-1)*8, py = H-85;
+        ctx.moveTo(px, py);
+        const hScale = sw.h * (0.8 + b*0.1);
+        const bSway = sway * (0.9 + b*0.1);
+        const cp1x = px + bSway * 0.5, cp1y = py - hScale * 0.5;
+        const endX = px + bSway, endY = py - hScale;
+        ctx.quadraticCurveTo(cp1x, cp1y, endX, endY);
+        const g = ctx.createLinearGradient(px, py, endX, endY);
+        g.addColorStop(0, `hsla(${sw.hue}, ${sw.sat}%, ${15 + b*5}%, 0.8)`);
+        g.addColorStop(1, `hsla(${sw.hue + 10}, ${sw.sat + 10}%, ${40 + b*10}%, 0.1)`);
+        ctx.strokeStyle = g; ctx.lineWidth = 6 - b; ctx.stroke();
+      }
+    } else if(sw.type === 'grass') {
+      for(let b=0; b<5; b++) {
+        ctx.beginPath();
+        let px = sw.x + (b-2)*3, py = H-85;
+        ctx.moveTo(px, py);
+        const hScale = sw.h * (0.8 + b*0.1);
+        const bSway = sway * (1.1 + b*0.1);
+        const cp1x = px + bSway * 0.5, cp1y = py - hScale * 0.5;
+        const endX = px + bSway, endY = py - hScale;
+        ctx.quadraticCurveTo(cp1x, cp1y, endX, endY);
+        ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, ${25 + b*8}%, 0.8)`;
+        ctx.lineWidth = 3 - b*0.5; ctx.stroke();
+      }
+    } else if(sw.type === 'kelp') {
+      ctx.beginPath();
+      let px = sw.x, py = H-85; ctx.moveTo(px, py);
+      const bSway = sway * 1.2;
+      const cp1x = px + bSway * 0.2, cp1y = py - sw.h * 0.3;
+      const cp2x = px + bSway * 0.7, cp2y = py - sw.h * 0.6;
+      const endX = px + bSway, endY = py - sw.h;
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+      ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, 20%, 0.7)`;
+      ctx.lineWidth = 15; ctx.stroke();
+      for(let l=0; l<sw.segs; l++) {
+        const lp = l/sw.segs;
+        const lx = px + bSway * lp, ly = py - sw.h * lp;
+        ctx.fillStyle = `hsla(${sw.hue}, ${sw.sat + 10}%, 30%, 0.6)`;
+        ctx.beginPath();
+        ctx.ellipse(lx + Math.sin(timeMod + l)*10, ly, 12, 6, Math.PI/4 + Math.sin(timeMod)*0.5, 0, Math.PI*2);
+        ctx.fill();
+      }
+    } else {
+      ctx.beginPath();
+      let px = sw.x, py = H-85;
+      for(let r=-2; r<=2; r++) {
+        ctx.moveTo(px, py);
+        const rx = px + r * 15 + sway;
+        const ry = py - sw.h * 0.6;
+        ctx.quadraticCurveTo(px + r*5, py - sw.h*0.3, rx, ry);
+      }
+      ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, 45%, 0.5)`;
+      ctx.lineWidth = 4; ctx.stroke();
     }
-    ctx.strokeStyle=`hsla(${sw.hue},${sw.sat}%,${18*(1-algae*.003)}%,.6)`;
-    ctx.lineWidth=6;ctx.lineCap='round';ctx.stroke();
   }
+
+  for(const sw of seaweeds) { if(sw.z === 'back') drawFlora(sw); }
 
   ctx.fillStyle = 'rgba(0,5,15,0.4)';
   for(const f of fishList) {
@@ -1506,11 +1498,34 @@ try {
 
   fishList.sort((a,b)=>a.scale-b.scale);
   for(const f of fishList){updateFish(f);drawFish(f);}
+  for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
-  ctx.fillStyle = FLOORS[curFloor].c;
-  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-85);
-  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-85+Math.sin(i*.05)*5);
-  ctx.lineTo(W,H+5);ctx.fill();
+  function drawSubstrate() {
+    const f = FLOORS[curFloor];
+    ctx.fillStyle = f.c;
+    ctx.beginPath(); ctx.moveTo(0, H+5); ctx.lineTo(0, H-85);
+    for(let i=0; i<=W; i+=40) ctx.lineTo(i, H-85 + Math.sin(i*0.04)*4);
+    ctx.lineTo(W, H+5); ctx.fill();
+    ctx.save();
+    ctx.clip();
+    for(let i=0; i<300; i++) {
+       const gx = (i * 137.5) % W;
+       const gy = H - 85 + (i * 7.1) % 90;
+       ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random()*0.05})`;
+       ctx.fillRect(gx, gy, 1.5, 1.5);
+       if(i % 10 === 0) {
+         ctx.fillStyle = 'rgba(0,0,0,0.1)';
+         ctx.beginPath(); ctx.arc(gx, gy, 2 + Math.random()*3, 0, Math.PI*2); ctx.fill();
+       }
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, H-85);
+    for(let i=0; i<=W; i+=40) ctx.lineTo(i, H-85 + Math.sin(i*0.04)*4);
+    ctx.stroke();
+  }
+  drawSubstrate();
 
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
@@ -1632,11 +1647,14 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[t]);
+    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.toggle('active',id===t));
+    ['market','decor','orders','shop','social','finder'].forEach(id=>{
+      const el = document.getElementById('nb-'+id);
+      if(el) el.classList.toggle('active',id===t);
+    });
     if(t==='market') document.getElementById('nb-market').classList.remove('notify');
     if(t==='shop') document.getElementById('nb-shop').classList.remove('notify');
     if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
@@ -1649,6 +1667,70 @@ function buildPanel(t){
   if(t==='decor') buildDecor();
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
+  if(t==='finder') buildFishFinder();
+}
+
+function getPersonality(f) {
+  const p1 = ['Playful','Calm','Curious','Vibrant','Loyal','Grumpy'][f.id % 6];
+  const p2 = ['Bubbler','Explorer','Dancer','Watcher','Zinger','Floaty'][Math.floor(f.id/10) % 6];
+  const likes = ['Green Algae','Bubbles','Sand','Snails','Food Plankton'][f.id % 5];
+  const dislikes = ['Dirty Water','Noise','Empty Tanks','Cold'][Math.floor(f.id/7) % 4];
+  return { desc: `${p1} ${p2}`, likes, dislikes };
+}
+
+function buildFishFinder() {
+  const flist = document.getElementById('flist');
+  if(!fishList.length) { flist.innerHTML = '<div style="color:#475569;text-align:center;padding:20px;">No fish in tank.</div>'; return; }
+  
+  flist.innerHTML = fishList.map(f => {
+    const def = TYPES[f.type];
+    const ageTxt = f.age > 18000 ? "Adult" : f.age > 6000 ? "Juvenile" : "Baby";
+    const pers = getPersonality(f);
+    const trait = f.genes.trait[0];
+    const bondLv = Math.min(5, Math.floor((f.bonded || 0) / 720) + 1);
+    const hearts = '❤️'.repeat(bondLv) + '<span style="opacity:0.2;">' + '❤️'.repeat(5-bondLv) + '</span>';
+    
+    let html = `<div class="finder-card">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:28px; filter:drop-shadow(0 0 10px rgba(255,255,255,0.2));">${def.icon}</span>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="color:#fff; font-weight:900; font-size:14px; letter-spacing:0.3px;">${f.name || def.name}</span>
+            <span class="m-badge b-age">${ageTxt}</span>
+            ${f.isRare?'<span class="m-badge b-rare">RARE</span>':''}
+          </div>
+          <div style="color:#475569; font-size:10px; font-weight:700;">${def.name.toUpperCase()} • ID:${f.id}</div>
+        </div>
+        <div style="display:flex;gap:5px;">
+           <div class="c-dot" style="background:${f.genes.c1[0]}; box-shadow:0 0 10px ${f.genes.c1[0]}66;"></div>
+           <div class="c-dot" style="background:${f.genes.c2[0]}; box-shadow:0 0 10px ${f.genes.c2[0]}66;"></div>
+        </div>
+      </div>`;
+
+    if(playerLevel >= 4) {
+      html += `
+        <div class="f-row"><span>Bond Level</span><span style="font-size:10px;">${hearts}</span></div>
+        <div class="f-row"><span>Trait Pattern</span><span class="f-val">${ICONS[trait]} ${trait.toUpperCase()}</span></div>
+        <div class="f-trait-desc">Current multiplier: <span style="color:#fbbf24">x${TRAIT_MARKET_MULT[trait]}</span></div>
+        <div class="f-row"><span>Condition</span><span class="f-val">${Math.floor(f.hunger)}% Satiated</span></div>
+      `;
+    }
+    
+    if(playerLevel >= 7) {
+      html += `
+        <div class="f-row"><span>Genetics</span><span class="f-val" style="font-family:monospace;font-size:9px;">${f.genes.c1[0]} / ${f.genes.c2[0]}</span></div>
+        <div class="f-personality">
+          <div style="font-weight:900; color:#fff; margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
+          <div>Loves: <span style="color:#34d399">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
+        </div>
+      `;
+    } else {
+       html += `<div style="font-size:9px; color:#334155; margin-top:10px; font-style:italic; text-align:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">Reach Level ${playerLevel<4?4:7} for detailed bio</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }).join('');
 }
 
 function closeAll(){
@@ -1663,7 +1745,6 @@ function closeAll(){
 }
 
 // ─── PANEL DRAG SYSTEM ────────────────────────────────────────────────────────
-// Drag changes panel HEIGHT (not translateY) so pscroll is always correctly sized.
 const HALF_H=0.52, FULL_H=0.92;
 let _dp=null,_dSY=0,_dS0=0,_dLY=0,_dLT=0,_dVel=0,_dCur=0;
 
@@ -1711,7 +1792,7 @@ window.addEventListener('touchend',()=>{ if(_dp)_pSnap(_dp); });
 window.addEventListener('touchcancel',()=>{ if(_dp)_pSnap(_dp); });
 
 // ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
-const TYPE_MAP  = ['guppy','clown','angel','betta','puffer','koi'];
+const TYPE_MAP  = ['guppy','tetra','goldfish','betta','angelfish','discus'];
 const TRAIT_MAP = ['greedy','shy','lazy','active'];
 
 function encodeFish(f) {
@@ -1789,8 +1870,7 @@ function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip
   return c;
 }
 
-// Accordion state for decor tab
-const decorOpen = {themes:false, substrates:false, bubbles:false, borders:false};
+const decorOpen = {themes:false, substrates:false, bubbles:false, borders:false, flora:false};
 
 function makeAccordion(id, title, equippedName, cards, openKey) {
   const el = document.getElementById(id);
@@ -1839,6 +1919,18 @@ function buildDecor() {
   if(cardEl) for(const [id,def] of Object.entries(BORDERS))
     cardEl.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
       ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
+      
+  cardEl = makeAccordion('acc-flora','Tank Flora', 'Active', null, 'flora');
+  if(cardEl) {
+    const floraTypes = ['seaweed','grass','kelp','coral'];
+    floraTypes.forEach(f => {
+      const isOwned = ownedFlora.includes(f);
+      const c = document.createElement('div');
+      c.className = `card ${isOwned?'buyable':''}`;
+      c.innerHTML = `<span class="ci">${ICONS.decor}</span><span class="cn">${f.toUpperCase()}</span><span class="cpr">${isOwned?'OWNED':'LOCKED'}</span>`;
+      cardEl.appendChild(c);
+    });
+  }
 }
 
 function applyBorder() {
@@ -1851,8 +1943,6 @@ function applyBorder() {
   if(b.style==='pulse') { cv.style.animation = 'none'; cv.style.boxShadow = 'inset 0 0 60px rgba(var(--ui-accent-rgb),0.18)'; }
 }
 
-
-
 function switchShop(tab) {
   document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
   document.getElementById('shop-fish').style.display = tab==='fish' ? 'block' : 'none';
@@ -1860,8 +1950,32 @@ function switchShop(tab) {
   document.getElementById('tab-fish').className = tab==='fish' ? 'tabbtn active' : 'tabbtn';
 }
 
+function spawnFish(type) {
+  const g = generateRandomGenes(type);
+  fishList.push({id:fid++,type,x:W/2,y:H/2,vx:0,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:0.5,bonded:0,bcd:0,genes:g,isRare:g.isRareMut});
+  updateHUD();
+}
+
 function buildShop(){
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (Object.values(UPGRADES).find(u=>u.name==='Tank Expansion').owned * 4);
+  const lc=document.getElementById('fcards');lc.innerHTML='';
+  for(let id in TYPES){
+    const u=TYPES[id]; if(u.req>playerLevel)continue;
+    const price = getFishPrice(id);
+    const owned = fishList.filter(f=>f.type===id).length;
+    const full = (fishList.length + eggs.length) >= mF;
+    const can = !full && coins >= price;
+    
+    const c=document.createElement('div');
+    c.className=`card${can?' buyable':''}${full?' full':''}`;
+    c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${Math.floor(u.val*marketRates[id])}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${price}</span><span class="cown">owned:${owned}</span>`;
+    if(can)c.onclick=()=>{
+      coins-=price; boughtCounts[id]++; 
+      document.getElementById('cv').textContent=coins;spawnFish(id);
+      spawnJuice(W/2,H/2, id.toUpperCase()+'!','var(--ui-accent)',1.4);updateHUD();saveGame();buildShop();
+    };else if(full) c.style.opacity='.6'; else c.style.opacity='.4';
+    lc.appendChild(c);
+  }
   const uc=document.getElementById('ucards');uc.innerHTML='';
   for(const[id,u] of Object.entries(UPGRADES)){
     const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
@@ -1869,29 +1983,15 @@ function buildShop(){
     c.setAttribute('data-req',u.req);
     c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
-      coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
+      coins-=u.cost; u.owned++; 
+      document.getElementById('cv').textContent=coins;
       if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
-      updateHUD();
-      spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
+      if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
+      if(id==='coral') { ownedFlora.push('coral'); initDecor(); }
+      updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildShop(); saveGame();
     };
     uc.appendChild(c);
-  }
-  const fc=document.getElementById('fcards');fc.innerHTML='';
-  for(const[type,def] of Object.entries(TYPES)){
-    const lk=playerLevel<def.req,owned=fishList.filter(f=>f.type===type).length;
-    const full=(fishList.length+eggs.length)>=mF||owned>=def.max,can=!full&&!lk&&coins>=def.cost;
-    const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
-    c.setAttribute('data-req',def.req);
-    c.innerHTML=`<span class="ci" style="color:${def.c1}">${def.icon}</span><span class="cn">${def.name}</span><span class="cd">Up to ${def.val} Coins/feed</span>${def.cost>0?`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`:'<span class="cpr">Free</span>'}<span class="cown">${owned}/${def.max}</span>`;
-    if(can)c.onclick=()=>{
-      coins-=def.cost;document.getElementById('cv').textContent=coins;
-      const g = generateRandomGenes(type);
-      eggs.push({x:Math.random()*(W-100)+50,y:H-85,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
-      updateHUD();
-      spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
-    };
-    fc.appendChild(c);
   }
 }
 
@@ -1946,6 +2046,46 @@ function redeemCode(raw){
   }else{toast('Invalid code format!','#ef4444');}
 }
 function buildSocial(){
+  const s=document.getElementById('socdiv');
+  s.innerHTML = `
+    <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:12px; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+      <div style="flex:1;"><div style="color:#ef4444; font-weight:bold; font-size:12px;">Difficulty / Settings</div><div style="font-size:10px; opacity:0.7;">Progress is saved automatically.</div></div>
+      <button onclick="resetSave()" class="cbtn" style="background:#ef4444; color:white; padding:6px 12px; font-size:11px;">Reset Save</button>
+    </div>
+
+    <div class="scard">
+      <div class="srow"><span>Daily Streak</span><span id="sstreak"></span></div>
+      <div class="srow"><span>Orders Completed</span><span id="sorders"></span></div>
+      <div class="srow"><span>Total Coins Earned</span><span id="stotal"></span></div>
+      <div class="srow"><span>Codes Redeemed</span><span id="scodes"></span></div>
+    </div>
+
+    <div class="sechead" style="margin-top:20px;">🏆 Achievements</div>
+    <div class="scard" id="m-list" style="max-height:150px; overflow-y:auto; font-size:11px;"></div>
+
+    <div class="sechead" style="margin-top:20px;">🎁 My Fish Finder</div>
+    <div class="scard" id="gift-list" style="max-height:200px; overflow-y:auto;"></div>
+
+    <div class="sechead" style="margin-top:20px;">🎟️ Your Friend Code</div>
+    <div class="scard" style="text-align:center;">
+       <div id="mycode" style="font-size:24px; font-weight:900; color:var(--ui-accent); margin-bottom:8px; letter-spacing:2px;"></div>
+       <button class="cbtn" onclick="copyCode()">Copy to Clipboard</button>
+       <p style="font-size:10px; opacity:0.6; margin-top:8px;">Share your code with friends to trade rare species!</p>
+    </div>
+
+    <div class="sechead" style="margin-top:20px;">✨ Redeem Code</div>
+    <div class="scard">
+      <input type="text" id="codein" placeholder="Enter code here..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#fff; font-family:monospace; margin-bottom:10px; outline:none;">
+      <button class="cbtn" style="width:100%;" onclick="redeemCode(document.getElementById('codein').value)">Redeem Now</button>
+      <div id="soclog" style="font-size:10px; margin-top:8px; text-align:center; min-height:15px; opacity:0.8;"></div>
+    </div>
+    
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button onclick="exportSave()" class="cbtn" style="flex:1; opacity:0.7;">Export Save</button>
+      <button onclick="importSaveClick()" class="cbtn" style="flex:1; opacity:0.7;">Import Save</button>
+    </div>
+  `;
+
   document.getElementById('mycode').textContent=myCode();
   document.getElementById('sstreak').textContent=dailyStreak+' days';
   document.getElementById('sorders').textContent=completedOrders;
@@ -1961,20 +2101,22 @@ function buildSocial(){
   }
   
   const gl = document.getElementById('gift-list');
-  if(!fishList.length) { gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; return; }
-  
-  gl.innerHTML = fishList.map(f => {
-    const def = TYPES[f.type];
-    const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
-    const fn = f.name ? `"${f.name}"` : def.name;
-    return `<div class="gift-fish-row">
-      <span><span class="trait-icon">${traitIco}</span> ${f.isRare? ICONS.star : ''}${fn}</span>
-      <div style="display:flex;gap:4px;">
-        <button class="giftbtn" style="background:#475569" onclick="renameFish(${f.id})">✏️</button>
-        <button class="giftbtn" onclick="giftFish(${f.id})">Gift</button>
-      </div>
-    </div>`;
-  }).join('');
+  if(!fishList.length) { 
+    gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; 
+  } else {
+    gl.innerHTML = fishList.map(f => {
+      const def = TYPES[f.type];
+      const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
+      const fn = f.name ? `"${f.name}"` : def.name;
+      return `<div class="gift-fish-row">
+        <span><span class="trait-icon">${traitIco}</span> ${f.isRare? ICONS.star : ''}${fn}</span>
+        <div style="display:flex;gap:4px;">
+          <button class="giftbtn" style="background:var(--ui-accent-dark)" onclick="renameFish(${f.id})">✏️</button>
+          <button class="giftbtn" onclick="giftFish(${f.id})">Gift</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function renameFish(id) {
@@ -2158,9 +2300,9 @@ function claimOrder(i) {
 }
 
 function buildOrders() {
-  const scale = getDifficultyScale();
-  document.getElementById('otimer').textContent = `Difficulty: +${Math.floor((scale - 1) * 100)}%`;
-  document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
+  const olist = document.getElementById('olist');
+  if(!olist) return;
+  olist.innerHTML = currentOrders.slice(0, 6).map((o,i)=>{
     const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
     return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
       <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;${o.isTrade?'color:#fbbf24;':''}">${o.isTrade ? ICONS.tank + ' Rare ' + TYPES[o.ftyperew].name : ICONS.coin + ' ' + o.reward}</span></div></div>
@@ -2174,8 +2316,20 @@ function buildOrders() {
 // RESET SAVE
 function resetSave(){
   if(confirm('🗑️ Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
-    localStorage.removeItem(MASTER_KEY);
-    location.reload();
+     localStorage.clear();
+     // Manual Global Reset for local persistence issues
+     coins = 100; totalCoins = 100; playerLevel = 1; algae = 0;
+     fishList = []; eggs = []; foodList = []; bubbles = [];
+     particles = []; isHarmony = false; combo = 0;
+     curFloor = 'default'; curTheme = 'default'; curBorder = 'none'; curBubble = 'default';
+     ownedThemes = ['default']; ownedFloors = ['default']; ownedBorders = ['none']; 
+     ownedBubbles = ['default']; ownedFlora = ['seaweed', 'grass'];
+     boughtCounts = {}; for(let k in TYPES) boughtCounts[k] = 0;
+     sm = {feeds:0, harmonySec:0, cleaned:0, hatched:0, rares:0, marketSales:0};
+     Object.values(UPGRADES).forEach(u => u.owned = 0);
+     
+     saveGame(); // Overwrite with blank state
+     location.reload(true); 
   }
 }
 </script>
