@@ -50,9 +50,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(103,232,249,.6));}
 .nb.notify::after{content:'';position:absolute;top:2px;right:calc(50% - 12px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(0,0,0,.5);box-shadow:0 0 10px rgba(244,63,94,.6);}
 
-#sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px) grayscale(0.8);backdrop-filter:blur(10px) grayscale(0.8);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
+#sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(20px) grayscale(1);backdrop-filter:blur(20px) grayscale(1);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);will-change:transform;}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);will-change:transform;}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
 .panel.open{transform:translateY(32%);pointer-events:auto;}
 .panel.full{transform:translateY(0);pointer-events:auto;}
@@ -238,7 +238,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.2</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.3</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
@@ -1519,22 +1519,21 @@ window.addEventListener('touchend', e=>{
   pdragging.classList.remove('dragging');
   const h = pdragging.offsetHeight;
   const rect = pdragging.getBoundingClientRect();
-  const top = rect.top;
-  const screenH = window.innerHeight;
-  const pos = top - (screenH - h); // 0 at screen bottom (full up), h at screen bottom (hidden)
+  const pos = rect.top - (window.innerHeight - h);
+  const mid = h * 0.32;
   
   pdragging.style.transform = '';
   
-  if(pV > 0.5 || pos > h * 0.7) {
-    closeAll();
-  } else if(pos < h * 0.15 || pV < -0.5) {
-    pdragging.classList.add('full');
-    pdragging.classList.add('open');
-  } else {
-    pdragging.classList.remove('full');
-    pdragging.classList.add('open');
+  if(pV > 0.6) { // Swipe down
+    if(pos < mid * 0.6) { pdragging.classList.add('open'); pdragging.classList.remove('full'); }
+    else closeAll();
+  } else if(pV < -0.6) { // Swipe up
+    pdragging.classList.add('full','open');
+  } else { // Release
+    if(pos < mid * 0.5) pdragging.classList.add('full','open');
+    else if(pos < h * 0.75) { pdragging.classList.add('open'); pdragging.classList.remove('full'); }
+    else closeAll();
   }
-  
   pdragging = null;
 });
 
