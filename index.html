@@ -15,7 +15,7 @@
   --ui-accent: #67e8f9;
   --ui-accent-rgb: 103, 232, 249;
 }
-html, body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:transparent;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
+html, body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:#000;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
 canvas{position:absolute;inset:0;width:100%;height:100%;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
@@ -904,8 +904,8 @@ function updateFish(f){
 // VISUALS
 function initDecor(){
   seaweeds=[];
-  const n=Math.max(5,Math.floor(W/65));
-  for(let i=0;i<n;i++)seaweeds.push({x:(i+.3+Math.random()*.4)*(W/n),segs:6+Math.floor(Math.random()*5),h:70+Math.random()*90,ph:Math.random()*Math.PI*2,hue:130+Math.random()*30,sat:40+Math.random()*30});
+  const n=Math.max(10,Math.floor(W/35));
+  for(let i=0;i<n;i++)seaweeds.push({x:(i+.2+Math.random()*.6)*(W/n),segs:5+Math.floor(Math.random()*6),h:50+Math.random()*100,ph:Math.random()*Math.PI*2,hue:130+Math.random()*30,sat:40+Math.random()*30});
 }
 
 function updateSnail(s){
@@ -913,7 +913,9 @@ function updateSnail(s){
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
   if(s.state==='moving'){
     s.x+=s.spd*s.dir;s.ph+=.08;
-    if(s.y>=H-110){if(s.x<15){s.x=15;s.y-=2;s.wall='left';}else if(s.x>W-15){s.x=W-15;s.y-=2;s.wall='right';}}
+    if(s.x<20)s.x=20;
+    if(s.x>W-20)s.x=W-20;
+    if(s.y>=H-110){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
     else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-110){s.y=H-110;s.wall='floor';}}
   }
   if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
@@ -970,9 +972,9 @@ function drawFish(f){
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
   
   if(f.bonded > 0) {
-    ctx.shadowBlur=20; ctx.shadowColor='rgba(251, 113, 133, 0.9)'; 
+    // no shadow glow
   } else if(f.isRare){
-    ctx.shadowBlur=25; ctx.shadowColor=f.genes.c1[0];
+    // no shadow glow
   }
   
   if(f.hunger<25){
