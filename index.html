@@ -42,13 +42,13 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .xpb{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:3px;overflow:hidden;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);}
 .xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.3s ease;}
 
-#nav{position:fixed;bottom:max(10px, env(safe-area-inset-bottom));left:12px;right:12px;height:65px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);border-radius:35px;-webkit-backdrop-filter:blur(30px) grayscale(1);backdrop-filter:blur(30px) grayscale(1);box-shadow:0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);display:flex;z-index:25;padding:0 5px;}
-/* ultra transparent pill */
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:#94a3b8;font-size:8px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:6px 0;}
-.nb svg {font-size:20px; transition:transform .2s;}
+#nav{position:fixed;bottom:0;left:0;right:0;height:calc(50px + env(safe-area-inset-bottom, 0px));padding-bottom:env(safe-area-inset-bottom, 0px);background:rgba(0,0,0,.4);border-top:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(30px) grayscale(1);backdrop-filter:blur(30px) grayscale(1);display:flex;z-index:25;}
+/* docked into safe area */
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:#94a3b8;font-size:8px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:4px 0;}
+.nb svg {font-size:18px; transition:transform .2s;}
 .nb.active{color:#fff; text-shadow:0 0 12px rgba(255,255,255,.6), 0 0 24px rgba(103,232,249,.8);}
-.nb.active svg{transform:translateY(-2px); filter:drop-shadow(0 4px 6px rgba(103,232,249,.6));}
-.nb.notify::after{content:'';position:absolute;top:10px;right:calc(50% - 14px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(15,25,45,.8);box-shadow:0 0 10px rgba(244,63,94,.6);}
+.nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(103,232,249,.6));}
+.nb.notify::after{content:'';position:absolute;top:2px;right:calc(50% - 12px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(0,0,0,.5);box-shadow:0 0 10px rgba(244,63,94,.6);}
 
 #sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px) grayscale(0.8);backdrop-filter:blur(10px) grayscale(0.8);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
@@ -393,8 +393,8 @@ function resize(){
 resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
 
-const FOOD_FL=()=>H-110;
-const SWIM_BOT=()=>H-130;
+const FOOD_FL=()=>H-65;
+const SWIM_BOT=()=>H-80;
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
@@ -614,7 +614,7 @@ function applyState(s){
   }
   
   for(let i=0;i<UPGRADES.snail.owned;i++)
-    snails.push({x:100+Math.random()*(W-200),y:H-110,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+    snails.push({x:100+Math.random()*(W-200),y:H-65,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
   for(let i=0;i<(s.clams??0);i++)
     clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
   
@@ -845,7 +845,7 @@ function updateFish(f){
       const childGenes = mendelianCross(f.genes, mate.genes, def);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
-      eggs.push({x:(f.x+mate.x)/2,y:H-110,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      eggs.push({x:(f.x+mate.x)/2,y:H-65,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -915,8 +915,8 @@ function updateSnail(s){
     s.x+=s.spd*s.dir;s.ph+=.08;
     if(s.x<20)s.x=20;
     if(s.x>W-20)s.x=W-20;
-    if(s.y>=H-110){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
-    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-110){s.y=H-110;s.wall='floor';}}
+    if(s.y>=H-65){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
+    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-65){s.y=H-65;s.wall='floor';}}
   }
   if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
 }
@@ -1251,7 +1251,7 @@ function loop(){
   for(const f of fishList) {
     const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
     ctx.beginPath();
-    ctx.ellipse(f.x, H-105, s*1.2, s*0.4, 0, 0, Math.PI*2);
+    ctx.ellipse(f.x, H-60, s*1.2, s*0.4, 0, 0, Math.PI*2);
     ctx.fill();
   }
 
@@ -1277,7 +1277,7 @@ function loop(){
   for(const s of snails){updateSnail(s);drawSnail(s);}
 
   for(const c of clams){
-    c.timer++;ctx.save();ctx.translate(c.x,H-100);
+    c.timer++;ctx.save();ctx.translate(c.x,H-55);
     ctx.scale(1,1+Math.sin(c.timer*.02)*.05);
     ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,10,15,5,0,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.arc(0,0,18,Math.PI,0);ctx.fillStyle='#64748b';ctx.fill();
@@ -1285,7 +1285,7 @@ function loop(){
       ctx.beginPath();ctx.arc(0,-10,4,0,Math.PI*2);ctx.fillStyle='#f8fafc';ctx.shadowBlur=10;ctx.shadowColor='#fff';ctx.fill();ctx.shadowBlur=0;
     }
     ctx.rotate(-Math.max(0,Math.sin(c.timer*.02))*.5);ctx.beginPath();ctx.arc(0,0,19,Math.PI,0);ctx.fillStyle='#94a3b8';ctx.fill();ctx.restore();
-    if(c.timer%1200===0){addCoins(150,c.x,H-125,true);spawnJuice(c.x,H-145, ICONS.star + ' PEARL!','#f8fafc',1.5);}
+    if(c.timer%1200===0){addCoins(150,c.x,H-80,true);spawnJuice(c.x,H-100, ICONS.star + ' PEARL!','#f8fafc',1.5);}
   }
 
   for(let i=bubbles.length-1;i>=0;i--){
@@ -1321,8 +1321,8 @@ function loop(){
   for(const f of fishList){updateFish(f);drawFish(f);}
 
   ctx.fillStyle = FLOORS[curFloor].c;
-  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-110);
-  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-110+Math.sin(i*.05)*5);
+  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-65);
+  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-65+Math.sin(i*.05)*5);
   ctx.lineTo(W,H+5);ctx.fill();
 
   saveTimer++;
@@ -1335,7 +1335,7 @@ function loop(){
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
-    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-110))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-65))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
   }
 }
 
@@ -1577,7 +1577,7 @@ function buildShop(){
     c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
-      if(id==='snail')snails.push({x:W/2,y:H-110,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+      if(id==='snail')snails.push({x:W/2,y:H-65,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
@@ -1594,7 +1594,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
       const g = generateRandomGenes(type);
-      eggs.push({x:W/2+(Math.random()*40-20),y:H-110,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-65,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
@@ -1630,7 +1630,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-110,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-65,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -1829,7 +1829,7 @@ function claimOrder(i) {
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-100,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-65,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
