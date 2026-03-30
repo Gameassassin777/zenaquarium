@@ -52,9 +52,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 #sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px) grayscale(0.8);backdrop-filter:blur(10px) grayscale(0.8);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(20px) grayscale(1);backdrop-filter:blur(20px) grayscale(1);border-radius:30px 30px 0 0;padding:24px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:68dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);}
-.panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.2);border-radius:3px;}
-.panel.open{transform:translateY(0);pointer-events:auto;}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(20px) grayscale(1);backdrop-filter:blur(20px) grayscale(1);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);will-change:transform;}
+.panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
+.panel.open{transform:translateY(32%);pointer-events:auto;}
+.panel.full{transform:translateY(0);pointer-events:auto;}
+.panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
 .pscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:calc(30px + env(safe-area-inset-bottom, 0px));}
@@ -236,8 +238,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.6.3</span></div>
-    <button onclick="resetSave()" class="resetbtn">Reset Save (Development)</button>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.2</span></div>
+    <div style="display:flex;gap:5px;margin-bottom:10px;">
+      <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
+      <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
+    </div>
     <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
   </div>
 </div>
@@ -1441,39 +1446,96 @@ function checkLevel(){
 let currentTab='tank';
 function setTab(t){
   currentTab=t;
-  ['market','decor','orders','shop','social'].forEach(id=>{
-    document.getElementById('nb-'+id).classList.toggle('active',id===t);
-    const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id] || '');
-    if(el) el.classList.toggle('open',id===t);
-  });
-  document.getElementById('sov').classList.toggle('open',t!=='tank');
   if(t==='tank') closeAll();
-  if(t==='market') { buildMarket(); document.getElementById('nb-market').classList.remove('notify'); }
-  if(t==='shop') { buildShop(); document.getElementById('nb-shop').classList.remove('notify'); }
-  if(t==='decor') { buildDecor(); }
-  if(t==='orders') { buildOrders(); document.getElementById('nb-orders').classList.remove('notify'); }
-  if(t==='social') { buildSocial(); }
+  else {
+    buildPanel(t);
+    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[t]);
+    if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.transform=''; }
+    document.getElementById('sov').classList.add('open');
+    document.getElementById('sov').style.opacity='';
+    ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.toggle('active',id===t));
+    if(t==='market') document.getElementById('nb-market').classList.remove('notify');
+    if(t==='shop') document.getElementById('nb-shop').classList.remove('notify');
+    if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
+  }
+}
+
+function buildPanel(t){
+  if(t==='market') buildMarket();
+  if(t==='shop') buildShop();
+  if(t==='decor') buildDecor();
+  if(t==='orders') buildOrders();
+  if(t==='social') buildSocial();
 }
 
 function closeAll(){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.remove('open','full','dragging');
+    p.style.transform='';
+  });
   document.getElementById('sov').classList.remove('open');
+  document.getElementById('sov').style.opacity='';
   ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
   currentTab='tank';
 }
 
-let swipeStartY = 0;
-document.querySelectorAll('.panel').forEach(p => {
-  p.addEventListener('touchstart', e => {
-    if(e.target.closest('.pscroll') && p.querySelector('.pscroll').scrollTop > 5) return;
-    swipeStartY = e.touches[0].clientY;
+let py=0, pstartY=0, pstartPos=0, pdragging=null, plastTime=0, pV=0;
+document.querySelectorAll('.panel').forEach(p=>{
+  p.addEventListener('touchstart', e=>{
+    const sc = p.querySelector('.pscroll');
+    if(sc && sc.scrollTop > 5 && !e.target.closest('.ph')) return;
+    pdragging = p;
+    pstartY = e.touches[0].clientY;
+    pstartPos = p.getBoundingClientRect().top - (window.innerHeight - p.offsetHeight);
+    p.classList.add('dragging');
+    plastTime = Date.now();
+    pV = 0;
   }, {passive:true});
-  p.addEventListener('touchmove', e => {
-    if(!swipeStartY) return;
-    const dy = e.touches[0].clientY - swipeStartY;
-    if(dy > 55) { swipeStartY=0; closeAll(); }
-  }, {passive:true});
-  p.addEventListener('touchend', () => swipeStartY=0);
+});
+
+window.addEventListener('touchmove', e=>{
+  if(!pdragging) return;
+  if(e.cancelable) e.preventDefault();
+  const y = e.touches[0].clientY;
+  const dy = y - pstartY;
+  const h = pdragging.offsetHeight;
+  let newY = pstartPos + dy;
+  
+  if(newY < 0) newY = newY * 0.3; // Rubber band top
+  
+  pdragging.style.transform = `translateY(${newY}px)`;
+  
+  const progress = 1 - (newY / h);
+  document.getElementById('sov').style.opacity = Math.max(0, Math.min(1, progress * 1.5));
+  
+  const now = Date.now();
+  const dt = now - plastTime;
+  if(dt > 0) pV = (y - pstartY) / dt;
+  plastTime = now;
+}, {passive:false});
+
+window.addEventListener('touchend', e=>{
+  if(!pdragging) return;
+  pdragging.classList.remove('dragging');
+  const h = pdragging.offsetHeight;
+  const rect = pdragging.getBoundingClientRect();
+  const top = rect.top;
+  const screenH = window.innerHeight;
+  const pos = top - (screenH - h); // 0 at screen bottom (full up), h at screen bottom (hidden)
+  
+  pdragging.style.transform = '';
+  
+  if(pV > 0.5 || pos > h * 0.7) {
+    closeAll();
+  } else if(pos < h * 0.15 || pV < -0.5) {
+    pdragging.classList.add('full');
+    pdragging.classList.add('open');
+  } else {
+    pdragging.classList.remove('full');
+    pdragging.classList.add('open');
+  }
+  
+  pdragging = null;
 });
 
 // ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
