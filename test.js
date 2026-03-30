@@ -1,0 +1,1614 @@
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PWA & UPDATER SETUP
+// ─────────────────────────────────────────────────────────────────────────────
+function setupPWA(){
+  const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
+  const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
+  try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
+  
+  // Unregister old problematic service workers to fix caching issues
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) {
+        registration.unregister();
+      }
+    }).catch(function(err) {
+      console.log('SW Unregistration failed: ', err);
+    });
+  }
+}
+setupPWA();
+
+// SVG ICON LIBRARY (full)
+const svg = (path, v='0 0 24 24') => `<svg viewBox="${v}" fill="currentColor">${path}</svg>`;
+
+const ICONS = {
+  coin: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5"/>'),
+  star: svg('<polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>'),
+  drop: svg('<path d="M12 2 L18 12 A 6 6 0 0 1 6 12 Z"/>'),
+  feed: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6 v12 M6 12 h12" stroke="currentColor" stroke-width="2"/>'),
+  clean: svg('<rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>'),
+  done: svg('<polyline points="4,12 10,18 20,6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'),
+  lock: svg('<rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10 V6 A 4 4 0 0 1 16 6 V10" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  tank: svg('<path d="M20 12 L16 8 L10 10 L4 6 L4 18 L10 14 L16 16 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'),
+  market: svg('<polyline points="3,20 9,12 15,16 21,4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="15,4 21,4 21,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  decor: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="2"/><circle cx="16" cy="10" r="2"/><circle cx="10" cy="16" r="2"/>'),
+  orders: svg('<rect x="6" y="4" width="12" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="2" width="6" height="4" rx="1" fill="currentColor"/><line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/><line x1="9" y1="16" x2="15" y2="16" stroke="currentColor" stroke-width="2"/>'),
+  shop: svg('<rect x="4" y="6" width="16" height="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/>'),
+  social: svg('<rect x="4" y="8" width="16" height="14" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M12 8 C12 4 6 4 6 8 C6 12 12 8 12 8 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8 C12 4 18 4 18 8 C18 12 12 8 12 8 Z" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  flakes: svg('<polygon points="12,2 14,9 21,12 14,15 12,22 10,15 3,12 10,9"/>'),
+  snail: svg('<circle cx="14" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 14 C4 14 4 20 14 20" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  gear: svg('<circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2 V4 M12 20 V22 M2 12 H4 M20 12 H22 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  filter: svg('<rect x="6" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/><line x1="6" y1="16" x2="18" y2="16" stroke="currentColor" stroke-width="2"/>'),
+  nest: svg('<path d="M4 16 Q8 6 20 16 Z" fill="currentColor"/>'),
+  clam: svg('<path d="M2 18 Q12 4 22 18 Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="14" r="3" fill="currentColor"/>'),
+  ocean: svg('<path d="M2 12 Q6 8 10 12 T18 12 T22 12" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  reef: svg('<path d="M12 22 V12 M12 12 Q8 8 12 4 Q16 8 12 12" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  sunset: svg('<circle cx="12" cy="16" r="6" fill="currentColor"/><line x1="2" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="2"/>'),
+  abyss: svg('<circle cx="12" cy="12" r="10" fill="currentColor"/>'),
+  sand: svg('<circle cx="6" cy="16" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
+  volcano: svg('<polygon points="2,22 12,6 22,22"/><path d="M12 6 Q16 2 20 6" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  crystal: svg('<polygon points="12,2 18,10 12,22 6,10"/>'),
+  greedy: svg('<path d="M6 10 C6 6 18 6 18 10 L14 18 L10 18 Z" fill="currentColor"/>'), 
+  shy: svg('<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4 V20" stroke="currentColor" stroke-width="2"/>'), 
+  lazy: svg('<path d="M6 8 H14 L6 16 H14" fill="none" stroke="currentColor" stroke-width="2"/>'), 
+  active: svg('<polygon points="13,2 5,13 12,13 11,22 19,11 12,11"/>'), 
+  egg: svg('<ellipse cx="12" cy="12" rx="6" ry="9" fill="currentColor"/>'),
+};
+
+// UI INJECTION
+document.getElementById('lbl-lvl').innerHTML = ICONS.star + '<span id="lvl">1</span><div class="xpb"><div class="xpf" id="xpf"></div></div>';
+document.getElementById('lbl-cv').innerHTML = ICONS.coin + '<span id="cv">100</span>';
+document.getElementById('wvc').innerHTML = ICONS.drop + '<span id="wv">100%</span>';
+document.getElementById('lbl-fv').innerHTML = ICONS.tank + '<span id="fv">3/8</span>';
+document.getElementById('modebtn').innerHTML = ICONS.feed + ' Feed';
+
+document.getElementById('ic-nav-tank').innerHTML = ICONS.tank;
+document.getElementById('ic-nav-market').innerHTML = ICONS.market;
+document.getElementById('ic-nav-decor').innerHTML = ICONS.decor;
+document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
+document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
+document.getElementById('ic-nav-social').innerHTML = ICONS.social;
+
+document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
+document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
+document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
+document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social';
+document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
+
+// ACCENT COLOR CUSTOMIZATION
+const ACCENTS = [
+  { hex: '#67e8f9', rgb: '103, 232, 249' }, 
+  { hex: '#3b82f6', rgb: '59, 130, 246'  },
+  { hex: '#f472b6', rgb: '244, 114, 182' }, 
+  { hex: '#fbbf24', rgb: '251, 191, 36'  }, 
+  { hex: '#34d399', rgb: '52, 211, 153'  }, 
+  { hex: '#a855f7', rgb: '168, 85, 247'  },
+  { hex: '#ef4444', rgb: '239, 68, 68'   },
+  { hex: '#f97316', rgb: '249, 115, 22'  },
+  { hex: '#eab308', rgb: '234, 179, 8'   },
+  { hex: '#22c55e', rgb: '34, 197, 94'   },
+  { hex: '#06b6d4', rgb: '6, 182, 212'   },
+  { hex: '#ffffff', rgb: '255, 255, 255' }
+];
+
+let curAccent = parseInt(localStorage.getItem('zenAccent') || '0');
+
+function setAccent(idx) {
+  curAccent = idx;
+  const a = ACCENTS[idx];
+  document.documentElement.style.setProperty('--ui-accent', a.hex);
+  document.documentElement.style.setProperty('--ui-accent-rgb', a.rgb);
+  localStorage.setItem('zenAccent', idx);
+  
+  const swatches = document.getElementById('swatches');
+  if(swatches) {
+    Array.from(swatches.children).forEach((el, i) => {
+      el.classList.toggle('active', i == curAccent);
+    });
+  }
+}
+
+function initSwatches() {
+  const c = document.getElementById('swatches');
+  c.innerHTML = ACCENTS.map((a, i) => `<div class="swatch ${i==curAccent?'active':''}" style="background:${a.hex}; color:${a.hex}" onclick="setAccent(${i})"></div>`).join('');
+  setAccent(curAccent);
+}
+initSwatches();
+
+// CANVAS & GLOBALS
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;
+function resize(){
+  W = cv.clientWidth;
+  H = cv.clientHeight;
+  const d=window.devicePixelRatio||1;
+  cv.width=W*d;cv.height=H*d;
+  ctx.scale(d,d);
+}
+resize();
+window.addEventListener('resize',()=>{resize();initDecor();});
+
+const FOOD_FL=()=>H-15;
+const SWIM_BOT=()=>H-30;
+
+let playerLevel=1,totalCoins=100,isClean=false;
+let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
+let time=0,fid=0,algae=0,baseMaxFish=8;
+let combo=0,comboTimer=0,maxCT=180;
+let isHarmony=false,pDown=false,lx=0,ly=0;
+let dailyStreak=0,lastDailyTs=0;
+let currentOrders=[],completedOrders=0,codesRedeemed=0;
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0};
+let claimedCodes=new Set();
+let offlinePend=null,pendingDaily=false;
+
+let curTheme='default', curFloor='default', curBubble='default', curBorder='none';
+let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], ownedBorders=['none'];
+
+// DEFINITIONS & GENETICS
+const TYPES={
+  guppy:    {name:'Neon Guppy', icon:ICONS.tank, cost:0,    val:1,  c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
+  neon:     {name:'Neon Tetra', icon:ICONS.tank, cost:150,  val:2,  c1:'#06b6d4',c2:'#ef4444',sz:12,spd:2.5,max:15,req:1,rare:{c1:'#fbbf24',c2:'#f59e0b'}},
+  seahorse: {name:'Seahorse', icon:ICONS.tank, cost:450,  val:4,  c1:'#fef08a',c2:'#f59e0b',sz:18,spd:0.4,max:4, req:2,rare:{c1:'#fb7185',c2:'#be123c'}},
+  clown:    {name:'Clownfish',  icon:ICONS.tank, cost:250,  val:3,  c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
+  angel:    {name:'Angelfish',  icon:ICONS.tank, cost:800,  val:7,  c1:'#6366f1',c2:'#c7d2fe',sz:28,spd:0.8,max:4, req:3,rare:{c1:'#fde047',c2:'#fef08a'}},
+  idol:     {name:'Moorish Idol',icon:ICONS.tank,cost:1200, val:10, c1:'#fef08a',c2:'#1c1917',sz:24,spd:1.0,max:3, req:3,rare:{c1:'#38bdf8',c2:'#1d4ed8'}},
+  betta:    {name:'Betta Fish', icon:ICONS.tank, cost:2500, val:15, c1:'#1d4ed8',c2:'#8b5cf6',sz:22,spd:1.0,max:3, req:4,rare:{c1:'#be123c',c2:'#fb7185'}},
+  lionfish: {name:'Lionfish',   icon:ICONS.tank, cost:3500, val:20, c1:'#b91c1c',c2:'#fca5a5',sz:28,spd:0.7,max:2, req:4,rare:{c1:'#1e3a5f',c2:'#60a5fa'}},
+  discus:   {name:'Royal Discus',icon:ICONS.tank,cost:5000, val:25, c1:'#ec4899',c2:'#3b82f6',sz:30,spd:0.6,max:3, req:5,rare:{c1:'#fde047',c2:'#22d3ee'}},
+  puffer:   {name:'Puffer',     icon:ICONS.tank, cost:9500, val:45, c1:'#16a34a',c2:'#86efac',sz:26,spd:0.5,max:2, req:5,rare:{c1:'#f8fafc',c2:'#e2e8f0'}},
+  shark:    {name:'Reef Shark', icon:ICONS.tank, cost:12000,val:55, c1:'#94a3b8',c2:'#f8fafc',sz:40,spd:2.2,max:1, req:5,rare:{c1:'#1e293b',c2:'#000000'}},
+  koi:      {name:'Golden Koi', icon:ICONS.tank, cost:18000,val:100,c1:'#ca8a04',c2:'#fef08a',sz:38,spd:1.4,max:2, req:6,rare:{c1:'#0284c7',c2:'#7dd3fc'}},
+  arowana:  {name:'Arowana',    icon:ICONS.tank, cost:40000,val:180,c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}},
+  manta:    {name:'Manta Ray',  icon:ICONS.tank, cost:30000,val:120,c1:'#1e3a8a',c2:'#93c5fd',sz:45,spd:0.8,max:1, req:6,rare:{c1:'#581c87',c2:'#d8b4fe'}}
+};
+
+const UPGRADES={
+  flakes:  {name:'Gourmet Flakes',icon:ICONS.flakes, cost:500,  info:'Double base coin value',      max:1,owned:0,req:2},
+  snail:   {name:'Mystery Snail', icon:ICONS.snail,  cost:350,  info:'Passive income + eats algae', max:5,owned:0,req:1},
+  autofeed:{name:'Auto-Feeder',   icon:ICONS.gear,   cost:2000, info:'Drops food automatically',    max:1,owned:0,req:3},
+  tank:    {name:'Tank Expansion',icon:ICONS.ocean,  cost:3000, info:'+4 max fish capacity',        max:3,owned:0,req:4},
+  filter:  {name:'Power Filter',  icon:ICONS.filter, cost:8000, info:'Auto-reduces algae',          max:1,owned:0,req:5},
+  nest:    {name:'Breeding Slate',icon:ICONS.nest,   cost:12000,info:'Adult fish naturally breed',  max:1,owned:0,req:3},
+  clam:    {name:'Pearl Clam',    icon:ICONS.clam,   cost:25000,info:'Big periodic gold payout',    max:1,owned:0,req:6}
+};
+
+const THEMES={
+  default:  {name:'Midnight Ocean',   icon:ICONS.ocean,   cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
+  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#0284c7', c2:'#0369a1', c3:'#082f49', req:3},
+  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#be185d', c2:'#831843', c3:'#4c0519', req:5},
+  abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
+  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000, c1:'#065f46', c2:'#1e3a5f', c3:'#0f172a', req:4},
+  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000, c1:'#7c2d12', c2:'#450a0a', c3:'#1c0202', req:5},
+  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000, c1:'#0c0a1e', c2:'#0a1628', c3:'#050310', req:6},
+  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000, c1:'#4a1942', c2:'#2d0f2b', c3:'#150810', req:6}
+};
+
+const FLOORS={
+  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'rgba(0,0,0,0.4)', req:1},
+  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'rgba(254,240,138,0.4)', req:3},
+  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'rgba(63,63,70,0.6)', req:4},
+  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'rgba(126,34,206,0.5)', req:6},
+  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'rgba(249,115,22,0.4)', req:3},
+  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'rgba(28,25,23,0.7)', req:5},
+  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'rgba(251,191,36,0.35)', req:6},
+  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'rgba(191,219,254,0.3)', req:4}
+};
+
+const BUBBLES={
+  default:  {name:'Classic',    icon:ICONS.drop,   cost:0,     col:'rgba(255,255,255,{a})', req:1},
+  gold:     {name:'Golden',     icon:ICONS.coin,   cost:5000,  col:'rgba(251,191,36,{a})',  req:3},
+  pink:     {name:'Rose',       icon:ICONS.social, cost:8000,  col:'rgba(244,114,182,{a})', req:4},
+  green:    {name:'Emerald',    icon:ICONS.reef,   cost:10000, col:'rgba(52,211,153,{a})',  req:4},
+  rainbow:  {name:'Rainbow',    icon:ICONS.star,   cost:25000, col:'rainbow',               req:6}
+};
+
+const BORDERS={
+  none:     {name:'None',       icon:ICONS.abyss,   cost:0,     style:'none',         req:1},
+  glow:     {name:'Neon Glow',  icon:ICONS.star,    cost:6000,  style:'glow',         req:3},
+  coral:    {name:'Coral Reef', icon:ICONS.reef,    cost:12000, style:'coral',        req:4},
+  gold:     {name:'Gold Frame', icon:ICONS.coin,    cost:20000, style:'gold',         req:5},
+  pulse:    {name:'Pulse',      icon:ICONS.active,  cost:30000, style:'pulse',        req:6}
+};
+
+const TRAITS = ['greedy', 'shy', 'lazy', 'active'];
+const TRAIT_ICONS = { greedy: ICONS.greedy, shy: ICONS.shy, lazy: ICONS.lazy, active: ICONS.active };
+const TRAIT_MARKET_MULT = { greedy: 1.0, shy: 1.0, lazy: 0.9, active: 1.2 };
+
+let marketRates = {};
+for(let k in TYPES) marketRates[k] = 1.0;
+
+function generateRandomGenes(type) {
+  const def = TYPES[type];
+  const t1 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
+  const t2 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
+  return { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: [t1, t2], szMod: 0.8 + Math.random()*0.45 };
+}
+
+function mendelianCross(momGenes, dadGenes, typeDef) {
+  const isRareMut = Math.random() < 0.05;
+  const inherit = (arr1, arr2) => {
+    const a1 = arr1[Math.floor(Math.random()*2)];
+    const a2 = arr2[Math.floor(Math.random()*2)];
+    return [a1, a2];
+  };
+  let c1 = inherit(momGenes.c1, dadGenes.c1);
+  let c2 = inherit(momGenes.c2, dadGenes.c2);
+  let trait = inherit(momGenes.trait, dadGenes.trait);
+  if(isRareMut) {
+    if(Math.random() < 0.5) c1[0] = typeDef.rare.c1;
+    else c2[0] = typeDef.rare.c2;
+  }
+  return { c1, c2, trait, isRareMut };
+}
+
+// ENDLESS SCALING ORDERS
+const ORDER_POOL=[
+  {id:'f10', icon:ICONS.flakes, desc:'Feed your fish',          metric:'feeds',       isState:false, target:15, reward:120},
+  {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony (sec)',  metric:'harmonySec',  isState:false, target:120, reward:250},
+  {id:'cl20',icon:ICONS.clean,  desc:'Clean algae points',      metric:'cleaned',     isState:false, target:25, reward:150},
+  {id:'mkt1',icon:ICONS.market, desc:'Sell fish at Market',     metric:'marketSales', isState:false, target:2,  reward:350},
+  {id:'br1', icon:ICONS.egg,    desc:'Hatch baby fish',         metric:'hatched',     isState:false, target:1,  reward:400},
+  {id:'gu3', icon:ICONS.tank,   desc:'Own Neon Guppies',        metric:'fish',ftype:'guppy', isState:true, target:3,  reward:150},
+  {id:'cl2', icon:ICONS.tank,   desc:'Own Clownfish',           metric:'fish',ftype:'clown', isState:true, target:2,  reward:280},
+];
+const TRADE_POOL=[
+  {id:'tr1', icon:ICONS.social, desc:'Trade 1 Adult Guppy', isTrade:true, ftypereq:'guppy', ftyperew:'neon', target:1, reward:0},
+  {id:'tr2', icon:ICONS.social, desc:'Trade 1 Adult Clown', isTrade:true, ftypereq:'clown', ftyperew:'seahorse', target:1, reward:0},
+  {id:'tr3', icon:ICONS.social, desc:'Trade 1 Adult Angel', isTrade:true, ftypereq:'angel', ftyperew:'idol', target:1, reward:0},
+  {id:'tr4', icon:ICONS.social, desc:'Trade 1 Adult Betta', isTrade:true, ftypereq:'betta', ftyperew:'lionfish', target:1, reward:0},
+  {id:'tr5', icon:ICONS.social, desc:'Trade 1 Adult Discus',isTrade:true, ftypereq:'discus', ftyperew:'shark', target:1, reward:0},
+  {id:'tr6', icon:ICONS.social, desc:'Trade 1 Adult Koi',   isTrade:true, ftypereq:'koi', ftyperew:'manta', target:1, reward:0}
+];
+const ORDER_SLOTS=3;
+
+let uid=localStorage.getItem('zenUID');
+if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.setItem('zenUID',uid);}
+
+// DAILY REWARD (the fix)
+const DR = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
+
+// MIGRATION & SAVE SYSTEM
+const MASTER_KEY = 'zenAqua_MasterSave';
+const LEGACY_KEYS = [
+  'zenAqua_v15_clean', 'zenAqua_v14_master', 'zenAqua_v13_verified', 
+  'zenAqua_v12_noemojis', 'zenAqua_v11_customization', 'zenAqua_v10_final', 
+  'zenAqua_v9_polish', 'zenAqua_v8_complete', 'zenAqua_v7_genes', 
+  'zenAqua_v4_market', 'zenAqua_v4'
+];
+
+let saveTimer=0;
+
+function buildSave(){
+  return{
+    v:16,ts:Date.now(),coins,totalCoins,playerLevel,algae,
+    dailyStreak,lastDailyTs,completedOrders,codesRedeemed,
+    upgrades:Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
+    fish:fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name})),
+    eggs:eggs.map(e=>({type:e.type, genes:e.genes, timer:e.timer, x:e.x, y:e.y, isRareMut:e.isRareMut})),
+    clams:clams.length,currentOrders,sm,
+    claimedCodes:[...claimedCodes], marketRates,
+    curTheme, curFloor, curBubble, curBorder,
+    ownedThemes, ownedFloors, ownedBubbles, ownedBorders
+  };
+}
+
+function saveGame(){try{localStorage.setItem(MASTER_KEY,JSON.stringify(buildSave()));}catch(_){}}
+
+function loadSave(){
+  try {
+    let r = localStorage.getItem(MASTER_KEY);
+    if(r) return JSON.parse(r);
+    for(let oldKey of LEGACY_KEYS) {
+      r = localStorage.getItem(oldKey);
+      if(r) {
+        const parsed = JSON.parse(r);
+        localStorage.setItem(MASTER_KEY, r);
+        return parsed;
+      }
+    }
+    return null;
+  } catch(_) { return null; }
+}
+
+function applyState(s){
+  coins=s.coins??100;totalCoins=s.totalCoins??coins;playerLevel=s.playerLevel??1;algae=s.algae??0;
+  dailyStreak=s.dailyStreak??0;lastDailyTs=s.lastDailyTs??0;completedOrders=s.completedOrders??0;codesRedeemed=s.codesRedeemed??0;
+  claimedCodes=new Set(s.claimedCodes??[]);
+  
+  if(s.marketRates) marketRates = {...marketRates, ...s.marketRates};
+  if(s.sm) sm={...sm, ...s.sm}; sm.marketSales = sm.marketSales || 0; 
+
+  curTheme = s.curTheme || 'default';
+  curFloor = s.curFloor || 'default';
+  curBubble = s.curBubble || 'default';
+  curBorder = s.curBorder || 'none';
+  ownedThemes = s.ownedThemes || ['default'];
+  ownedFloors = s.ownedFloors || ['default'];
+  ownedBubbles = s.ownedBubbles || ['default'];
+  ownedBorders = s.ownedBorders || ['none'];
+  
+  for(const[k,v] of Object.entries(s.upgrades??{}))if(UPGRADES[k])UPGRADES[k].owned=v;
+  
+  const elapsedSec = (Date.now() - (s.ts||Date.now())) / 1000;
+  const elapsedFrames = elapsedSec * 60;
+  
+  eggs = [];
+  for(const e of (s.eggs??[])){
+    eggs.push({...e, timer: Math.max(0, e.timer - elapsedFrames)});
+  }
+
+  for(const f of(s.fish??[])){
+    const def=TYPES[f.type];if(!def)continue;
+    const genes = f.genes || generateRandomGenes(f.type);
+    fishList.push({id:fid++,type:f.type,x:80+Math.random()*(W-160),y:110+Math.random()*(SWIM_BOT()-150),
+      vx:(Math.random()-.5)*def.spd,vy:(Math.random()-.5)*.5,phase:Math.random()*Math.PI*2,
+      timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger??80,age:f.age??5000,
+      scale:Math.min(1,(f.age??5000)/20000),bonded:f.bonded??0, bcd:f.bcd??0,
+      genes, isRare: (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2), name:f.name});
+  }
+  
+  for(let i=0;i<UPGRADES.snail.owned;i++)
+    snails.push({x:100+Math.random()*(W-200),y:H-15,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+  for(let i=0;i<(s.clams??0);i++)
+    clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
+  
+  currentOrders=s.currentOrders?.length?s.currentOrders:[];
+  if(!currentOrders.length) generateOrders();
+  for(let o of currentOrders) { 
+    if(o.isState && o.ftype && TYPES[o.ftype]) o.target = Math.min(o.target, TYPES[o.ftype].max);
+    if(o.startVal === undefined) o.startVal = getRawMetricValue(o); 
+  }
+  
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById('cv').textContent=coins;
+  document.getElementById('lvl').textContent=playerLevel;
+  document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
+  
+  let pct = 100;
+  const th = [0, 1000, 4000, 15000, 45000, 150000];
+  if(playerLevel < 6) {
+    const base = th[playerLevel-1] || 0;
+    const next = th[playerLevel];
+    pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
+  }
+  const xpe = document.getElementById('xpf');
+  if(xpe) xpe.style.width = pct + '%';
+}
+
+function calcOffline(s){
+  const elapsed=Math.min((Date.now()-s.ts)/1000,4*3600);
+  if(elapsed<90)return null;
+  let total=0;const items=[];
+  const sc=s.upgrades?.snail??0;
+  if(sc>0){const e=Math.floor(sc*.4*elapsed);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
+  if((s.clams??0)>0){const e=Math.floor(s.clams*.8*elapsed);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
+  const fish=s.fish??[];
+  if(fish.length>0){
+    const avg=fish.reduce((a,f)=>a+(TYPES[f.type]?.val??1),0)/fish.length;
+    const e=Math.floor(fish.length*avg*.03*elapsed);
+    total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});
+  }
+  const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
+  return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
+}
+
+function showWelcome(r){
+  document.getElementById('wtime').textContent=`Away for ${r.timeStr} — here's what you earned:`;
+  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${it.coins}</span></div>`).join('');
+  document.getElementById('wtotal').innerHTML= ICONS.coin + r.total;
+  offlinePend=r;
+  document.getElementById('wmodal').classList.add('show');
+}
+
+function collectOffline(){
+  if(offlinePend){addCoins(offlinePend.total,W/2,H/3,true);offlinePend=null;}
+  document.getElementById('wmodal').classList.remove('show');
+  if(pendingDaily){pendingDaily=false;setTimeout(showDailyModal,420);}
+}
+
+function needsDaily(){
+  const now=Date.now();
+  if(now-lastDailyTs<86400000)return false;
+  if(now-lastDailyTs>172800000)dailyStreak=0;
+  return true;
+}
+function showDailyModal(){
+  const idx=Math.min(dailyStreak,DR.length-1);
+  document.getElementById('dday').textContent=dailyStreak+1;
+  document.getElementById('damt').textContent=DR[idx];
+  document.getElementById('sdots').innerHTML=DR.map((_,i)=>`<div class="sd ${i<dailyStreak?'done':''} ${i===idx?'today':''}"></div>`).join('');
+  document.getElementById('dmodal').classList.add('show');
+}
+function claimDaily(){
+  const r=DR[Math.min(dailyStreak,DR.length-1)];
+  dailyStreak++;lastDailyTs=Date.now();
+  addCoins(r,W/2,H/3,true);
+  document.getElementById('dmodal').classList.remove('show');
+  saveGame();
+}
+
+// MARKET
+function tickMarket() {
+  for(let k in marketRates) {
+    const drift = (Math.random() - 0.5) * 0.08;
+    marketRates[k] += drift;
+    if(marketRates[k] > 2.4) marketRates[k] -= 0.05;
+    if(marketRates[k] < 0.6) marketRates[k] += 0.05;
+  }
+  if(currentTab === 'market') buildMarket();
+}
+
+function buildMarket() {
+  const mlist = document.getElementById('mlist');
+  if(!fishList.length) {
+    mlist.innerHTML = '<div style="color:#475569;text-align:center;padding:20px;font-weight:bold;">Your tank is empty!</div>';
+    return;
+  }
+  const sorted = [...fishList].sort((a,b) => {
+    return (TYPES[b.type].val * marketRates[b.type]) - (TYPES[a.type].val * marketRates[a.type]);
+  });
+
+  mlist.innerHTML = sorted.map((f) => {
+    const def = TYPES[f.type];
+    const rate = marketRates[f.type] || 1;
+    const base = def.cost > 0 ? def.cost * 0.4 : 10; 
+    const ageScale = Math.min(1, f.age / 18000); 
+    
+    const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
+    const rareMult = f.isRare ? 3 : 1;
+    const price = Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale);
+    
+    const trend = rate > 1.4 ? 'SURGING' : rate < 0.8 ? 'CRASHING' : 'STABLE';
+    const tcol = rate > 1.4 ? '#ef4444' : rate < 0.8 ? '#38bdf8' : '#94a3b8';
+    const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
+
+    return `<div class="ocard">
+      <div class="ohead"><span class="oico">${def.icon}</span><div><span class="odesc">${f.isRare? ICONS.star : ''}${def.name}</span><span style="color:${tcol};font-size:10.5px;font-weight:900;">${trend} (${rate.toFixed(2)}x)</span></div></div>
+      <div class="ofoot">
+        <span class="ocnt"><span class="trait-icon">${traitIco}</span> Age Value: ${Math.floor(ageScale*100)}%</span>
+        <button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b);box-shadow:0 2px 6px rgba(0,0,0,.4); display:flex; align-items:center; gap:3px;" onclick="sellFish(${f.id}, ${price})">Sell ${ICONS.coin}${price}</button>
+      </div></div>`;
+  }).join('');
+}
+
+function sellFish(id, price) {
+  const idx = fishList.findIndex(f => f.id === id);
+  if(idx > -1) {
+    const f = fishList[idx];
+    addCoins(price, W/2, H/2, true);
+    spawnJuice(f.x, f.y, 'SOLD!', '#f59e0b', 1.8);
+    for(let i=0; i<8; i++) bubbles.push({x:f.x+(Math.random()-.5)*20,y:f.y,r:2+Math.random()*4,spd:2,ph:0,life:1});
+    fishList.splice(idx, 1);
+    sm.marketSales = (sm.marketSales || 0) + 1;
+    updateHUD();
+    buildMarket();
+    saveGame();
+  }
+}
+
+// ECOSYSTEM & SMOOTHED AI
+function updateEco(){
+  const grow=fishList.length*.008,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0);
+  algae=Math.max(0,Math.min(100,algae+grow-reduce));
+  const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
+  isHarmony=algae<15&&allFed;
+  if(isHarmony)sm.harmonySec+=1/60;
+
+  if(UPGRADES.autofeed.owned>0&&time%240===0&&foodList.length<fishList.length){
+    const hf=fishList.find(f=>f.hunger<50);
+    if(hf)foodList.push({x:hf.x+(Math.random()*40-20),y:20,vy:0,vx:(Math.random()-.5)*.5,life:1,eaten:false});
+  }
+  
+  for(let i=eggs.length-1;i>=0;i--){
+    const e=eggs[i];e.timer--;
+    if(e.timer<=0){
+      fishList.push({id:fid++,type:e.type,x:e.x,y:e.y-10,vx:(Math.random()-.5),vy:-1,phase:0,timer:0,eat:0,hunger:100,age:0,scale:.3,bcd:3000,genes:e.genes,isRare:e.isRareMut,bonded:0});
+      sm.hatched++;if(e.isRareMut)sm.rares++;
+      spawnJuice(e.x,e.y,'Hatched!','#4ade80',1);
+      for(let b=0;b<4;b++)bubbles.push({x:e.x+(Math.random()-.5)*10,y:e.y,r:2,spd:2,ph:0,life:1});
+      eggs.splice(i,1);
+      updateHUD();
+    }
+  }
+
+  if(comboTimer>0){
+    comboTimer--;
+    document.getElementById('cfill').style.transform=`scaleX(${comboTimer/maxCT})`;
+    if(comboTimer<=0){combo=0;document.getElementById('combo-ui').classList.remove('on');}
+  }
+
+  if(time%15===0){
+    const wq=Math.floor(100-algae);
+    document.getElementById('wv').textContent=wq+'%';
+    document.getElementById('wvc').className='sval '+(wq<50?'vw':isHarmony?'vg':'');
+    const d=document.getElementById('mdash');
+    if(isHarmony)d.classList.add('harmony');else d.classList.remove('harmony');
+  }
+
+  if(time%300===0) tickOrders();
+  if(time%1200===0) tickMarket();
+}
+
+function triggerEat(f,fd,def){
+  fd.eaten=true;f.hunger=100;f.eat=18;sm.feeds++;
+  combo++;comboTimer=maxCT;
+  const cu=document.getElementById('combo-ui');cu.classList.add('on');
+  const cm=1+Math.min(combo*.1,2);
+  document.getElementById('ctxt').textContent=`Combo x${cm.toFixed(1)}`;
+  cu.style.transform='translateX(-50%) scale(1.08)';setTimeout(()=>cu.style.transform='translateX(-50%) scale(1)',100);
+  
+  const rareMult=f.isRare?2.5:1;
+  const bondMult=f.bonded>0?1.5:1; 
+  let isGold = false;
+  for(const g of [...f.genes.c1, ...f.genes.c2]) if(g.includes('fbbf') || g.includes('eab3') || g.includes('f59e') || g.includes('fde0')) isGold = true;
+  const total=Math.ceil(def.val*rareMult*(isGold?1.5:1)*(UPGRADES.flakes.owned>0?2:1)*cm*(isHarmony?1.5:1)*(algae>60?.5:1)*bondMult);
+  addCoins(total,f.x,f.y,isHarmony || f.bonded>0 || isGold);
+}
+
+function updateFish(f){
+  const def=TYPES[f.type];
+  const trait = f.genes.trait[0];
+  
+  f.phase+=.1;f.timer++;
+  if(f.eat>0)f.eat--;
+  if(f.bonded>0) {
+    f.bonded--;
+    if(f.timer%90===0) particles.push({x:f.x, y:f.y-20, vx:(Math.random()-.5)*1, vy:-1.5, life:1, c:'#fb7185'});
+  }
+  
+  f.age++;if(f.scale<1){f.scale+=.0002;if(f.scale>1)f.scale=1;}
+  if(f.bcd>0)f.bcd--;
+  
+  let hDrain = isHarmony ? 0.01 : 0.015;
+  if(trait === 'lazy') hDrain *= 0.8;
+  if(trait === 'active') hDrain *= 1.2;
+  f.hunger=Math.max(0,f.hunger-hDrain);
+  
+  const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  
+  if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
+    const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
+    if(mate){
+      f.bcd=8000;mate.bcd=8000;
+      const childGenes = mendelianCross(f.genes, mate.genes, def);
+      if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
+      else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
+      eggs.push({x:(f.x+mate.x)/2,y:H-15,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
+      updateHUD();
+    }
+  }
+
+  let foodRadius = 300;
+  if(trait === 'greedy') foodRadius = 450;
+  if(trait === 'shy') foodRadius = 200;
+  
+  let best=null,bestD=Infinity;
+  if(f.hunger<99){
+    for(const fd of foodList){
+      if(fd.eaten)continue;
+      const d=Math.hypot(fd.x-f.x,fd.y-f.y);
+      if(d<foodRadius&&d<bestD){bestD=d;best=fd;}
+    }
+  }
+  
+  let baseSpd = def.spd;
+  if(trait === 'greedy' && f.hunger < 50) baseSpd *= 1.2;
+  if(trait === 'active') baseSpd *= 1.15;
+  if(trait === 'lazy') baseSpd *= 0.75;
+
+  if(best){
+    const dx=best.x-f.x,dy=best.y-f.y,d=Math.max(1,Math.hypot(dx,dy));
+    f.vx+=(dx/d)*.8;f.vy+=(dy/d)*.6;
+    const sp=Math.hypot(f.vx,f.vy),cap=baseSpd*3*sm2;
+    if(sp>cap){f.vx*=cap/sp;f.vy*=cap/sp;}
+    if(d<22*f.scale)triggerEat(f,best,def);
+  }else{
+    if(f.timer%120===0){
+      if(trait === 'lazy' && Math.random() < 0.5) { f.vx *= 0.3; f.vy *= 0.3; }
+      else { f.vx+=(Math.random()-.5)*baseSpd*2; f.vy+=(Math.random()-.5)*baseSpd; }
+    }
+    
+    if(trait === 'shy') {
+       for(const other of fishList) {
+          if(other === f) continue;
+          const od = Math.hypot(other.x - f.x, other.y - f.y);
+          if(od < 60) { f.vx -= (other.x - f.x) * 0.002; f.vy -= (other.y - f.y) * 0.002; }
+       }
+    }
+
+    if(Math.abs(f.vx)<baseSpd*.3)f.vx+=(f.vx>=0?.2:-.2);
+  }
+  
+  f.vx*=.95;f.vy*=.95;f.x+=f.vx*sm2;f.y+=f.vy*sm2;
+  const mx=40,ty=90,by=SWIM_BOT();
+  
+  if(f.x<mx){f.x=mx;f.vx=(Math.abs(f.vx)+0.2)*0.9;}
+  if(f.x>W-mx){f.x=W-mx;f.vx=-(Math.abs(f.vx)+0.2)*0.9;}
+  if(f.y<ty){f.y=ty;f.vy=(Math.abs(f.vy)+0.1)*0.9;}
+  if(f.y>by){f.y=by;f.vy=-(Math.abs(f.vy)+0.1)*0.9;}
+}
+
+// VISUALS
+function initDecor(){
+  seaweeds=[];
+  const n=Math.max(10,Math.floor(W/35));
+  for(let i=0;i<n;i++)seaweeds.push({x:(i+.2+Math.random()*.6)*(W/n),segs:5+Math.floor(Math.random()*6),h:50+Math.random()*100,ph:Math.random()*Math.PI*2,hue:130+Math.random()*30,sat:40+Math.random()*30});
+}
+
+function updateSnail(s){
+  s.timer++;
+  if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
+  if(s.state==='moving'){
+    s.x+=s.spd*s.dir;s.ph+=.08;
+    if(s.x<20)s.x=20;
+    if(s.x>W-20)s.x=W-20;
+    if(s.y>=H-15){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
+    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-90){s.y=H-90;s.dir*=-1;}if(s.y>=H-15){s.y=H-15;s.wall='floor';}}
+  }
+  if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
+}
+
+function drawSnail(s){
+  ctx.save();
+  if(s.wall==='floor'){ctx.translate(s.x,s.y);if(s.dir<0)ctx.scale(-1,1);}
+  else if(s.wall==='left'){ctx.translate(s.x,s.y);ctx.rotate(Math.PI/2);if(s.dir>0)ctx.scale(-1,1);}
+  else{ctx.translate(s.x,s.y);ctx.rotate(-Math.PI/2);if(s.dir<0)ctx.scale(-1,1);}
+  ctx.beginPath();ctx.ellipse(0,-3,14,6,0,0,Math.PI*2);ctx.fillStyle='#a1a1aa';ctx.fill();
+  ctx.beginPath();ctx.moveTo(10,-5);ctx.lineTo(16,-12);ctx.moveTo(10,-1);ctx.lineTo(16,6);ctx.strokeStyle='#a1a1aa';ctx.lineWidth=2;ctx.stroke();
+  const sy=s.state==='moving'?Math.abs(Math.sin(s.ph))*2:0;
+  ctx.beginPath();ctx.arc(-2,-10-sy,12,0,Math.PI*2);
+  const sg=ctx.createRadialGradient(-2,-10-sy,2,-2,-10-sy,12);
+  sg.addColorStop(0,'#fde047');sg.addColorStop(1,'#b45309');
+  ctx.fillStyle=sg;ctx.fill();
+  ctx.beginPath();ctx.arc(-2,-10-sy,6,0,Math.PI);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.restore();
+}
+
+function drawEye(ctx, ex, ey, esz) {
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(ex, ey, esz, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#0f172a'; ctx.beginPath(); ctx.arc(ex+esz*.2, ey, esz*.6, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(ex+esz*.4, ey-esz*.2, esz*.2, 0, Math.PI*2); ctx.fill();
+}
+
+function drawExclamation(ctx, x, y, size) {
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x-size*.15, y-size*.5, size*.3, size*.6);
+  ctx.beginPath(); ctx.arc(x, y+size*.4, size*.15, 0, Math.PI*2); ctx.fill();
+}
+
+function drawHeart(ctx, x, y, size, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y + size*.3);
+  ctx.bezierCurveTo(x - size, y - size*.5, x - size*.3, y - size, x, y - size*.4);
+  ctx.bezierCurveTo(x + size*.3, y - size, x + size, y - size*.5, x, y + size*.3);
+  ctx.fill();
+}
+
+function drawFish(f){
+  const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
+  const ts=(f.hunger<30?.2:.1)+(eating?.2:0)+Math.abs(f.vx)*.05;
+  const wag=Math.sin(time*ts+f.id)*(s*.4);
+  const pw=Math.sin(time*ts*2+f.id)*(s*.2);
+  const paddle = Math.sin(time*ts*3+f.id)*s*.15; 
+  const br=1+Math.sin(time*.05+f.id)*.03;
+  
+  const fs = f.scale * (f.genes.szMod||1);
+  ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
+  
+  if(f.bonded > 0) {
+    // no shadow glow
+  } else if(f.isRare){
+    // no shadow glow
+  }
+  
+  if(f.hunger<25){
+    drawExclamation(ctx, 0, -s-15, 11);
+  }
+  
+  if(f.bonded > 0 && f.scale >= 1) {
+    drawHeart(ctx, 0, -s-22, 10, '#fb7185');
+  }
+
+  const ang=Math.atan2(f.vy,Math.abs(f.vx)+.1);
+  if(dir<0)ctx.scale(-1,1);
+  ctx.rotate(ang*.5);ctx.scale(1,br);
+  
+  const bg=ctx.createLinearGradient(0,-s,0,s);
+  bg.addColorStop(0, f.genes.c1[0]);
+  bg.addColorStop(0.5, f.genes.c1[0]);
+  bg.addColorStop(1, f.genes.c2[0]);
+
+  if(f.type==='guppy'){
+    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.beginPath();ctx.moveTo(-s*.2,0);
+    ctx.bezierCurveTo(-s*1.2, -s*.8, -s*1.6, -s+wag, -s*1.8, wag*1.5);
+    ctx.bezierCurveTo(-s*1.6, s+wag, -s*1.2, s*.8, -s*.2, 0);
+    ctx.fill();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.8,s*.35,0,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.4, -s*.05, s*.12);
+    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.beginPath();ctx.ellipse(s*.1, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.1, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='clown'){
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.lineTo(-s*1.2,-s*.6+wag);ctx.lineTo(-s*1.2,s*.6+wag);ctx.fill();
+    const bp=new Path2D();bp.ellipse(0,0,s*.85,s*.5,0,0,Math.PI*2);
+    ctx.fillStyle=bg;ctx.fill(bp);
+    ctx.save();ctx.clip(bp);
+    ctx.fillStyle=f.isRare?'#000':'#fff';
+    for(const sx of[-s*.3,s*.2]){ctx.beginPath();ctx.rect(sx-s*.15,-s,s*.3,s*2);ctx.fill();}
+    ctx.restore();
+    drawEye(ctx, s*.55, -s*.1, s*.12);
+    ctx.fillStyle=f.isRare?'#333':'#ea580c';
+    ctx.beginPath();ctx.ellipse(0, s*.15, s*.25, s*.1, Math.PI/8 + paddle*.1, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='angel'){
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s*1.8,-s*1.5+wag*.5);ctx.lineTo(-s*.2,0);ctx.lineTo(-s*1.8,s*1.5+wag*.5);ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0, s*.8);ctx.quadraticCurveTo(-s*.5, s*2.5, -s+wag, s*3);ctx.stroke();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.6,s*.9,0,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.25, -s*.2, s*.1);
+    ctx.fillStyle=f.genes.c2[0]+'66';
+    ctx.beginPath();ctx.ellipse(s*.1, 0, s*.2, s*.4, Math.PI/4 + paddle*.05, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='betta'){
+    ctx.fillStyle=f.genes.c2[0]+'77';
+    ctx.beginPath();ctx.moveTo(s*.2,-s*.1);ctx.bezierCurveTo(-s*.5, -s*2.5+wag, -s*2, -s*1.5, -s*1.8,-s*.5);ctx.fill();
+    ctx.beginPath();ctx.moveTo(s*.2,s*.1);ctx.bezierCurveTo(-s*.5, s*2.5+wag, -s*2, s*1.5, -s*1.8,s*.5);ctx.fill();
+    ctx.fillStyle=f.genes.c1[0]+'99';
+    ctx.beginPath();ctx.moveTo(-s*.4,0);ctx.bezierCurveTo(-s*1.5,-s*2+wag*2,-s*3.5,-s*.5+wag*1.5,-s*2.5,0);ctx.bezierCurveTo(-s*3.5,s*.5+wag*1.5,-s*1.5,s*2+wag*2,-s*.4,0);ctx.fill();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.25,0,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.4, -s*.05, s*.08);
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.ellipse(s*.2, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.2, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='puffer'){
+    const bl=eating?1.5:1+Math.sin(time*.05)*.05;
+    ctx.fillStyle=f.genes.c1[0]+'aa';ctx.beginPath();ctx.moveTo(-s*.6*bl,0);ctx.lineTo(-s*1.2,-s*.4+wag*2);ctx.lineTo(-s*1.2,s*.4+wag*2);ctx.fill();
+    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,s*.6*bl,0,Math.PI*2);ctx.fill();
+    if(eating) {
+      ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1.5;
+      for(let i=0;i<8;i++){
+        const a=i/8*Math.PI*2;
+        ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.6*bl,Math.sin(a)*s*.6*bl);
+        ctx.lineTo(Math.cos(a)*s*.8*bl,Math.sin(a)*s*.8*bl);ctx.stroke();
+      }
+    }
+    ctx.fillStyle=f.isRare?'#94a3b8':'#ecfdf5';ctx.beginPath();ctx.arc(s*.1,s*.2,s*.4*bl,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.3, -s*.1, s*.1);
+    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.beginPath();ctx.ellipse(0, s*.2, s*.15, s*.08, paddle*.4, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='koi'){
+    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.quadraticCurveTo(-s*1.2,-s*.6+wag,-s*1.6,wag);ctx.quadraticCurveTo(-s*1.2,s*.6+wag,-s*.5,0);ctx.fill();
+    const kp=new Path2D();kp.ellipse(0,0,s*.9,s*.4,0,0,Math.PI*2);
+    ctx.fillStyle=bg;ctx.fill(kp);
+    ctx.save();ctx.clip(kp);
+    ctx.fillStyle=f.isRare?'#38bdf8':'#ef4444';
+    ctx.beginPath();ctx.arc(s*.2, -s*.1, s*.3, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(-s*.3, s*.1, s*.25, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(s*.6, s*.15, s*.2, 0, Math.PI*2);ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(s*.85,s*.15);ctx.quadraticCurveTo(s*1,s*.3,s*1.1,s*.4+pw*.1);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.85,-s*.15);ctx.quadraticCurveTo(s*1,-s*.3,s*1.1,-s*.4-pw*.1);ctx.stroke();
+    drawEye(ctx, s*.5, -s*.15, s*.08);
+    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.beginPath();ctx.ellipse(s*.2, s*.2, s*.35, s*.15, Math.PI/4 + paddle*.1, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='neon'){
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath();ctx.moveTo(-s*.8,0);ctx.lineTo(-s*1.4,-s*.4+wag);ctx.lineTo(-s*1.4,s*.4+wag);ctx.fill();
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath();ctx.ellipse(0,0,s*.8,s*.25,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.fillRect(-s*.6,-s*.05,s*1.2,s*.1);
+    drawEye(ctx, s*.5, -s*.05, s*.06);
+  }
+  else if(f.type==='discus'){
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.6,0);ctx.lineTo(-s*1.5,-s*.8+wag);ctx.lineTo(-s*1.5,s*.8+wag);ctx.fill();
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0];ctx.lineWidth=2;
+    for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(0,0,s*.25*i,-Math.PI/2,Math.PI/2);ctx.stroke();}
+    drawEye(ctx, s*.6, -s*.1, s*.12);
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath();ctx.ellipse(0, s*.6, s*.4, s*.2, paddle*.2, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='arowana'){
+    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.beginPath();ctx.moveTo(s*.5,0);ctx.quadraticCurveTo(-s,-s*.2+wag*2,-s*2,0);ctx.quadraticCurveTo(-s,s*.2+wag*2,s*.5,0);ctx.fill();
+    const kp=new Path2D();kp.ellipse(0,0,s*.9,s*.25,0,0,Math.PI*2);
+    ctx.fillStyle=bg;ctx.fill(kp);
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=1;
+    for(let k=0;k<4;k++){ctx.beginPath();ctx.moveTo(-s*.5+k*s*.3,-s*.2);ctx.lineTo(-s*.3+k*s*.3,s*.2);ctx.stroke();}
+    drawEye(ctx, s*.6, -s*.08, s*.06);
+    ctx.strokeStyle=f.genes.c1[0];
+    ctx.beginPath();ctx.moveTo(s*.8,s*.1);ctx.lineTo(s*.9,s*.3);ctx.stroke();
+    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.beginPath();ctx.ellipse(s*.3, s*.25, s*.4, s*.1, 0, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='seahorse'){
+    const bob = Math.sin(time*0.1+f.id)*s*0.1;
+    ctx.translate(0, bob);
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.arc(-s*.2, s*.8, s*.3, 0, Math.PI);ctx.fill(); 
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.2, -s*.6); 
+    ctx.quadraticCurveTo(-s*.3, -s*.2, -s*.3, s*.3);
+    ctx.quadraticCurveTo(-s*.6, s*1.2, 0, s);
+    ctx.quadraticCurveTo(s*.2, s*.7, -s*.1, s*.4);
+    ctx.quadraticCurveTo(s*.6, s*.2, 0, -s*.2);
+    ctx.lineTo(s*.4, -s*.3); ctx.lineTo(s*.4, -s*.5);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
+    for(let i=0;i<5;i++){ ctx.beginPath();ctx.moveTo(-s*.3,s*.3-i*s*.15);ctx.lineTo(0,s*.3-i*s*.15);ctx.stroke(); }
+    drawEye(ctx, s*.1, -s*.45, s*.06);
+    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.beginPath();ctx.ellipse(-s*.4, s*.1, s*.15, s*.2, -paddle*.5, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='idol'){
+    ctx.fillStyle=f.genes.c2[0]+'cc'; 
+    ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*1.2,-s*.4+wag);ctx.lineTo(-s*1.2,s*.4+wag);ctx.fill();
+    ctx.fillStyle=bg; 
+    const mb = new Path2D(); mb.ellipse(0,0,s*.8,s,0,0,Math.PI*2); ctx.fill(mb);
+    ctx.save(); ctx.clip(mb);
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.fillRect(-s*.3, -s, s*.25, s*2); ctx.fillRect(s*.2, -s, s*.15, s*2);
+    ctx.restore();
+    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; 
+    ctx.beginPath(); ctx.moveTo(0, -s*.9); ctx.quadraticCurveTo(-s, -s*1.5, -s*2+wag, -s*1.2); ctx.stroke();
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath(); ctx.moveTo(s*.6, -s*.2); ctx.lineTo(s*1.1, -s*.1); ctx.lineTo(s*1.1, s*.1); ctx.lineTo(s*.7, s*.2); ctx.fill();
+    drawEye(ctx, s*.4, -s*.3, s*.08);
+  }
+  else if(f.type==='lionfish'){
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
+    for(let i=0; i<9; i++){
+      const a = -Math.PI/2 + (i/8)*Math.PI; 
+      const r = s*1.5 + Math.sin(time*2+i)*s*.2;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.stroke();
+    }
+    ctx.fillStyle=bg; 
+    ctx.beginPath(); ctx.ellipse(0,0,s*.9,s*.5,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=3;
+    for(let i=-2; i<=2; i++){ ctx.beginPath();ctx.moveTo(i*s*.25, -s*.45);ctx.lineTo(i*s*.25, s*.45);ctx.stroke(); }
+    drawEye(ctx, s*.5, -s*.15, s*.1);
+    ctx.fillStyle=f.genes.c1[0]+'88';
+    ctx.beginPath();ctx.ellipse(0,s*.2,s*.6,s*.6,paddle*.5,0,Math.PI);ctx.fill();
+  }
+  else if(f.type==='shark'){
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.moveTo(s*1.2, 0); 
+    ctx.quadraticCurveTo(s*.5, -s*.4, -s*1.5, -s*.1+wag*1.5); 
+    ctx.lineTo(-s*2, -s*.6+wag*2); ctx.lineTo(-s*1.8, wag*1.5); 
+    ctx.lineTo(-s*2, s*.4+wag*2); ctx.lineTo(-s*1.5, s*.1+wag*1.5); 
+    ctx.quadraticCurveTo(0, s*.3, s*1.2, 0); 
+    ctx.fill();
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath(); ctx.moveTo(s*.2, -s*.35); ctx.lineTo(-s*.2, -s*.8); ctx.lineTo(-s*.4, -s*.3); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(s*.3, s*.2); ctx.lineTo(0, s*.7); ctx.lineTo(-s*.2, s*.25); ctx.fill();
+    ctx.strokeStyle='#334155'; ctx.lineWidth=1.5;
+    for(let i=0;i<3;i++){ ctx.beginPath();ctx.moveTo(s*.6-i*s*.1, -s*.1);ctx.lineTo(s*.6-i*s*.1, s*.1);ctx.stroke(); }
+    drawEye(ctx, s*.9, -s*.1, s*.05);
+  }
+  else if(f.type==='manta'){
+    const flap = Math.sin(time*2 + f.id)*s*.6;
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.moveTo(s, 0); 
+    ctx.lineTo(s*1.2, -s*.2); ctx.lineTo(s*.8, -s*.3); 
+    ctx.lineTo(0, -s-flap); 
+    ctx.lineTo(-s*1.5, 0); 
+    ctx.lineTo(0, s+flap); 
+    ctx.lineTo(s*.8, s*.3); ctx.lineTo(s*1.2, s*.2); 
+    ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(-s*1.5, 0); ctx.quadraticCurveTo(-s*3, wag, -s*4, wag*2); ctx.stroke();
+    drawEye(ctx, s*.7, -s*.15, s*.06);
+  }
+  
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = s*0.1;
+  ctx.beginPath();
+  if(f.type==='angel') ctx.ellipse(0,0,s*.5,s*.8,0, Math.PI, Math.PI*1.5);
+  else if(f.type==='puffer') ctx.arc(0,0,s*.5, Math.PI, Math.PI*1.5);
+  else ctx.ellipse(0,0,s*.7,s*.25,0, Math.PI, Math.PI*1.5);
+  ctx.stroke();
+
+  if(f.name) {
+    ctx.scale(1/fs, 1/fs);
+    ctx.fillStyle = 'rgba(0,10,25,0.6)';
+    ctx.beginPath();
+    const tw = ctx.measureText(f.name).width;
+    ctx.roundRect(-tw/2-6, -s*fs-40, tw+12, 16, 8);
+    ctx.fill();
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillStyle = f.isRare ? '#fbbf24' : '#f8fafc';
+    ctx.textAlign = 'center';
+    ctx.fillText(f.name, 0, -s*fs-29);
+  }
+
+  ctx.restore();
+}
+
+// GAME LOOP
+function loop(){
+  time++;updateEco();ctx.clearRect(0,0,W,H);
+
+  const theme = THEMES[curTheme];
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, theme.c1);
+  g.addColorStop(.5, theme.c2);
+  g.addColorStop(1, theme.c3);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  ctx.globalCompositeOperation='screen';
+  for(let i=0;i<3;i++){
+    ctx.beginPath();const rx=(W/3)*i+Math.sin(time*.005+i)*50;
+    ctx.moveTo(rx,0);ctx.lineTo(rx-100,H);ctx.lineTo(rx+150,H);
+    const rg=ctx.createLinearGradient(0,0,0,H);
+    rg.addColorStop(0,'rgba(255,255,255,.07)');rg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=rg;ctx.fill();
+  }
+  ctx.globalCompositeOperation='source-over';
+
+  if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.006})`;ctx.fillRect(0,0,W,H);}
+  if(isHarmony){ctx.fillStyle='rgba(251,191,36,.055)';ctx.fillRect(0,0,W,H);}
+
+  for(const sw of seaweeds){
+    ctx.beginPath();let px=sw.x,py=H;ctx.moveTo(px,py);
+    const sh=sw.h/sw.segs;
+    for(let i=0;i<sw.segs;i++){
+      const sv=Math.sin(time*.0011+sw.ph+i*.8)*(6+(i/sw.segs)*16);
+      const nx=sw.x+sv,ny=py-sh;
+      ctx.quadraticCurveTo(px+sv*.55,py-sh*.5,nx,ny);px=nx;py=ny;
+    }
+    ctx.strokeStyle=`hsla(${sw.hue},${sw.sat}%,${18*(1-algae*.003)}%,.6)`;
+    ctx.lineWidth=6;ctx.lineCap='round';ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(0,5,15,0.4)';
+  for(const f of fishList) {
+    const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
+    ctx.beginPath();
+    ctx.ellipse(f.x, H-10, s*1.2, s*0.4, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  for(const e of eggs){
+    ctx.save();ctx.translate(e.x,e.y);
+    const pulse=1+Math.sin(time*.1)*.1;ctx.scale(pulse,pulse);
+    ctx.beginPath();ctx.ellipse(0,0,6,8,0,0,Math.PI*2);
+    const eg=ctx.createRadialGradient(0,-2,1,0,0,8);
+    eg.addColorStop(0,'#fbcfe8');eg.addColorStop(1,e.genes.c1[0]);
+    ctx.fillStyle=eg;ctx.fill();
+    ctx.beginPath();ctx.ellipse(-2,-3,2,3,Math.PI/4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill();
+    ctx.restore();
+    const secs = Math.ceil(e.timer / 60);
+    let str = '';
+    if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
+    else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
+    else str = secs + 's';
+    ctx.font='bold 10px -apple-system, sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillText(str, e.x, e.y - 14);
+    ctx.fillStyle='#fff';ctx.fillText(str, e.x, e.y - 15);
+  }
+  
+  for(const s of snails){updateSnail(s);drawSnail(s);}
+
+  for(const c of clams){
+    c.timer++;ctx.save();ctx.translate(c.x,H-5);
+    ctx.scale(1,1+Math.sin(c.timer*.02)*.05);
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,10,15,5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(0,0,18,Math.PI,0);ctx.fillStyle='#64748b';ctx.fill();
+    if(c.timer%1200>1100){
+      ctx.beginPath();ctx.arc(0,-10,4,0,Math.PI*2);ctx.fillStyle='#f8fafc';ctx.shadowBlur=10;ctx.shadowColor='#fff';ctx.fill();ctx.shadowBlur=0;
+    }
+    ctx.rotate(-Math.max(0,Math.sin(c.timer*.02))*.5);ctx.beginPath();ctx.arc(0,0,19,Math.PI,0);ctx.fillStyle='#94a3b8';ctx.fill();ctx.restore();
+    if(c.timer%1200===0){addCoins(150,c.x,H-30,true);spawnJuice(c.x,H-50, ICONS.star + ' PEARL!','#f8fafc',1.5);}
+  }
+
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b=bubbles[i];b.y-=b.spd;b.x+=Math.sin(time*.004+b.ph)*.6;
+    if(b.y<-10){bubbles.splice(i,1);continue;}
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,255,255,${b.life*.45})`;ctx.stroke();
+  }
+  if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:2+Math.random()*5,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
+
+  for(let i=foodList.length-1;i>=0;i--){
+    const fd=foodList[i];
+    if(fd.eaten)fd.life-=.1;
+    else{
+      fd.vy=Math.min(fd.vy+.02,1.2);fd.vx*=.98;
+      fd.x+=fd.vx+Math.sin(time*.02+fd.y)*.2;fd.y+=fd.vy;
+      if(fd.y>=FOOD_FL()){fd.y=FOOD_FL();fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
+    }
+    if(fd.life<=0){foodList.splice(i,1);continue;}
+    ctx.globalAlpha=Math.max(0,fd.life);
+    ctx.beginPath();ctx.ellipse(fd.x,fd.y,4.5,3.5,0,0,Math.PI*2);
+    ctx.fillStyle=UPGRADES.flakes.owned? ACCENTS[curAccent].hex :'#d4940a';ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=.03;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+  }ctx.globalAlpha=1;
+
+  fishList.sort((a,b)=>a.scale-b.scale);
+  for(const f of fishList){updateFish(f);drawFish(f);}
+
+  ctx.fillStyle = FLOORS[curFloor].c;
+  ctx.beginPath();ctx.moveTo(0,H+5);ctx.lineTo(0,H-15);
+  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-15+Math.sin(i*.05)*5);
+  ctx.lineTo(W,H+5);ctx.fill();
+
+  saveTimer++;
+  if(saveTimer>=1800){saveTimer=0;saveGame();}
+
+  requestAnimationFrame(loop);
+}
+
+// INPUT & INTERACTION
+function dropFood(x,y) {
+  if(foodList.length<fishList.length*5+10){
+    const n=UPGRADES.flakes.owned?2:1;
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-15))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
+  }
+}
+
+function doTap(x,y){
+  if(isClean){
+    if(algae>0){
+      algae=Math.max(0,algae-.5);sm.cleaned+=.5;
+      if(Math.random()<.3)bubbles.push({x:x+(Math.random()-.5)*20,y:y+(Math.random()-.5)*20,r:2+Math.random()*3,spd:3,ph:0,life:1});
+      if(Math.random()<.08)spawnJuice(x,y, ICONS.clean,'#34d399',.8);
+    }
+  }else{
+    let hitFish = null;
+    for(const f of fishList) {
+      const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
+      if(Math.hypot(f.x - x, f.y - y) < s * 2) { hitFish = f; break; }
+    }
+    if(hitFish) {
+      if(hitFish.bonded < 300) { 
+        hitFish.bonded = 3600; 
+        for(let i=0;i<6;i++) particles.push({x:x,y:y-30,vx:(Math.random()-.5)*3,vy:-1-Math.random()*2,life:1,c:'#fb7185'});
+      }
+      return; 
+    }
+    dropFood(x,y);
+  }
+}
+
+cv.addEventListener('pointerdown',e=>{
+  if(document.querySelector('.panel.open')||e.target.closest('#ui')||e.target.closest('#nav'))return;
+  pDown=true;lx=e.clientX;ly=e.clientY;
+  doTap(lx,ly);
+});
+cv.addEventListener('pointermove',e=>{
+  if(!pDown) return;
+  if(isClean) {
+    const d=Math.hypot(e.clientX-lx,e.clientY-ly);
+    if(d>10){doTap(e.clientX,e.clientY);lx=e.clientX;ly=e.clientY;}
+  } else {
+    const d = Math.hypot(e.clientX-lx, e.clientY-ly);
+    if(d > 35) { dropFood(e.clientX, e.clientY); lx = e.clientX; ly = e.clientY; }
+  }
+});
+cv.addEventListener('pointerup',()=>pDown=false);
+cv.addEventListener('pointercancel',()=>pDown=false);
+
+function toggleMode(){
+  isClean=!isClean;
+  const b=document.getElementById('modebtn');
+  if(isClean){b.classList.add('cleaning');b.innerHTML= ICONS.clean + ' Clean';cv.style.cursor='cell';}
+  else{b.classList.remove('cleaning');b.innerHTML= ICONS.feed + ' Feed';cv.style.cursor='crosshair';}
+}
+
+let _tt;
+function toast(msg,col='#10b981'){
+  const t=document.getElementById('toast');t.innerHTML=msg;t.style.background=col;t.style.opacity=1;
+  clearTimeout(_tt);_tt=setTimeout(()=>t.style.opacity=0,3200);
+}
+function spawnJuice(x,y,html,color,scale=1){
+  for(let i=0;i<5;i++)particles.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5-1,life:1,c:color});
+  const el=document.createElement('div');el.className='ft';
+  el.style.cssText=`left:${x-20}px;top:${y-20}px;color:${color};font-size:${16*scale}px;`;
+  el.innerHTML=html;document.body.appendChild(el);setTimeout(()=>el.remove(),1200);
+}
+function addCoins(amt,x,y,bonus=false){
+  coins+=amt;totalCoins+=amt;
+  document.getElementById('cv').textContent=coins;
+  checkLevel();
+  spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
+}
+function checkLevel(){
+  const old=playerLevel;
+  if(totalCoins>150000)playerLevel=6;
+  else if(totalCoins>45000)playerLevel=5;
+  else if(totalCoins>15000)playerLevel=4;
+  else if(totalCoins>4000)playerLevel=3;
+  else if(totalCoins>1000)playerLevel=2;
+  if(playerLevel>old){
+    document.getElementById('lvl').textContent=playerLevel;
+    toast(ICONS.star + ` Level ${playerLevel}! New items in Shop`,'var(--ui-accent)');
+    spawnJuice(W/2,H/4, ICONS.star + ' LEVEL UP!','var(--ui-accent)',2);
+    document.getElementById('nb-shop').classList.add('notify');
+  }
+}
+
+// TABS, SHOP, AND DECOR
+let currentTab='tank';
+function setTab(t){
+  currentTab=t;
+  ['market','decor','orders','shop','social'].forEach(id=>{
+    document.getElementById('nb-'+id).classList.toggle('active',id===t);
+    const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id]??'');
+    if(el) el.classList.toggle('open',id===t);
+  });
+  document.getElementById('sov').classList.toggle('open',t!=='tank');
+  if(t==='tank') closeAll();
+  if(t==='market') { buildMarket(); document.getElementById('nb-market').classList.remove('notify'); }
+  if(t==='shop') { buildShop(); document.getElementById('nb-shop').classList.remove('notify'); }
+  if(t==='decor') { buildDecor(); }
+  if(t==='orders') { buildOrders(); document.getElementById('nb-orders').classList.remove('notify'); }
+  if(t==='social') { buildSocial(); }
+}
+
+function closeAll(){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+  document.getElementById('sov').classList.remove('open');
+  ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
+  currentTab='tank';
+}
+
+let swipeStartY = 0;
+document.querySelectorAll('.panel').forEach(p => {
+  p.addEventListener('touchstart', e => {
+    if(e.target.closest('.pscroll') && p.querySelector('.pscroll').scrollTop > 5) return;
+    swipeStartY = e.touches[0].clientY;
+  }, {passive:true});
+  p.addEventListener('touchmove', e => {
+    if(!swipeStartY) return;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if(dy > 55) { swipeStartY=0; closeAll(); }
+  }, {passive:true});
+  p.addEventListener('touchend', () => swipeStartY=0);
+});
+
+// ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
+const TYPE_MAP  = ['guppy','clown','angel','betta','puffer','koi'];
+const TRAIT_MAP = ['greedy','shy','lazy','active'];
+
+function encodeFish(f) {
+  const ti = TYPE_MAP.indexOf(f.type);
+  const t1 = TRAIT_MAP.indexOf(f.genes.trait[0]);
+  const t2 = TRAIT_MAP.indexOf(f.genes.trait[1]);
+  const r  = f.isRare ? 1 : 0;
+  const raw = `${ti}${t1}${t2}${r}`;
+  let sum = raw.split('').reduce((a,c)=>a+parseInt(c),0);
+  const check = (sum % 36).toString(36).toUpperCase();
+  return `FISH${raw}${check}`;
+}
+
+function decodeFish(code) {
+  if(!code.startsWith('FISH') || code.length !== 9) return null;
+  const raw = code.slice(4,8), check = code[8];
+  if(!/^[0-9]+$/.test(raw)) return null;
+  let sum = raw.split('').reduce((a,c)=>a+parseInt(c),0);
+  if((sum%36).toString(36).toUpperCase() !== check) return null;
+  const type  = TYPE_MAP[parseInt(raw[0])];
+  const t1    = TRAIT_MAP[parseInt(raw[1])];
+  const t2    = TRAIT_MAP[parseInt(raw[2])];
+  const isRare = raw[3] === '1';
+  if(!type||!t1||!t2) return null;
+  return {type, t1, t2, isRare};
+}
+
+function getEggTimerFrames(type) {
+  const req = TYPES[type]?.req || 1;
+  let mins = 5;
+  if(req === 2) mins = 10;
+  if(req === 3) mins = 20;
+  if(req === 4) mins = 30;
+  if(req === 5) mins = 45;
+  if(req === 6) mins = 60;
+  return mins * 60 * 60;
+}
+
+let lastGiftCode = '';
+function giftFish(id) {
+  const idx = fishList.findIndex(f=>f.id===id);
+  if(idx < 0) return;
+  const f = fishList[idx];
+  const code = encodeFish(f);
+  lastGiftCode = code;
+  fishList.splice(idx, 1);
+  updateHUD();
+  document.getElementById('gift-code-val').textContent = code;
+  document.getElementById('gift-code-box').style.display = 'block';
+  toast(ICONS.social + ' Fish gifted! Share the code.', '#10b981');
+  buildSocial(); saveGame();
+}
+function copyGiftCode() {
+  try { navigator.clipboard.writeText(lastGiftCode).catch(()=>{}); } catch(_) {}
+  toast(ICONS.done + ' Gift code copied!', '#10b981');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip) {
+  const canBuy = !isOwned && !lk && coins >= def.cost;
+  let btnHtml = '';
+  if(isEquipped) btnHtml = `<span class="cpr" style="color:var(--ui-accent)">${ICONS.done} EQUIPPED</span>`;
+  else if(isOwned) btnHtml = `<span class="cpr" style="color:#10b981">OWNED</span>`;
+  else btnHtml = `<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`;
+  const c = document.createElement('div');
+  c.className = `card ${(canBuy||isOwned)?'buyable':''} ${isEquipped?'equipped':''} ${lk?'locked':''}`;
+  c.setAttribute('data-req', def.req);
+  c.innerHTML = `<span class="ci" style="color:${colorVal}">${def.icon}</span><span class="cn">${def.name}</span>${btnHtml}`;
+  if(!lk) c.onclick = () => {
+    if(isEquipped) return;
+    if(isOwned) { onEquip(); spawnJuice(W/2,H/2,ICONS.done+' Equipped!','var(--ui-accent)',1.4); }
+    else if(canBuy) { coins-=def.cost; document.getElementById('cv').textContent=coins; onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
+    buildDecor(); saveGame();
+  };
+  return c;
+}
+
+function buildDecor() {
+  const tc = document.getElementById('tcards'); tc.innerHTML = '';
+  for(const [id,def] of Object.entries(THEMES))
+    tc.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
+      ()=>{ ownedThemes.push(id); curTheme=id; }, ()=>{ curTheme=id; }));
+
+  const sc = document.getElementById('scards'); sc.innerHTML = '';
+  for(const [id,def] of Object.entries(FLOORS))
+    sc.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
+      ()=>{ ownedFloors.push(id); curFloor=id; }, ()=>{ curFloor=id; }));
+
+  const bc = document.getElementById('bcards'); bc.innerHTML = '';
+  for(const [id,def] of Object.entries(BUBBLES))
+    bc.appendChild(makeCosmCard(id,def,ownedBubbles.includes(id),curBubble===id,playerLevel<def.req,'var(--ui-accent)',
+      ()=>{ ownedBubbles.push(id); curBubble=id; }, ()=>{ curBubble=id; }));
+
+  const brc = document.getElementById('brcards'); brc.innerHTML = '';
+  for(const [id,def] of Object.entries(BORDERS))
+    brc.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
+      ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
+}
+
+function applyBorder() {
+  const b = BORDERS[curBorder];
+  const cv = document.getElementById('c');
+  cv.style.boxShadow = 'none'; cv.style.outline = 'none';
+  if(b.style==='glow') cv.style.boxShadow = `inset 0 0 40px rgba(var(--ui-accent-rgb),0.25), inset 0 0 8px rgba(var(--ui-accent-rgb),0.15)`;
+  if(b.style==='coral') cv.style.boxShadow = 'inset 0 0 30px rgba(249,115,22,0.2), inset 0 0 6px rgba(249,115,22,0.1)';
+  if(b.style==='gold') cv.style.boxShadow = 'inset 0 0 40px rgba(251,191,36,0.22), inset 0 0 8px rgba(251,191,36,0.12)';
+  if(b.style==='pulse') { cv.style.animation = 'none'; cv.style.boxShadow = 'inset 0 0 60px rgba(var(--ui-accent-rgb),0.18)'; }
+}
+
+
+
+function switchShop(tab) {
+  document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
+  document.getElementById('shop-fish').style.display = tab==='fish' ? 'block' : 'none';
+  document.getElementById('tab-upgrades').className = tab==='upgrades' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-fish').className = tab==='fish' ? 'tabbtn active' : 'tabbtn';
+}
+
+function buildShop(){
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const uc=document.getElementById('ucards');uc.innerHTML='';
+  for(const[id,u] of Object.entries(UPGRADES)){
+    const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
+    const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
+    c.setAttribute('data-req',u.req);
+    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
+    if(can)c.onclick=()=>{
+      coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
+      if(id==='snail')snails.push({x:W/2,y:H-15,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+      if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
+      updateHUD();
+      spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
+    };
+    uc.appendChild(c);
+  }
+  const fc=document.getElementById('fcards');fc.innerHTML='';
+  for(const[type,def] of Object.entries(TYPES)){
+    const lk=playerLevel<def.req,owned=fishList.filter(f=>f.type===type).length;
+    const full=(fishList.length+eggs.length)>=mF||owned>=def.max,can=!full&&!lk&&coins>=def.cost;
+    const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
+    c.setAttribute('data-req',def.req);
+    c.innerHTML=`<span class="ci" style="color:${def.c1}">${def.icon}</span><span class="cn">${def.name}</span><span class="cd">Up to ${def.val} Coins/feed</span>${def.cost>0?`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`:'<span class="cpr">Free</span>'}<span class="cown">${owned}/${def.max}</span>`;
+    if(can)c.onclick=()=>{
+      coins-=def.cost;document.getElementById('cv').textContent=coins;
+      const g = generateRandomGenes(type);
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
+      updateHUD();
+      spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
+    };
+    fc.appendChild(c);
+  }
+}
+
+function myCode(){
+  const d=new Date(),key=uid+`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  let h=0;for(const c of key)h=((h<<5)-h+c.charCodeAt(0))&0x7FFFFFFF;
+  const ch='ACDEFGHJKLMNPQRUVWXY34679';let code='Z';
+  for(let i=0;i<7;i++){h=(h*1103515245+12345)&0x7FFFFFFF;code+=ch[Math.abs(h)%ch.length];}
+  return code;
+}
+function copyCode(){
+  const c=myCode();
+  try{navigator.clipboard.writeText(c).catch(()=>{});}catch(_){}
+  toast(ICONS.done + ' Code copied!','#10b981');
+}
+function redeemCode(raw){
+  const code=raw.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.startsWith('FISH')) {
+    const fData = decodeFish(code);
+    if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
+    if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
+    const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+    if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
+    
+    claimedCodes.add(code); codesRedeemed++;
+    const def = TYPES[fData.type];
+    const genes = { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: [fData.t1, fData.t2] };
+    if(fData.isRare) {
+        if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
+        else genes.c2[0] = def.rare.c2;
+    }
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    updateHUD();
+    toast(ICONS.egg + ' Egg received!','#10b981');
+    document.getElementById('codein').value='';
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Claimed fish code!`;
+    saveGame(); buildSocial();
+    return;
+  }
+  
+  if(code.length<8){toast('Enter a valid code!','#ef4444');return;}
+  if(code===myCode()){toast("Can't redeem your own code!",'#ef4444');return;}
+  if(claimedCodes.has(code)){toast('Already redeemed!','#ef4444');return;}
+  if(code.startsWith('Z')&&code.length===8){
+    claimedCodes.add(code);codesRedeemed++;
+    const r=100+Math.floor(Math.random()*101);
+    addCoins(r,W/2,H/3,true);
+    toast(ICONS.social + ` Gift received! +${r}`,'#10b981');
+    document.getElementById('codein').value='';
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${r} coins`;
+    saveGame();buildSocial();
+  }else{toast('Invalid code format!','#ef4444');}
+}
+function buildSocial(){
+  document.getElementById('mycode').textContent=myCode();
+  document.getElementById('sstreak').textContent=dailyStreak+' days';
+  document.getElementById('sorders').textContent=completedOrders;
+  document.getElementById('stotal').textContent=totalCoins.toLocaleString();
+  document.getElementById('scodes').textContent=codesRedeemed;
+  
+  const gl = document.getElementById('gift-list');
+  if(!fishList.length) { gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; return; }
+  
+  gl.innerHTML = fishList.map(f => {
+    const def = TYPES[f.type];
+    const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
+    const fn = f.name ? `"${f.name}"` : def.name;
+    return `<div class="gift-fish-row">
+      <span><span class="trait-icon">${traitIco}</span> ${f.isRare? ICONS.star : ''}${fn}</span>
+      <div style="display:flex;gap:4px;">
+        <button class="giftbtn" style="background:#475569" onclick="renameFish(${f.id})">✏️</button>
+        <button class="giftbtn" onclick="giftFish(${f.id})">Gift</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renameFish(id) {
+  const f = fishList.find(x => x.id === id);
+  if(!f) return;
+  const nn = prompt(`Enter a new name for your ${f.isRare?'Rare ':''}${TYPES[f.type].name}:`, f.name||'');
+  if(nn !== null) {
+    if(nn.trim() === '') delete f.name;
+    else f.name = nn.trim().substring(0, 16);
+    saveGame(); buildSocial();
+  }
+}
+
+function exportSave() {
+  saveGame();
+  const raw = localStorage.getItem(MASTER_KEY);
+  if(!raw) return;
+  try {
+    const b64 = btoa(encodeURIComponent(raw));
+    navigator.clipboard.writeText(b64).catch(()=>{});
+    toast(ICONS.done + ' Save copied to clipboard!', '#10b981');
+  } catch(e) { toast('Export failed.', '#ef4444'); }
+}
+
+function importSaveClick() {
+  const str = prompt("Paste your exported save data code here. WARNING: This will overwrite your current save totally and reload the game.");
+  if(!str) return;
+  try {
+    const dec = decodeURIComponent(atob(str));
+    JSON.parse(dec); // validate it parses
+    localStorage.setItem(MASTER_KEY, dec);
+    location.reload();
+  } catch(e) {
+    alert("Invalid save code. Import failed.");
+  }
+}
+
+// BOOT
+initDecor();
+const saved=loadSave();
+if(saved){
+  const offline=calcOffline(saved);
+  applyState(saved);
+  if(offline&&offline.total>0){
+    if(needsDaily()){pendingDaily=true;showWelcome(offline);}
+    else showWelcome(offline);
+  }else if(needsDaily()){
+    showDailyModal();
+  }
+}else{
+  const def=TYPES['guppy'];
+  for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?1:-1,vy:0,phase:0,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:5000,scale:1,bonded:0,bcd:0,genes:generateRandomGenes('guppy'),isRare:false});
+  updateHUD();
+  if(needsDaily())showDailyModal();
+}
+applyBorder();
+
+window.addEventListener('beforeunload',saveGame);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
+loop();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDERS FUNCTIONS (full)
+// ─────────────────────────────────────────────────────────────────────────────
+function getRawMetricValue(o) {
+  switch(o.metric){
+    case'feeds':      return sm.feeds || 0;
+    case'harmonySec': return Math.floor(sm.harmonySec || 0);
+    case'cleaned':    return Math.floor(sm.cleaned || 0);
+    case'marketSales':return sm.marketSales || 0;
+    case'hatched':    return sm.hatched || 0;
+    case'fish':       return fishList.filter(f=>f.type===o.ftype).length;
+    default:          return 0;
+  }
+}
+
+function getDifficultyScale() {
+  return 1.0 + Math.min(completedOrders * 0.05, 2.5);
+}
+
+function generateSingleOrder(index) {
+  const scale = getDifficultyScale();
+  let template;
+  let forceTrade = (completedOrders > 0 && completedOrders % 4 === 0 && index === 0);
+
+  if(forceTrade) {
+    const validTrades = TRADE_POOL.filter(o => playerLevel >= TYPES[o.ftyperew].req);
+    template = validTrades.length > 0 ? validTrades[Math.floor(Math.random() * validTrades.length)] : TRADE_POOL[0];
+  } else {
+    const validPool = ORDER_POOL.filter(o => {
+      if(!o.isState) return true;
+      const scaledTarget = Math.ceil(o.target * scale);
+      const maxPoss = TYPES[o.ftype]?.max || 999;
+      return getRawMetricValue(o) < Math.min(scaledTarget, maxPoss); 
+    });
+    const poolToUse = validPool.length > 0 ? validPool : ORDER_POOL;
+    template = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+  }
+
+  let t = template.isTrade ? template.target : Math.ceil(template.target * scale);
+  if(template.isState && template.ftype) t = Math.min(t, TYPES[template.ftype].max);
+  const r = template.isTrade ? 0 : Math.ceil(template.reward * scale);
+
+  currentOrders[index] = {
+    id: template.id,
+    icon: template.icon,
+    desc: template.desc,
+    metric: template.metric,
+    ftype: template.ftype,
+    isState: template.isState,
+    isTrade: template.isTrade,
+    ftypereq: template.ftypereq,
+    ftyperew: template.ftyperew,
+    target: t,
+    reward: r,
+    startVal: 0,
+    progress: 0,
+    complete: false,
+    claimed: false
+  };
+  if(!template.isState && !template.isTrade) currentOrders[index].startVal = getRawMetricValue(currentOrders[index]);
+}
+
+function generateOrders() {
+  currentOrders = [];
+  for(let i=0; i<ORDER_SLOTS; i++) generateSingleOrder(i);
+}
+
+function orderProg(o) {
+  if(o.claimed) return o.target;
+  if(o.isTrade) return fishList.some(f=>f.type===o.ftypereq && f.scale>=1) ? 1 : 0;
+  const current = getRawMetricValue(o);
+  if(o.isState) return current;
+  return Math.max(0, current - o.startVal);
+}
+
+function tickOrders() {
+  let newDone = false;
+  for(const o of currentOrders){
+    if(o.claimed) continue;
+    o.progress = Math.min(orderProg(o), o.target);
+    if(!o.complete && o.progress >= o.target){ o.complete = true; newDone = true; }
+  }
+  if(newDone){ toast(ICONS.done + ' Order ready!','#10b981'); document.getElementById('nb-orders').classList.add('notify'); }
+}
+
+function claimOrder(i) {
+  const o = currentOrders[i]; if(!o || !o.complete || o.claimed) return;
+  o.claimed = true; 
+  completedOrders++;
+  if(o.isTrade) {
+    const fIdx = fishList.findIndex(f=>f.type===o.ftypereq && f.scale>=1);
+    if(fIdx>=0) fishList.splice(fIdx, 1);
+    const def = TYPES[o.ftyperew];
+    const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-15,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
+    spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
+    updateHUD();
+  } else {
+    addCoins(o.reward, W/2, H/3, true);
+    spawnJuice(W/2, H/3, ICONS.done + ' DONE!','#10b981', 1.4);
+  }
+  generateSingleOrder(i);
+  buildOrders(); 
+  saveGame();
+}
+
+function buildOrders() {
+  const scale = getDifficultyScale();
+  document.getElementById('otimer').textContent = `Difficulty: +${Math.floor((scale - 1) * 100)}%`;
+  document.getElementById('olist').innerHTML = currentOrders.map((o,i)=>{
+    const p=o.progress, pct=Math.min(100,(p/o.target)*100), done=o.complete||p>=o.target;
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''}">
+      <div class="ohead"><span class="oico">${o.icon}</span><div><span class="odesc">${o.desc}</span><span class="orew" style="display:flex;align-items:center;gap:3px;${o.isTrade?'color:#fbbf24;':''}">${o.isTrade ? ICONS.tank + ' Rare ' + TYPES[o.ftyperew].name : ICONS.coin + ' ' + o.reward}</span></div></div>
+      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%"></div></div>
+      <div class="ofoot"><span class="ocnt">${o.claimed? ICONS.done + ' Claimed' : p+' / '+ o.target}</span>
+        <button class="cbtn2" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}>${o.claimed?'Done':'Claim'}</button>
+      </div></div>`;
+  }).join('');
+}
+
+// RESET SAVE
+function resetSave(){
+  if(confirm('🗑️ Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
+    localStorage.removeItem(MASTER_KEY);
+    location.reload();
+  }
+}
