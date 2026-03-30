@@ -238,7 +238,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.4</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.6</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
@@ -918,13 +918,21 @@ function updateSnail(s){
   s.timer++;
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
   if(s.state==='moving'){
-    s.x+=s.spd*s.dir;s.ph+=.08;
-    if(s.x<20)s.x=20;
-    if(s.x>W-20)s.x=W-20;
-    if(s.y>=H-85){if(s.x<20){s.x=20;s.wall='floor';}else if(s.x>W-20){s.x=W-20;s.wall='floor';}}
-    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-90){s.y=H-90;s.dir*=-1;}if(s.y>=H-85){s.y=H-85;s.wall='floor';}}
+    if(s.wall==='floor'){
+      s.x+=s.spd*s.dir; s.ph+=.08;
+      if(s.x<10){ s.x=10; s.wall='left'; s.dir=1; }
+      if(s.x>W-10){ s.x=W-10; s.wall='right'; s.dir=1; }
+    } else if(s.wall==='left'){
+      s.y-=s.spd*s.dir; s.ph+=.08;
+      if(s.y<150){ s.y=150; s.dir=-1; }
+      if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=1; s.x=15; }
+    } else if(s.wall==='right'){
+      s.y-=s.spd*s.dir; s.ph+=.08;
+      if(s.y<150){ s.y=150; s.dir=-1; }
+      if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=-1; s.x=W-15; }
+    }
   }
-  if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
+  if(s.timer%450===0){addCoins(isHarmony?6:3,s.x,s.y-20,isHarmony);}
 }
 
 function drawSnail(s){
@@ -1480,11 +1488,12 @@ function closeAll(){
   currentTab='tank';
 }
 
-let py=0, pstartY=0, pstartPos=0, pdragging=null, plastTime=0, pV=0;
+let py=0, pstartY=0, pstartPos=0, pdragging=null, plastTime=0, pV=0, pisHeader=false;
 document.querySelectorAll('.panel').forEach(p=>{
   p.addEventListener('touchstart', e=>{
+    pisHeader = !!e.target.closest('.ph');
     const sc = p.querySelector('.pscroll');
-    if(sc && sc.scrollTop > 5 && !e.target.closest('.ph')) return;
+    if(!pisHeader && sc && sc.scrollTop > 5) return;
     pdragging = p;
     pstartY = e.touches[0].clientY;
     pstartPos = p.getBoundingClientRect().top - (window.innerHeight - p.offsetHeight);
@@ -1496,14 +1505,19 @@ document.querySelectorAll('.panel').forEach(p=>{
 
 window.addEventListener('touchmove', e=>{
   if(!pdragging) return;
-  if(e.cancelable) e.preventDefault();
   const y = e.touches[0].clientY;
   const dy = y - pstartY;
+  
+  if(!pisHeader){
+    const sc = pdragging.querySelector('.pscroll');
+    if(dy < 0) { pdragging=null; return; } // Scroll content up
+    if(sc && sc.scrollTop > 0) { pdragging=null; return; } // Scroll content down
+  }
+  
+  if(e.cancelable) e.preventDefault();
   const h = pdragging.offsetHeight;
   let newY = pstartPos + dy;
-  
   if(newY < 0) newY = newY * 0.3; // Rubber band top
-  
   pdragging.style.transform = `translateY(${newY}px)`;
   
   const progress = 1 - (newY / h);
@@ -1685,7 +1699,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
       const g = generateRandomGenes(type);
-      eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
+      eggs.push({x:Math.random()*(W-100)+50,y:H-85,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
@@ -1721,7 +1735,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -1929,7 +1943,7 @@ function claimOrder(i) {
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
