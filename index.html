@@ -56,7 +56,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
 .panel.open{transform:translateY(50%);pointer-events:auto;}
-.panel.full{transform:translateY(0);pointer-events:auto;}
+.panel.full{transform:translateY(0);pointer-events:auto;background:rgb(10,18,32);-webkit-backdrop-filter:none;backdrop-filter:none;}
 .panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
