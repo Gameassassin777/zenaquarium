@@ -84,6 +84,18 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .locked{opacity:.38;pointer-events:none;}
 .locked::after{content:'LOCKED Lv'attr(data-req);position:absolute;inset:0;background:rgba(0,5,16,.82);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#475569;border-radius:13px;}
 
+/* MARKET REVAMP */
+.m-header { background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; }
+.m-header::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); animation:mshine 4s infinite; }
+.m-badge { font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px; }
+.b-trait { background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
+.b-age { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.25); }
+.b-rare { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
+.m-price { font-weight:900; color:#fbbf24; font-size:13.5px; text-shadow:0 0 10px rgba(251,191,36,0.25); }
+.m-surge-hl { border:1.5px solid rgba(245,158,11,0.5) !important; background:rgba(245,158,11,0.04) !important; }
+@keyframes mshine { 0% { left:-100%; } 100% { left:300%; } }
+
+
 .ci{font-size:32px;display:block;margin-bottom:6px; color:#e2e8f0; filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
 .cn{color:#fff;font-size:14px;font-weight:800;display:block;margin:2px 0;}
 .cd{color:#94a3b8;font-size:10px;margin-bottom:8px;display:block;line-height:1.4;height:28px;}
@@ -512,6 +524,8 @@ const TRAIT_ICONS = { greedy: ICONS.greedy, shy: ICONS.shy, lazy: ICONS.lazy, ac
 const TRAIT_MARKET_MULT = { greedy: 1.0, shy: 1.0, lazy: 0.9, active: 1.2 };
 
 let marketRates = {};
+let surgingType = 'guppy';
+let surgeTimer = 0; 
 for(let k in TYPES) marketRates[k] = 1.0;
 
 function generateRandomGenes(type) {
@@ -739,6 +753,13 @@ function claimDaily(){
 
 // MARKET
 function tickMarket() {
+  surgeTimer++;
+  if(surgeTimer > 180 * 60) { // Every 3 mins @ 60fps
+    surgeTimer = 0;
+    const ks = Object.keys(TYPES);
+    surgingType = ks[Math.floor(Math.random()*ks.length)];
+    toast(ICONS.market + ` Market Surge: ${TYPES[surgingType].name} prices are UP!`, '#f59e0b');
+  }
   for(let k in marketRates) {
     const drift = (Math.random() - 0.5) * 0.08;
     marketRates[k] += drift;
@@ -748,52 +769,116 @@ function tickMarket() {
   if(currentTab === 'market') buildMarket();
 }
 
+function sellAllAdults(type) {
+  const adults = fishList.filter(f => f.type === type && f.age >= 18000);
+  if(!adults.length) { toast('No adults of this type to sell!', '#475569'); return; }
+  
+  if(confirm(`Sell ALL ${adults.length} adult ${TYPES[type].name}s?`)) {
+    let total = 0;
+    adults.forEach(f => {
+      const def = TYPES[f.type];
+      const rate = marketRates[f.type] || 1;
+      const surgeMult = (f.type === surgingType) ? 1.5 : 1.0;
+      const base = def.cost > 0 ? def.cost * 0.4 : 10;
+      const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
+      const rareMult = f.isRare ? 3 : 1;
+      const price = Math.floor(base * rate * rareMult * traitMult * f.scale * surgeMult);
+      total += price;
+      
+      const idx = fishList.indexOf(f);
+      if(idx > -1) fishList.splice(idx, 1);
+    });
+    addCoins(total, W/2, H/2, true);
+    spawnJuice(W/2, H/2, `SOLD ALL: +${total}`, '#f59e0b', 2.0);
+    sm.marketSales = (sm.marketSales || 0) + adults.length;
+    updateHUD();
+    buildMarket();
+    saveGame();
+  }
+}
+
 function buildMarket() {
   const mlist = document.getElementById('mlist');
   if(!fishList.length) {
     mlist.innerHTML = '<div style="color:#475569;text-align:center;padding:20px;font-weight:bold;">Your tank is empty!</div>';
     return;
   }
+  
+  const surgeDef = TYPES[surgingType];
+  let hhtml = `
+    <div class="m-header">
+      <div style="font-size:24px;">${surgeDef.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px; font-weight:bold; color:#fbbf24; text-transform:uppercase; letter-spacing:1px;">Market Surge</div>
+        <div style="font-size:14px; font-weight:900; color:#f8fafc;">${surgeDef.name} Prices x1.5!</div>
+      </div>
+      <button class="cbtn2" style="font-size:10px; padding:6px 10px;" onclick="sellAllAdults('${surgingType}')">Bulk Sell Adults</button>
+    </div>
+  `;
+
   const sorted = [...fishList].sort((a,b) => {
-    return (TYPES[b.type].val * marketRates[b.type]) - (TYPES[a.type].val * marketRates[a.type]);
+    const pa = getPrice(a); const pb = getPrice(b);
+    return pb - pa;
   });
 
-  mlist.innerHTML = sorted.map((f) => {
+  mlist.innerHTML = hhtml + sorted.map((f) => {
     const def = TYPES[f.type];
+    const price = getPrice(f);
     const rate = marketRates[f.type] || 1;
-    const base = def.cost > 0 ? def.cost * 0.4 : 10; 
-    const ageScale = Math.min(1, f.age / 18000); 
-    
-    const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
-    const rareMult = f.isRare ? 3 : 1;
-    const price = Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale);
-    
     const trend = rate > 1.4 ? 'SURGING' : rate < 0.8 ? 'CRASHING' : 'STABLE';
     const tcol = rate > 1.4 ? '#ef4444' : rate < 0.8 ? '#38bdf8' : '#94a3b8';
-    const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
+    
+    let ageTxt = "Baby";
+    if(f.age > 18000) ageTxt = "Adult";
+    else if(f.age > 6000) ageTxt = "Juvenile";
 
-    return `<div class="ocard">
-      <div class="ohead"><span class="oico">${def.icon}</span><div><span class="odesc">${f.isRare? ICONS.star : ''}${def.name}</span><span style="color:${tcol};font-size:10.5px;font-weight:900;">${trend} (${rate.toFixed(2)}x)</span></div></div>
+    return `<div class="ocard ${f.type===surgingType?'m-surge-hl':''}">
+      <div class="ohead">
+        <span class="oico">${def.icon}</span>
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+            <span class="odesc">${f.isRare? ICONS.star : ''}${def.name}</span>
+            <span class="m-badge b-age">${ageTxt}</span>
+            ${f.isRare?'<span class="m-badge b-rare">RARE</span>':''}
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="color:${tcol};font-size:10px;font-weight:800;">${trend} ${rate.toFixed(1)}x</span>
+            <span class="m-badge b-trait">${ICONS[f.genes.trait[0]]} ${f.genes.trait[0].toUpperCase()} x${TRAIT_MARKET_MULT[f.genes.trait[0]]}</span>
+          </div>
+        </div>
+      </div>
       <div class="ofoot">
-        <span class="ocnt"><span class="trait-icon">${traitIco}</span> Age Value: ${Math.floor(ageScale*100)}%</span>
-        <button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b);box-shadow:0 2px 6px rgba(0,0,0,.4); display:flex; align-items:center; gap:3px;" onclick="sellFish(${f.id}, ${price})">Sell ${ICONS.coin}${price}</button>
+        <span class="m-price">${ICONS.coin}${price}</span>
+        <button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b); min-width:80px;" onclick="sellFish(${f.id}, ${price})">Sell</button>
       </div></div>`;
   }).join('');
 }
 
+function getPrice(f) {
+  const def = TYPES[f.type];
+  const rate = marketRates[f.type] || 1;
+  const surgeMult = (f.type === surgingType) ? 1.5 : 1.0;
+  const base = def.cost > 0 ? def.cost * 0.4 : 10;
+  const ageScale = Math.min(1, f.age / 18000);
+  const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
+  const rareMult = f.isRare ? 3 : 1;
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult);
+}
+
 function sellFish(id, price) {
-  const idx = fishList.findIndex(f => f.id === id);
-  if(idx > -1) {
-    const f = fishList[idx];
-    addCoins(price, W/2, H/2, true);
-    spawnJuice(f.x, f.y, 'SOLD!', '#f59e0b', 1.8);
-    for(let i=0; i<8; i++) bubbles.push({x:f.x+(Math.random()-.5)*20,y:f.y,r:2+Math.random()*4,spd:2,ph:0,life:1});
-    fishList.splice(idx, 1);
-    sm.marketSales = (sm.marketSales || 0) + 1;
-    updateHUD();
-    buildMarket();
-    saveGame();
-  }
+  const f = fishList.find(x => x.id === id);
+  if(!f) return;
+  const realPrice = getPrice(f); // Recalculate to prevent stale price issues
+  
+  const idx = fishList.indexOf(f);
+  addCoins(realPrice, W/2, H/3, true);
+  spawnJuice(f.x, f.y, 'SOLD!', '#f59e0b', 1.8);
+  for(let i=0; i<8; i++) bubbles.push({x:f.x+(Math.random()-.5)*20,y:f.y,r:2+Math.random()*4,spd:2,ph:0,life:1});
+  fishList.splice(idx, 1);
+  sm.marketSales = (sm.marketSales || 0) + 1;
+  updateHUD();
+  buildMarket();
+  saveGame();
 }
 
 // ECOSYSTEM & SMOOTHED AI
