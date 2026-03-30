@@ -406,13 +406,18 @@ let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], 
 const TYPES={
   guppy:    {name:'Neon Guppy', icon:ICONS.tank, cost:0,    val:1,  c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
   neon:     {name:'Neon Tetra', icon:ICONS.tank, cost:150,  val:2,  c1:'#06b6d4',c2:'#ef4444',sz:12,spd:2.5,max:15,req:1,rare:{c1:'#fbbf24',c2:'#f59e0b'}},
+  seahorse: {name:'Seahorse', icon:ICONS.tank, cost:450,  val:4,  c1:'#fef08a',c2:'#f59e0b',sz:18,spd:0.4,max:4, req:2,rare:{c1:'#fb7185',c2:'#be123c'}},
   clown:    {name:'Clownfish',  icon:ICONS.tank, cost:250,  val:3,  c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
   angel:    {name:'Angelfish',  icon:ICONS.tank, cost:800,  val:7,  c1:'#6366f1',c2:'#c7d2fe',sz:28,spd:0.8,max:4, req:3,rare:{c1:'#fde047',c2:'#fef08a'}},
+  idol:     {name:'Moorish Idol',icon:ICONS.tank,cost:1200, val:10, c1:'#fef08a',c2:'#1c1917',sz:24,spd:1.0,max:3, req:3,rare:{c1:'#38bdf8',c2:'#1d4ed8'}},
   betta:    {name:'Betta Fish', icon:ICONS.tank, cost:2500, val:15, c1:'#1d4ed8',c2:'#8b5cf6',sz:22,spd:1.0,max:3, req:4,rare:{c1:'#be123c',c2:'#fb7185'}},
+  lionfish: {name:'Lionfish',   icon:ICONS.tank, cost:3500, val:20, c1:'#b91c1c',c2:'#fca5a5',sz:28,spd:0.7,max:2, req:4,rare:{c1:'#1e3a5f',c2:'#60a5fa'}},
   discus:   {name:'Royal Discus',icon:ICONS.tank,cost:5000, val:25, c1:'#ec4899',c2:'#3b82f6',sz:30,spd:0.6,max:3, req:5,rare:{c1:'#fde047',c2:'#22d3ee'}},
   puffer:   {name:'Puffer',     icon:ICONS.tank, cost:9500, val:45, c1:'#16a34a',c2:'#86efac',sz:26,spd:0.5,max:2, req:5,rare:{c1:'#f8fafc',c2:'#e2e8f0'}},
+  shark:    {name:'Reef Shark', icon:ICONS.tank, cost:12000,val:55, c1:'#94a3b8',c2:'#f8fafc',sz:40,spd:2.2,max:1, req:5,rare:{c1:'#1e293b',c2:'#000000'}},
   koi:      {name:'Golden Koi', icon:ICONS.tank, cost:18000,val:100,c1:'#ca8a04',c2:'#fef08a',sz:38,spd:1.4,max:2, req:6,rare:{c1:'#0284c7',c2:'#7dd3fc'}},
-  arowana:  {name:'Arowana',    icon:ICONS.tank, cost:40000,val:180,c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}}
+  arowana:  {name:'Arowana',    icon:ICONS.tank, cost:40000,val:180,c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}},
+  manta:    {name:'Manta Ray',  icon:ICONS.tank, cost:30000,val:120,c1:'#1e3a8a',c2:'#93c5fd',sz:45,spd:0.8,max:1, req:6,rare:{c1:'#581c87',c2:'#d8b4fe'}}
 };
 
 const UPGRADES={
@@ -506,9 +511,11 @@ const ORDER_POOL=[
 ];
 const TRADE_POOL=[
   {id:'tr1', icon:ICONS.social, desc:'Trade 1 Adult Guppy', isTrade:true, ftypereq:'guppy', ftyperew:'neon', target:1, reward:0},
-  {id:'tr2', icon:ICONS.social, desc:'Trade 1 Adult Clown', isTrade:true, ftypereq:'clown', ftyperew:'angel', target:1, reward:0},
-  {id:'tr3', icon:ICONS.social, desc:'Trade 1 Adult Betta', isTrade:true, ftypereq:'betta', ftyperew:'discus', target:1, reward:0},
-  {id:'tr4', icon:ICONS.social, desc:'Trade 1 Adult Puffer', isTrade:true, ftypereq:'puffer', ftyperew:'koi', target:1, reward:0}
+  {id:'tr2', icon:ICONS.social, desc:'Trade 1 Adult Clown', isTrade:true, ftypereq:'clown', ftyperew:'seahorse', target:1, reward:0},
+  {id:'tr3', icon:ICONS.social, desc:'Trade 1 Adult Angel', isTrade:true, ftypereq:'angel', ftyperew:'idol', target:1, reward:0},
+  {id:'tr4', icon:ICONS.social, desc:'Trade 1 Adult Betta', isTrade:true, ftypereq:'betta', ftyperew:'lionfish', target:1, reward:0},
+  {id:'tr5', icon:ICONS.social, desc:'Trade 1 Adult Discus',isTrade:true, ftypereq:'discus', ftyperew:'shark', target:1, reward:0},
+  {id:'tr6', icon:ICONS.social, desc:'Trade 1 Adult Koi',   isTrade:true, ftypereq:'koi', ftyperew:'manta', target:1, reward:0}
 ];
 const ORDER_SLOTS=3;
 
@@ -1081,6 +1088,85 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c2[0]+'99';
     ctx.beginPath();ctx.ellipse(s*.3, s*.25, s*.4, s*.1, 0, 0, Math.PI*2);ctx.fill();
   }
+  else if(f.type==='seahorse'){
+    const bob = Math.sin(time*0.1+f.id)*s*0.1;
+    ctx.translate(0, bob);
+    ctx.fillStyle=f.genes.c2[0]+'aa';
+    ctx.beginPath();ctx.arc(-s*.2, s*.8, s*.3, 0, Math.PI);ctx.fill(); 
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.2, -s*.6); 
+    ctx.quadraticCurveTo(-s*.3, -s*.2, -s*.3, s*.3);
+    ctx.quadraticCurveTo(-s*.6, s*1.2, 0, s);
+    ctx.quadraticCurveTo(s*.2, s*.7, -s*.1, s*.4);
+    ctx.quadraticCurveTo(s*.6, s*.2, 0, -s*.2);
+    ctx.lineTo(s*.4, -s*.3); ctx.lineTo(s*.4, -s*.5);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
+    for(let i=0;i<5;i++){ ctx.beginPath();ctx.moveTo(-s*.3,s*.3-i*s*.15);ctx.lineTo(0,s*.3-i*s*.15);ctx.stroke(); }
+    drawEye(ctx, s*.1, -s*.45, s*.06);
+    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.beginPath();ctx.ellipse(-s*.4, s*.1, s*.15, s*.2, -paddle*.5, 0, Math.PI*2);ctx.fill();
+  }
+  else if(f.type==='idol'){
+    ctx.fillStyle=f.genes.c2[0]+'cc'; 
+    ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*1.2,-s*.4+wag);ctx.lineTo(-s*1.2,s*.4+wag);ctx.fill();
+    ctx.fillStyle=bg; 
+    const mb = new Path2D(); mb.ellipse(0,0,s*.8,s,0,0,Math.PI*2); ctx.fill(mb);
+    ctx.save(); ctx.clip(mb);
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.fillRect(-s*.3, -s, s*.25, s*2); ctx.fillRect(s*.2, -s, s*.15, s*2);
+    ctx.restore();
+    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; 
+    ctx.beginPath(); ctx.moveTo(0, -s*.9); ctx.quadraticCurveTo(-s, -s*1.5, -s*2+wag, -s*1.2); ctx.stroke();
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath(); ctx.moveTo(s*.6, -s*.2); ctx.lineTo(s*1.1, -s*.1); ctx.lineTo(s*1.1, s*.1); ctx.lineTo(s*.7, s*.2); ctx.fill();
+    drawEye(ctx, s*.4, -s*.3, s*.08);
+  }
+  else if(f.type==='lionfish'){
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
+    for(let i=0; i<9; i++){
+      const a = -Math.PI/2 + (i/8)*Math.PI; 
+      const r = s*1.5 + Math.sin(time*2+i)*s*.2;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.stroke();
+    }
+    ctx.fillStyle=bg; 
+    ctx.beginPath(); ctx.ellipse(0,0,s*.9,s*.5,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=3;
+    for(let i=-2; i<=2; i++){ ctx.beginPath();ctx.moveTo(i*s*.25, -s*.45);ctx.lineTo(i*s*.25, s*.45);ctx.stroke(); }
+    drawEye(ctx, s*.5, -s*.15, s*.1);
+    ctx.fillStyle=f.genes.c1[0]+'88';
+    ctx.beginPath();ctx.ellipse(0,s*.2,s*.6,s*.6,paddle*.5,0,Math.PI);ctx.fill();
+  }
+  else if(f.type==='shark'){
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.moveTo(s*1.2, 0); 
+    ctx.quadraticCurveTo(s*.5, -s*.4, -s*1.5, -s*.1+wag*1.5); 
+    ctx.lineTo(-s*2, -s*.6+wag*2); ctx.lineTo(-s*1.8, wag*1.5); 
+    ctx.lineTo(-s*2, s*.4+wag*2); ctx.lineTo(-s*1.5, s*.1+wag*1.5); 
+    ctx.quadraticCurveTo(0, s*.3, s*1.2, 0); 
+    ctx.fill();
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath(); ctx.moveTo(s*.2, -s*.35); ctx.lineTo(-s*.2, -s*.8); ctx.lineTo(-s*.4, -s*.3); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(s*.3, s*.2); ctx.lineTo(0, s*.7); ctx.lineTo(-s*.2, s*.25); ctx.fill();
+    ctx.strokeStyle='#334155'; ctx.lineWidth=1.5;
+    for(let i=0;i<3;i++){ ctx.beginPath();ctx.moveTo(s*.6-i*s*.1, -s*.1);ctx.lineTo(s*.6-i*s*.1, s*.1);ctx.stroke(); }
+    drawEye(ctx, s*.9, -s*.1, s*.05);
+  }
+  else if(f.type==='manta'){
+    const flap = Math.sin(time*2 + f.id)*s*.6;
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.moveTo(s, 0); 
+    ctx.lineTo(s*1.2, -s*.2); ctx.lineTo(s*.8, -s*.3); 
+    ctx.lineTo(0, -s-flap); 
+    ctx.lineTo(-s*1.5, 0); 
+    ctx.lineTo(0, s+flap); 
+    ctx.lineTo(s*.8, s*.3); ctx.lineTo(s*1.2, s*.2); 
+    ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(-s*1.5, 0); ctx.quadraticCurveTo(-s*3, wag, -s*4, wag*2); ctx.stroke();
+    drawEye(ctx, s*.7, -s*.15, s*.06);
+  }
   
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = s*0.1;
@@ -1466,9 +1552,10 @@ function buildShop(){
     c.innerHTML=`<span class="ci" style="color:${def.c1}">${def.icon}</span><span class="cn">${def.name}</span><span class="cd">Up to ${def.val} Coins/feed</span>${def.cost>0?`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${def.cost}</span>`:'<span class="cpr">Free</span>'}<span class="cown">${owned}/${def.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
-      fishList.push({id:fid++,type,x:W/2,y:H/2,vx:def.spd,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:1,bonded:0,bcd:0,genes:generateRandomGenes(type),isRare:false});
+      const g = generateRandomGenes(type);
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type,timer:2400,genes:g,isRareMut:g.isRareMut});
       updateHUD();
-      spawnJuice(W/2,H/2, ICONS.tank + ' New Fish!','#4ade80',1.4);buildShop();saveGame();
+      spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
     fc.appendChild(c);
   }
@@ -1502,9 +1589,9 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    fishList.push({id:fid++,type:fData.type,x:W/2,y:H/2,vx:def.spd,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:1,bonded:3600,bcd:0,genes:genes,isRare:fData.isRare});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:fData.type,timer:1800,genes:genes,isRareMut:fData.isRare});
     updateHUD();
-    toast(ICONS.social + ' Fish received!','#10b981');
+    toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
     document.getElementById('soclog').innerHTML=`${ICONS.done} Claimed fish code!`;
     saveGame(); buildSocial();
@@ -1700,9 +1787,9 @@ function claimOrder(i) {
     const fIdx = fishList.findIndex(f=>f.type===o.ftypereq && f.scale>=1);
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
-    const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'] };
-    fishList.push({id:fid++,type:o.ftyperew,x:W/2,y:H/2,vx:def.spd,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:0.25,bonded:3600,bcd:0,genes:genes,isRare:true});
-    spawnJuice(W/2, H/3, ICONS.star + ' RARE FISH!','#fbbf24', 1.4);
+    const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:o.ftyperew,timer:3600,genes:genes,isRareMut:true});
+    spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
     addCoins(o.reward, W/2, H/3, true);
