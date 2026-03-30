@@ -452,14 +452,14 @@ const THEMES={
 };
 
 const FLOORS={
-  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'#0c1529', req:1},
-  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'#fef08a', req:3},
-  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'#3f3f46', req:4},
-  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'#7e22ce', req:6},
-  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'#f97316', req:3},
-  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'#1c1917', req:5},
-  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'#92400e', req:6},
-  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'#bfdbfe', req:4}
+  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'rgba(0,0,0,0.4)', req:1},
+  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'rgba(254,240,138,0.4)', req:3},
+  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'rgba(63,63,70,0.6)', req:4},
+  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'rgba(126,34,206,0.5)', req:6},
+  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'rgba(249,115,22,0.4)', req:3},
+  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'rgba(28,25,23,0.7)', req:5},
+  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'rgba(251,191,36,0.35)', req:6},
+  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'rgba(191,219,254,0.3)', req:4}
 };
 
 const BUBBLES={
@@ -1264,6 +1264,14 @@ function loop(){
     ctx.fillStyle=eg;ctx.fill();
     ctx.beginPath();ctx.ellipse(-2,-3,2,3,Math.PI/4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill();
     ctx.restore();
+    const secs = Math.ceil(e.timer / 60);
+    let str = '';
+    if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
+    else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
+    else str = secs + 's';
+    ctx.font='bold 10px -apple-system, sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillText(str, e.x, e.y - 14);
+    ctx.fillStyle='#fff';ctx.fillText(str, e.x, e.y - 15);
   }
   
   for(const s of snails){updateSnail(s);drawSnail(s);}
