@@ -42,7 +42,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .xpb{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:3px;overflow:hidden;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);}
 .xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.3s ease;}
 
-#nav{position:fixed;bottom:0;left:0;right:0;padding:5px 0 max(10px, calc(env(safe-area-inset-bottom, 0px) - 10px)) 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.65) 40%, rgba(0,0,0,.9) 100%);display:flex;z-index:25;pointer-events:none;}
+#nav{position:fixed;bottom:0;left:0;right:0;padding:20px 0 max(2px, calc(env(safe-area-inset-bottom, 0px) - 20px)) 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.65) 40%, rgba(0,0,0,.9) 100%);display:flex;z-index:25;pointer-events:none;}
 /* docked into safe area */
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;color:#94a3b8;font-size:9px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:15px 0 0 0;pointer-events:auto;}
 .nb svg {font-size:24px; transition:transform .2s; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));}
@@ -52,7 +52,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 #sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px) grayscale(0.8);backdrop-filter:blur(10px) grayscale(0.8);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(40px) grayscale(1);backdrop-filter:blur(40px) grayscale(1);border-radius:30px 30px 0 0;padding:24px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:68dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(20px) grayscale(1);backdrop-filter:blur(20px) grayscale(1);border-radius:30px 30px 0 0;padding:24px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:68dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.2);border-radius:3px;}
 .panel.open{transform:translateY(0);pointer-events:auto;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;}
@@ -144,7 +144,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <body>
 <div id="p-particles"></div>
 
-<div id="version" style="position:fixed;top:max(5px,env(safe-area-inset-top));right:10px;font-size:9px;color:rgba(255,255,255,.3);font-family:monospace;pointer-events:none;z-index:99;">v1.4.0</div>
+<div id="version" style="position:fixed;top:max(5px,env(safe-area-inset-top));right:10px;font-size:9px;color:rgba(255,255,255,.3);font-family:monospace;pointer-events:none;z-index:99;">v1.5.0</div>
 
 <canvas id="c"></canvas>
 <div id="ui">
@@ -159,12 +159,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="combo-ui"><div id="ctxt">Combo x1.0</div><div class="cbar"><div class="cfill" id="cfill"></div></div></div>
 
 <nav id="nav">
-  <button class="nb active" id="nb-tank"   onclick="setTab('tank')"><span class="ni" id="ic-nav-tank"></span>Tank</button>
-  <button class="nb"        id="nb-market" onclick="setTab('market')"><span class="ni" id="ic-nav-market"></span>Market</button>
-  <button class="nb"        id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
-  <button class="nb"        id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
-  <button class="nb"        id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
-  <button class="nb"        id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
+  <button class="nb" id="nb-market" onclick="setTab('market')"><span class="ni" id="ic-nav-market"></span>Market</button>
+  <button class="nb" id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
+  <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
+  <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
+  <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
 </nav>
 <div id="sov" onclick="closeAll()"></div>
 
@@ -1429,12 +1428,10 @@ function checkLevel(){
 let currentTab='tank';
 function setTab(t){
   currentTab=t;
-  ['tank','market','decor','orders','shop','social'].forEach(id=>{
+  ['market','decor','orders','shop','social'].forEach(id=>{
     document.getElementById('nb-'+id).classList.toggle('active',id===t);
-    if(id!=='tank') {
-      const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id]??'');
-      if(el) el.classList.toggle('open',id===t);
-    }
+    const el = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[id]??'');
+    if(el) el.classList.toggle('open',id===t);
   });
   document.getElementById('sov').classList.toggle('open',t!=='tank');
   if(t==='tank') closeAll();
@@ -1448,7 +1445,7 @@ function setTab(t){
 function closeAll(){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
   document.getElementById('sov').classList.remove('open');
-  ['tank','market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.toggle('active',id==='tank'));
+  ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
   currentTab='tank';
 }
 
