@@ -238,7 +238,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.3</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.4</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
@@ -1448,6 +1448,7 @@ function setTab(t){
   currentTab=t;
   if(t==='tank') closeAll();
   else {
+    document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.transform=''; });
     buildPanel(t);
     const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.transform=''; }
