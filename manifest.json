@@ -1,0 +1,16 @@
+{
+  "name": "Zen Aquarium",
+  "short_name": "Aquarium",
+  "description": "A relaxing aquarium simulation.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#001428",
+  "theme_color": "#001428",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
