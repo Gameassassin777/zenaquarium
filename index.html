@@ -144,8 +144,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <body>
 <div id="p-particles"></div>
 
-<div id="version" style="position:fixed;top:max(5px,env(safe-area-inset-top));right:10px;font-size:9px;color:rgba(255,255,255,.3);font-family:monospace;pointer-events:none;z-index:99;">v1.5.0</div>
-
 <canvas id="c"></canvas>
 <div id="ui">
   <div class="dash" id="mdash">
@@ -238,7 +236,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead">Development Tools</div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.6.0</span></div>
     <button onclick="resetSave()" class="resetbtn">Reset Save (Development)</button>
     <p style="font-size:10px;color:#64748b;text-align:center;margin-top:8px;">Deletes ALL progress and reloads the game</p>
   </div>
