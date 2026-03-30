@@ -253,20 +253,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social"></span><button class="xbtn" onclick="closeAll()">✕</button></div>
-  <div class="pscroll">
-    <span class="slbl">Your Daily Gift Code</span>
-    <div class="codebox">
-      <span style="color:#334155;font-size:11px">Share for 150 Coins!</span>
-      <span class="cbig" id="mycode">--------</span>
-      <span class="chint">Changes daily at midnight</span><br>
-      <button class="copybtn" onclick="copyCode()">Copy Code</button>
-    </div>
-    <span class="slbl">Redeem a Code</span>
-    <div class="irow">
-      <input class="cinput" id="codein" type="text" placeholder="ZXXXXXXX or FISHXXXXX" maxlength="12">
-      <button class="rbtn" onclick="redeemCode(document.getElementById('codein').value)">Claim</button>
-    </div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()">✕</button></div>
   <div class="pscroll" id="socdiv" style="padding:15px;"></div>
 </div>
 
@@ -352,6 +339,7 @@ const ICONS = {
   lazy: svg('<path d="M6 8 H14 L6 16 H14" fill="none" stroke="currentColor" stroke-width="2"/>'), 
   active: svg('<polygon points="13,2 5,13 12,13 11,22 19,11 12,11"/>'), 
   egg: svg('<ellipse cx="12" cy="12" rx="6" ry="9" fill="currentColor"/>'),
+  finder: svg('<circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')
 };
 
 // UI INJECTION
@@ -366,12 +354,14 @@ document.getElementById('ic-nav-decor').innerHTML = ICONS.decor;
 document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
+document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
 
 document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
 document.getElementById('ph-social').innerHTML = ICONS.social + ' Social';
+document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 
 // ACCENT COLOR CUSTOMIZATION
