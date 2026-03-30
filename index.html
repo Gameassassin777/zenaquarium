@@ -1215,6 +1215,7 @@ function drawFish(f){
 
 // GAME LOOP
 function loop(){
+try {
   time++;updateEco();ctx.clearRect(0,0,W,H);
 
   let theme = THEMES[curTheme] || THEMES['default'];
@@ -1335,7 +1336,15 @@ function loop(){
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
 
-  requestAnimationFrame(loop);
+} catch(crashError) {
+  if(!window.crashedAlready) {
+    window.crashedAlready=true;
+    const errBox = document.createElement('div');
+    errBox.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
+    errBox.innerHTML = '<h2>LOOP CRASH</h2>' + crashError.message + '<br><br>' + crashError.stack;
+    document.body.appendChild(errBox);
+  }
+}
 }
 
 // INPUT & INTERACTION
