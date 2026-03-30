@@ -395,8 +395,8 @@ function resize(){
 resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
 
-const FOOD_FL=()=>H-80;
-const SWIM_BOT=()=>H-100;
+const FOOD_FL=()=>H-100;
+const SWIM_BOT=()=>H-120;
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[];
@@ -616,7 +616,7 @@ function applyState(s){
   }
   
   for(let i=0;i<UPGRADES.snail.owned;i++)
-    snails.push({x:100+Math.random()*(W-200),y:H-25,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+    snails.push({x:100+Math.random()*(W-200),y:H-100,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
   for(let i=0;i<(s.clams??0);i++)
     clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
   
@@ -847,7 +847,7 @@ function updateFish(f){
       const childGenes = mendelianCross(f.genes, mate.genes, def);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
-      eggs.push({x:(f.x+mate.x)/2,y:H-25,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      eggs.push({x:(f.x+mate.x)/2,y:H-100,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -915,8 +915,8 @@ function updateSnail(s){
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
   if(s.state==='moving'){
     s.x+=s.spd*s.dir;s.ph+=.08;
-    if(s.y>=H-25){if(s.x<15){s.x=15;s.y-=2;s.wall='left';}else if(s.x>W-15){s.x=W-15;s.y-=2;s.wall='right';}}
-    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-25){s.y=H-25;s.wall='floor';}}
+    if(s.y>=H-100){if(s.x<15){s.x=15;s.y-=2;s.wall='left';}else if(s.x>W-15){s.x=W-15;s.y-=2;s.wall='right';}}
+    else{s.y-=s.spd*Math.abs(s.dir);if(s.y<H-150){s.y=H-150;s.dir*=-1;}if(s.y>=H-100){s.y=H-100;s.wall='floor';}}
   }
   if(s.timer%360===0){addCoins(isHarmony?6:3,s.x,s.y-30,isHarmony);}
 }
@@ -1251,7 +1251,7 @@ function loop(){
   for(const f of fishList) {
     const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
     ctx.beginPath();
-    ctx.ellipse(f.x, H-20, s*1.2, s*0.4, 0, 0, Math.PI*2);
+    ctx.ellipse(f.x, H-95, s*1.2, s*0.4, 0, 0, Math.PI*2);
     ctx.fill();
   }
 
@@ -1310,8 +1310,8 @@ function loop(){
   for(const f of fishList){updateFish(f);drawFish(f);}
 
   ctx.fillStyle = FLOORS[curFloor].c;
-  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,H-20);
-  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-20+Math.sin(i*.05)*5);
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,H-95);
+  for(let i=0;i<=W;i+=50)ctx.lineTo(i,H-95+Math.sin(i*.05)*5);
   ctx.lineTo(W,H);ctx.fill();
 
   saveTimer++;
@@ -1566,7 +1566,7 @@ function buildShop(){
     c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=u.cost;u.owned++;document.getElementById('cv').textContent=coins;
-      if(id==='snail')snails.push({x:W/2,y:H-25,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+      if(id==='snail')snails.push({x:W/2,y:H-100,dir:1,spd:.2+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:600+Math.floor(Math.random()*600)});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4);buildShop();saveGame();
@@ -1583,7 +1583,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
       const g = generateRandomGenes(type);
-      eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-100,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
@@ -1619,7 +1619,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-100,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -1818,7 +1818,7 @@ function claimOrder(i) {
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-100,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
