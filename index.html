@@ -52,9 +52,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 #sov{position:fixed;inset:0;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px) grayscale(0.8);backdrop-filter:blur(10px) grayscale(0.8);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(40px) grayscale(1);backdrop-filter:blur(40px) grayscale(1);border-radius:30px 30px 0 0;padding:24px 18px calc(90px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:90dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);border-top:1px solid rgba(255,255,255,.15);-webkit-backdrop-filter:blur(40px) grayscale(1);backdrop-filter:blur(40px) grayscale(1);border-radius:30px 30px 0 0;padding:24px 18px calc(45px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:68dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -4px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);}
+.panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.2);border-radius:3px;}
 .panel.open{transform:translateY(0);pointer-events:auto;}
-.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
 .pscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
 .xbtn{background:none;border:none;color:#4b5563;font-size:21px;cursor:pointer;box-shadow:none;padding:0;line-height:1;}
@@ -1446,6 +1447,20 @@ function closeAll(){
   ['tank','market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.toggle('active',id==='tank'));
   currentTab='tank';
 }
+
+let swipeStartY = 0;
+document.querySelectorAll('.panel').forEach(p => {
+  p.addEventListener('touchstart', e => {
+    if(e.target.closest('.pscroll') && p.querySelector('.pscroll').scrollTop > 5) return;
+    swipeStartY = e.touches[0].clientY;
+  }, {passive:true});
+  p.addEventListener('touchmove', e => {
+    if(!swipeStartY) return;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if(dy > 55) { swipeStartY=0; closeAll(); }
+  }, {passive:true});
+  p.addEventListener('touchend', () => swipeStartY=0);
+});
 
 // ─── FISH GIFT ENCODE / DECODE ────────────────────────────────────────────────
 const TYPE_MAP  = ['guppy','clown','angel','betta','puffer','koi'];
