@@ -50,9 +50,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(103,232,249,.6));}
 .nb.notify::after{content:'';position:absolute;top:2px;right:calc(50% - 12px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(0,0,0,.5);box-shadow:0 0 10px rgba(244,63,94,.6);}
 
-#sov{position:fixed;inset:0;background:rgba(15,23,42,0.06);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
+#sov{position:fixed;inset:0;background:rgba(0,0,0,0.04);z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;}
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(20,30,48,0.45);border-top:1px solid rgba(255,255,255,0.18);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -5px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);will-change:transform;}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(22,32,48,0.4);border-top:1px solid rgba(255,255,255,0.15);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);height:92dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -5px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);will-change:transform;}
+.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:45dvh;}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
 .panel.open{transform:translateY(32%);pointer-events:auto;}
 .panel.full{transform:translateY(0);pointer-events:auto;}
@@ -238,7 +239,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.8</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.7.9</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
@@ -1253,7 +1254,7 @@ try {
   }
   ctx.globalCompositeOperation='source-over';
 
-  if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.006})`;ctx.fillRect(0,0,W,H);}
+  if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.003})`;ctx.fillRect(0,0,W,H);}
   if(isHarmony){ctx.fillStyle='rgba(251,191,36,.055)';ctx.fillRect(0,0,W,H);}
 
   for(const sw of seaweeds){
