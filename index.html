@@ -62,6 +62,15 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
 
 .xbtn{background:none;border:none;color:#4b5563;font-size:21px;cursor:pointer;box-shadow:none;padding:0;line-height:1;}
+.acc-hd{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.07);-webkit-tap-highlight-color:transparent;}
+.acc-hd-left{display:flex;flex-direction:column;gap:2px;}
+.acc-hd-title{color:var(--ui-accent);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;text-shadow:0 0 10px rgba(103,232,249,.4);}
+.acc-hd-sub{color:#475569;font-size:10px;font-weight:600;}
+.acc-arrow{color:#475569;font-size:14px;transition:transform .25s;}
+.acc-arrow.open{transform:rotate(180deg);}
+.acc-body{overflow:hidden;max-height:0;transition:max-height .3s cubic-bezier(.4,0,.2,1);}
+.acc-body.open{max-height:600px;}
+.acc-body-inner{padding:12px 0 4px;}
 
 .sechead{color:var(--ui-accent);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;margin:20px 0 10px;text-shadow:0 0 10px rgba(103,232,249,.4);}
 .sechead:first-child{margin-top:0;}
@@ -175,13 +184,13 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 <div id="dpanel" class="panel">
   <div class="ph"><span class="pt" id="ph-decor"></span><button class="xbtn" onclick="closeAll()">✕</button></div>
-  <div class="pscroll">
-    <div class="sechead" style="margin-top:0; text-align:center;">UI Accent Color</div>
+  <div class="pscroll" id="decor-scroll">
+    <div class="sechead" style="margin-top:0;text-align:center;">UI Accent Color</div>
     <div class="swatch-row" id="swatches"></div>
-    <div class="sechead">Water Themes</div><div class="cards" id="tcards"></div>
-    <div class="sechead">Substrates</div><div class="cards" id="scards"></div>
-    <div class="sechead">Bubble Styles</div><div class="cards" id="bcards"></div>
-    <div class="sechead">Tank Border</div><div class="cards" id="brcards"></div>
+    <div id="acc-themes"></div>
+    <div id="acc-substrates"></div>
+    <div id="acc-bubbles"></div>
+    <div id="acc-borders"></div>
   </div>
 </div>
 
@@ -227,6 +236,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="copybtn" onclick="copyGiftCode()">Copy Code</button>
     </div>
     <div id="gift-list" style="margin-bottom:14px;"></div>
+    <span class="slbl">Achievements & Milestones</span>
+    <div id="milestone-log" style="background:rgba(0,18,42,.4); border-radius:11px; padding:10px 12px; margin-bottom:14px; font-size:11px; color:#475569;">
+      <div id="m-list" style="display:flex; flex-direction:column; gap:6px;">
+        <span style="opacity:0.5; font-style:italic;">Complete quests to unlock achievements...</span>
+      </div>
+    </div>
     <span class="slbl">Lifetime Stats</span>
     <div style="background:rgba(0,18,42,.6);border-radius:11px;padding:10px 12px;margin-bottom:14px;">
       <div class="srow"><span>Daily Streak</span><span id="sstreak" style="color:#fbbf24">0 days</span></div>
@@ -239,7 +254,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.8.4</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.9.0</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
@@ -419,30 +434,39 @@ let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], 
 
 // DEFINITIONS & GENETICS
 const TYPES={
-  guppy:    {name:'Neon Guppy', icon:ICONS.tank, cost:0,    val:1,  c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
-  neon:     {name:'Neon Tetra', icon:ICONS.tank, cost:150,  val:2,  c1:'#06b6d4',c2:'#ef4444',sz:12,spd:2.5,max:15,req:1,rare:{c1:'#fbbf24',c2:'#f59e0b'}},
-  seahorse: {name:'Seahorse', icon:ICONS.tank, cost:450,  val:4,  c1:'#fef08a',c2:'#f59e0b',sz:18,spd:0.4,max:4, req:2,rare:{c1:'#fb7185',c2:'#be123c'}},
-  clown:    {name:'Clownfish',  icon:ICONS.tank, cost:250,  val:3,  c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
-  angel:    {name:'Angelfish',  icon:ICONS.tank, cost:800,  val:7,  c1:'#6366f1',c2:'#c7d2fe',sz:28,spd:0.8,max:4, req:3,rare:{c1:'#fde047',c2:'#fef08a'}},
-  idol:     {name:'Moorish Idol',icon:ICONS.tank,cost:1200, val:10, c1:'#fef08a',c2:'#1c1917',sz:24,spd:1.0,max:3, req:3,rare:{c1:'#38bdf8',c2:'#1d4ed8'}},
-  betta:    {name:'Betta Fish', icon:ICONS.tank, cost:2500, val:15, c1:'#1d4ed8',c2:'#8b5cf6',sz:22,spd:1.0,max:3, req:4,rare:{c1:'#be123c',c2:'#fb7185'}},
-  lionfish: {name:'Lionfish',   icon:ICONS.tank, cost:3500, val:20, c1:'#b91c1c',c2:'#fca5a5',sz:28,spd:0.7,max:2, req:4,rare:{c1:'#1e3a5f',c2:'#60a5fa'}},
-  discus:   {name:'Royal Discus',icon:ICONS.tank,cost:5000, val:25, c1:'#ec4899',c2:'#3b82f6',sz:30,spd:0.6,max:3, req:5,rare:{c1:'#fde047',c2:'#22d3ee'}},
-  puffer:   {name:'Puffer',     icon:ICONS.tank, cost:9500, val:45, c1:'#16a34a',c2:'#86efac',sz:26,spd:0.5,max:2, req:5,rare:{c1:'#f8fafc',c2:'#e2e8f0'}},
-  shark:    {name:'Reef Shark', icon:ICONS.tank, cost:12000,val:55, c1:'#94a3b8',c2:'#f8fafc',sz:40,spd:2.2,max:1, req:5,rare:{c1:'#1e293b',c2:'#000000'}},
-  koi:      {name:'Golden Koi', icon:ICONS.tank, cost:18000,val:100,c1:'#ca8a04',c2:'#fef08a',sz:38,spd:1.4,max:2, req:6,rare:{c1:'#0284c7',c2:'#7dd3fc'}},
-  arowana:  {name:'Arowana',    icon:ICONS.tank, cost:40000,val:180,c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}},
-  manta:    {name:'Manta Ray',  icon:ICONS.tank, cost:30000,val:120,c1:'#1e3a8a',c2:'#93c5fd',sz:45,spd:0.8,max:1, req:6,rare:{c1:'#581c87',c2:'#d8b4fe'}}
+  guppy:    {name:'Neon Guppy',   icon:ICONS.tank, cost:0,      val:1,   c1:'#f472b6',c2:'#fb7185',sz:16,spd:1.8,max:10,req:1,rare:{c1:'#e879f9',c2:'#c084fc'}},
+  neon:     {name:'Neon Tetra',   icon:ICONS.tank, cost:150,    val:2,   c1:'#06b6d4',c2:'#ef4444',sz:12,spd:2.5,max:15,req:1,rare:{c1:'#fbbf24',c2:'#f59e0b'}},
+  seahorse: {name:'Seahorse',     icon:ICONS.tank, cost:450,    val:4,   c1:'#fef08a',c2:'#f59e0b',sz:18,spd:0.4,max:4, req:2,rare:{c1:'#fb7185',c2:'#be123c'}},
+  clown:    {name:'Clownfish',    icon:ICONS.tank, cost:250,    val:3,   c1:'#ea580c',c2:'#fdba74',sz:20,spd:1.2,max:6, req:2,rare:{c1:'#1c1917',c2:'#57534e'}},
+  angel:    {name:'Angelfish',    icon:ICONS.tank, cost:800,    val:7,   c1:'#6366f1',c2:'#c7d2fe',sz:28,spd:0.8,max:4, req:3,rare:{c1:'#fde047',c2:'#fef08a'}},
+  idol:     {name:'Moorish Idol', icon:ICONS.tank, cost:1200,   val:10,  c1:'#fef08a',c2:'#1c1917',sz:24,spd:1.0,max:3, req:3,rare:{c1:'#38bdf8',c2:'#1d4ed8'}},
+  betta:    {name:'Betta Fish',   icon:ICONS.tank, cost:2500,   val:15,  c1:'#1d4ed8',c2:'#8b5cf6',sz:22,spd:1.0,max:3, req:4,rare:{c1:'#be123c',c2:'#fb7185'}},
+  lionfish: {name:'Lionfish',     icon:ICONS.tank, cost:3500,   val:20,  c1:'#b91c1c',c2:'#fca5a5',sz:28,spd:0.7,max:2, req:4,rare:{c1:'#1e3a5f',c2:'#60a5fa'}},
+  discus:   {name:'Royal Discus', icon:ICONS.tank, cost:5000,   val:25,  c1:'#ec4899',c2:'#3b82f6',sz:30,spd:0.6,max:3, req:5,rare:{c1:'#fde047',c2:'#22d3ee'}},
+  puffer:   {name:'Puffer',       icon:ICONS.tank, cost:9500,   val:45,  c1:'#16a34a',c2:'#86efac',sz:26,spd:0.5,max:2, req:5,rare:{c1:'#f8fafc',c2:'#e2e8f0'}},
+  shark:    {name:'Reef Shark',   icon:ICONS.tank, cost:12000,  val:55,  c1:'#94a3b8',c2:'#f8fafc',sz:40,spd:2.2,max:1, req:5,rare:{c1:'#1e293b',c2:'#000000'}},
+  koi:      {name:'Golden Koi',   icon:ICONS.tank, cost:18000,  val:100, c1:'#ca8a04',c2:'#fef08a',sz:38,spd:1.4,max:2, req:6,rare:{c1:'#0284c7',c2:'#7dd3fc'}},
+  arowana:  {name:'Arowana',      icon:ICONS.tank, cost:40000,  val:180, c1:'#fb923c',c2:'#9a3412',sz:45,spd:1.8,max:1, req:6,rare:{c1:'#fbbf24',c2:'#fef08a'}},
+  manta:    {name:'Manta Ray',    icon:ICONS.tank, cost:30000,  val:120, c1:'#1e3a8a',c2:'#93c5fd',sz:45,spd:0.8,max:1, req:6,rare:{c1:'#581c87',c2:'#d8b4fe'}},
+  jellyfish:{name:'Jellyfish',    icon:ICONS.drop, cost:60000,  val:200, c1:'#c084fc',c2:'#f0abfc',sz:30,spd:0.3,max:3, req:7,rare:{c1:'#fbbf24',c2:'#fef08a'}},
+  hammer:   {name:'Hammerhead',   icon:ICONS.tank, cost:80000,  val:220, c1:'#64748b',c2:'#cbd5e1',sz:44,spd:2.4,max:1, req:7,rare:{c1:'#1e3a5f',c2:'#38bdf8'}},
+  octopus:  {name:'Octopus',      icon:ICONS.tank, cost:150000, val:400, c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,max:2, req:8,rare:{c1:'#fb923c',c2:'#c2410c'}},
+  turtle:   {name:'Sea Turtle',   icon:ICONS.tank, cost:200000, val:450, c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,max:2, req:8,rare:{c1:'#fbbf24',c2:'#ca8a04'}},
+  whaleshark:{name:'Whale Shark', icon:ICONS.tank, cost:500000, val:900, c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,max:1, req:9,rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
+  narwhal:  {name:'Narwhal',      icon:ICONS.tank, cost:1500000,val:2000,c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6,max:1, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}}
 };
 
 const UPGRADES={
-  flakes:  {name:'Gourmet Flakes',icon:ICONS.flakes, cost:500,  info:'Double base coin value',      max:1,owned:0,req:2},
-  snail:   {name:'Mystery Snail', icon:ICONS.snail,  cost:350,  info:'Passive income + eats algae', max:5,owned:0,req:1},
-  autofeed:{name:'Auto-Feeder',   icon:ICONS.gear,   cost:2000, info:'Drops food automatically',    max:1,owned:0,req:3},
-  tank:    {name:'Tank Expansion',icon:ICONS.ocean,  cost:3000, info:'+4 max fish capacity',        max:3,owned:0,req:4},
-  filter:  {name:'Power Filter',  icon:ICONS.filter, cost:8000, info:'Auto-reduces algae',          max:1,owned:0,req:5},
-  nest:    {name:'Breeding Slate',icon:ICONS.nest,   cost:12000,info:'Adult fish naturally breed',  max:1,owned:0,req:3},
-  clam:    {name:'Pearl Clam',    icon:ICONS.clam,   cost:25000,info:'Passive gold + filters water', max:1,owned:0,req:6}
+  flakes:  {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,    info:'Double base coin value',          max:1,owned:0,req:2},
+  snail:   {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,    info:'Passive income + eats algae',      max:5,owned:0,req:1},
+  autofeed:{name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,   info:'Drops food automatically',          max:1,owned:0,req:3},
+  tank:    {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,   info:'+4 max fish capacity',              max:5,owned:0,req:4},
+  filter:  {name:'Power Filter',   icon:ICONS.filter, cost:8000,   info:'Auto-reduces algae',                max:1,owned:0,req:5},
+  nest:    {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,  info:'Adult fish naturally breed',        max:1,owned:0,req:3},
+  clam:    {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,  info:'Passive gold + filters water',     max:3,owned:0,req:6},
+  heater:  {name:'Water Heater',   icon:ICONS.gear,   cost:50000,  info:'+25% coin value for all fish',     max:1,owned:0,req:7},
+  oxygen:  {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,  info:'Fish hunger drains 20% slower',    max:1,owned:0,req:6},
+  uvlight: {name:'UV Light',       icon:ICONS.star,   cost:75000,  info:'Rare mutation chance +5%',         max:1,owned:0,req:7}
 };
 
 const THEMES={
@@ -498,7 +522,8 @@ function generateRandomGenes(type) {
 }
 
 function mendelianCross(momGenes, dadGenes, typeDef) {
-  const isRareMut = Math.random() < 0.05;
+  const mutRate = (UPGRADES.uvlight && UPGRADES.uvlight.owned > 0) ? 0.10 : 0.05;
+  const isRareMut = Math.random() < mutRate;
   const inherit = (arr1, arr2) => {
     const a1 = arr1[Math.floor(Math.random()*2)];
     const a2 = arr2[Math.floor(Math.random()*2)];
@@ -516,13 +541,20 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
 
 // ENDLESS SCALING ORDERS
 const ORDER_POOL=[
-  {id:'f10', icon:ICONS.flakes, desc:'Feed your fish',          metric:'feeds',       isState:false, target:15, reward:120},
-  {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony (sec)',  metric:'harmonySec',  isState:false, target:120, reward:250},
-  {id:'cl20',icon:ICONS.clean,  desc:'Clean algae points',      metric:'cleaned',     isState:false, target:25, reward:150},
-  {id:'mkt1',icon:ICONS.market, desc:'Sell fish at Market',     metric:'marketSales', isState:false, target:2,  reward:350},
-  {id:'br1', icon:ICONS.egg,    desc:'Hatch baby fish',         metric:'hatched',     isState:false, target:1,  reward:400},
-  {id:'gu3', icon:ICONS.tank,   desc:'Own Neon Guppies',        metric:'fish',ftype:'guppy', isState:true, target:3,  reward:150},
-  {id:'cl2', icon:ICONS.tank,   desc:'Own Clownfish',           metric:'fish',ftype:'clown', isState:true, target:2,  reward:280},
+  {id:'f10', icon:ICONS.flakes, desc:'Feed your fish',            metric:'feeds',       isState:false, target:15,  reward:120},
+  {id:'h5',  icon:ICONS.star,   desc:'Maintain Harmony (sec)',    metric:'harmonySec',  isState:false, target:120, reward:250},
+  {id:'cl20',icon:ICONS.clean,  desc:'Clean algae points',        metric:'cleaned',     isState:false, target:25,  reward:150},
+  {id:'mkt1',icon:ICONS.market, desc:'Sell fish at Market',       metric:'marketSales', isState:false, target:2,   reward:350},
+  {id:'q1_jel',icon:ICONS.star,  desc:'Reach Level 7!',           metric:'level7',      isState:false, target:1,   reward:0, ftyperew:'jellyfish'},
+  {id:'q2_oct',icon:ICONS.star,  desc:'Own 5 rare fish',          metric:'rares_owned', isState:true,  target:5,   reward:0, ftyperew:'octopus'},
+  {id:'q3_nar',icon:ICONS.star,  desc:'Earn 5M total coins',      metric:'milestone_5m',isState:false, target:1,   reward:0, ftyperew:'narwhal'},
+  {id:'f30', icon:ICONS.flakes, desc:'Feed fish 30 times',        metric:'feeds',       isState:false, target:30,  reward:220},
+  {id:'h10', icon:ICONS.star,   desc:'Harmony for 3 min',         metric:'harmonySec',  isState:false, target:180, reward:400},
+  {id:'mkt3',icon:ICONS.market, desc:'Sell 3 fish at Market',     metric:'marketSales', isState:false, target:3,   reward:600},
+  {id:'br3', icon:ICONS.egg,    desc:'Hatch 3 baby fish',         metric:'hatched',     isState:false, target:3,   reward:900},
+  {id:'ra1', icon:ICONS.star,   desc:'Hatch a Rare mutant',       metric:'rares',       isState:false, target:1,   reward:800},
+  {id:'an2', icon:ICONS.tank,   desc:'Own 2 Angelfish',           metric:'fish',ftype:'angel', isState:true, target:2,  reward:500},
+  {id:'bt1', icon:ICONS.tank,   desc:'Own a Betta Fish',          metric:'fish',ftype:'betta', isState:true, target:1,  reward:700},
 ];
 const TRADE_POOL=[
   {id:'tr1', icon:ICONS.social, desc:'Trade 1 Adult Guppy', isTrade:true, ftypereq:'guppy', ftyperew:'neon', target:1, reward:0},
@@ -819,7 +851,8 @@ function triggerEat(f,fd,def){
   const bondMult=f.bonded>0?1.5:1; 
   let isGold = false;
   for(const g of [...f.genes.c1, ...f.genes.c2]) if(g.includes('fbbf') || g.includes('eab3') || g.includes('f59e') || g.includes('fde0')) isGold = true;
-  const total=Math.ceil(def.val*rareMult*(isGold?1.5:1)*(UPGRADES.flakes.owned>0?2:1)*cm*(isHarmony?1.5:1)*(algae>60?.5:1)*bondMult);
+  const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.25 : 1;
+  const total=Math.ceil(def.val*rareMult*(isGold?1.5:1)*(UPGRADES.flakes.owned>0?2:1)*cm*(isHarmony?1.5:1)*(algae>60?.5:1)*bondMult*heaterMult);
   addCoins(total,f.x,f.y,isHarmony || f.bonded>0 || isGold);
 }
 
@@ -838,6 +871,7 @@ function updateFish(f){
   if(f.bcd>0)f.bcd--;
   
   let hDrain = isHarmony ? 0.01 : 0.015;
+  if(UPGRADES.oxygen && UPGRADES.oxygen.owned > 0) hDrain *= 0.8;
   if(trait === 'lazy') hDrain *= 0.8;
   if(trait === 'active') hDrain *= 1.2;
   f.hunger=Math.max(0,f.hunger-hDrain);
@@ -1187,19 +1221,65 @@ function drawFish(f){
     for(let i=0;i<3;i++){ ctx.beginPath();ctx.moveTo(s*.6-i*s*.1, -s*.1);ctx.lineTo(s*.6-i*s*.1, s*.1);ctx.stroke(); }
     drawEye(ctx, s*.9, -s*.1, s*.05);
   }
-  else if(f.type==='manta'){
-    const flap = Math.sin(time*2 + f.id)*s*.6;
+  else if(f.type==='jellyfish'){
+    const pulse = Math.sin(time*0.1 + f.id)*0.2;
+    ctx.fillStyle=f.genes.c1[0]+'66';
+    ctx.beginPath();ctx.arc(0, -s*.2, s*.6*(1+pulse), Math.PI, 0); ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]+'88'; ctx.lineWidth=2;
+    for(let i=-2; i<=2; i++){
+      ctx.beginPath(); ctx.moveTo(i*s*.15, 0); 
+      ctx.quadraticCurveTo(i*s*.3, s+wag, i*s*.2, s*1.5+wag); ctx.stroke();
+    }
+  }
+  else if(f.type==='hammer'){
     ctx.fillStyle=bg;
-    ctx.beginPath(); ctx.moveTo(s, 0); 
-    ctx.lineTo(s*1.2, -s*.2); ctx.lineTo(s*.8, -s*.3); 
-    ctx.lineTo(0, -s-flap); 
-    ctx.lineTo(-s*1.5, 0); 
-    ctx.lineTo(0, s+flap); 
-    ctx.lineTo(s*.8, s*.3); ctx.lineTo(s*1.2, s*.2); 
-    ctx.fill();
-    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(-s*1.5, 0); ctx.quadraticCurveTo(-s*3, wag, -s*4, wag*2); ctx.stroke();
-    drawEye(ctx, s*.7, -s*.15, s*.06);
+    ctx.beginPath();ctx.ellipse(0,0,s*1.4,s*.4,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.rect(s*.6,-s*.6,s*.4,s*1.2);ctx.fill();
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath();ctx.moveTo(0, -s*.35); ctx.lineTo(-s*.4, -s*.8); ctx.lineTo(-s*.6, -s*.3); ctx.fill();
+    drawEye(ctx, s*.8, -s*.5, s*.06); drawEye(ctx, s*.8, s*.5, s*.06);
+  }
+  else if(f.type==='octopus'){
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(s*.3, 0, s*.7, s*.5, 0, 0, Math.PI*2);ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=4;
+    for(let i=0; i<8; i++){
+      const a = (i/7)*Math.PI - Math.PI/2;
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(Math.cos(a)*s, Math.sin(a)*s+wag, Math.cos(a)*s*1.5, Math.sin(a)*s*1.5+wag);
+      ctx.stroke();
+    }
+    drawEye(ctx, s*.5, -s*.15, s*.08);
+  }
+  else if(f.type==='turtle'){
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath();ctx.ellipse(s*.7, 0, s*.4, s*.25, 0, 0, Math.PI*2);ctx.fill();
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0, 0, s, s*.7, 0, 0, Math.PI*2);ctx.fill();
+    ctx.strokeStyle=f.genes.c1[0]+'44'; ctx.lineWidth=2;
+    for(let i=0;i<3;i++) { ctx.beginPath();ctx.moveTo(-s+i*s*.7,-s);ctx.lineTo(-s+i*s*.7,s);ctx.stroke(); }
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(-s*.5, -s*.7, s*.5, s*.3, 0.5, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.5, s*.7, s*.5, s*.3, -0.5, 0, Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.9, -s*.1, s*.06);
+  }
+  else if(f.type==='whaleshark'){
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*2,s*.8,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff3';
+    for(let i=0;i<12;i++) ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.moveTo(-s*1.5, 0); ctx.lineTo(-s*2.2, -s*.6+wag); ctx.lineTo(-s*2.2, s*.6+wag); ctx.closePath(); ctx.fill();
+    drawEye(ctx, s*1.8, -s*.2, s*.05);
+  }
+  else if(f.type==='narwhal'){
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*1.5,s*.5,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(s*1.4, -s*.1); ctx.lineTo(s*2.8, -s*.2); ctx.stroke();
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.moveTo(-s*1.2, 0); ctx.lineTo(-s*1.8, -s*.4+wag); ctx.lineTo(-s*1.8, s*.4+wag); ctx.closePath(); ctx.fill();
+    drawEye(ctx, s*1.2, -s*.1, s*.06);
   }
   
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
@@ -1230,7 +1310,7 @@ function drawFish(f){
 function loop(){
 try {
   if(!W || !H) resize();
-  time++;updateEco();ctx.clearRect(0,0,W,H);
+  time++;updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
   let theme = THEMES[curTheme] || THEMES['default'];
   if(curTheme === 'default') {
@@ -1436,19 +1516,27 @@ function addCoins(amt,x,y,bonus=false){
   checkLevel();
   spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
+const LEVEL_THRESHOLDS=[0,1000,4000,15000,45000,150000,400000,1000000,2500000,6000000];
 function checkLevel(){
   const old=playerLevel;
-  if(totalCoins>150000)playerLevel=6;
-  else if(totalCoins>45000)playerLevel=5;
-  else if(totalCoins>15000)playerLevel=4;
-  else if(totalCoins>4000)playerLevel=3;
-  else if(totalCoins>1000)playerLevel=2;
+  for(let i=LEVEL_THRESHOLDS.length-1;i>=1;i--){
+    if(totalCoins>=LEVEL_THRESHOLDS[i]){playerLevel=i+1;break;}
+  }
   if(playerLevel>old){
     document.getElementById('lvl').textContent=playerLevel;
-    toast(ICONS.star + ` Level ${playerLevel}! New items in Shop`,'var(--ui-accent)');
-    spawnJuice(W/2,H/4, ICONS.star + ' LEVEL UP!','var(--ui-accent)',2);
+    toast(ICONS.star+` Level ${playerLevel}! New items unlocked`,'var(--ui-accent)');
+    spawnJuice(W/2,H/4,ICONS.star+' LEVEL UP!','var(--ui-accent)',2);
     document.getElementById('nb-shop').classList.add('notify');
+    checkMilestones();
   }
+}
+
+function checkMilestones() {
+  currentOrders.forEach(o => {
+    if(o.metric==='rares_owned') o.progress = fishList.filter(f=>f.isRare).length;
+    if(o.metric==='level7' && playerLevel >= 7) o.progress = 1;
+    if(o.metric==='milestone_5m' && totalCoins >= 5000000) o.progress = 1;
+  });
 }
 
 // TABS, SHOP, AND DECOR
@@ -1616,25 +1704,55 @@ function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip
   return c;
 }
 
+// Accordion state for decor tab
+const decorOpen = {themes:false, substrates:false, bubbles:false, borders:false};
+
+function makeAccordion(id, title, equippedName, cards, openKey) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const isOpen = decorOpen[openKey];
+  el.innerHTML = `
+    <div class="acc-hd" onclick="toggleAcc('${openKey}')">
+      <div class="acc-hd-left">
+        <span class="acc-hd-title">${title}</span>
+        <span class="acc-hd-sub">${equippedName}</span>
+      </div>
+      <span class="acc-arrow ${isOpen?'open':''}">&#9660;</span>
+    </div>
+    <div class="acc-body ${isOpen?'open':''}">
+      <div class="acc-body-inner">
+        <div class="cards" id="cards-${openKey}"></div>
+      </div>
+    </div>`;
+  const cardEl = el.querySelector(`#cards-${openKey}`);
+  return cardEl;
+}
+
+function toggleAcc(key) {
+  decorOpen[key] = !decorOpen[key];
+  buildDecor();
+}
+
 function buildDecor() {
-  const tc = document.getElementById('tcards'); tc.innerHTML = '';
-  for(const [id,def] of Object.entries(THEMES))
-    tc.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
+  let cardEl;
+  cardEl = makeAccordion('acc-themes','Water Themes', THEMES[curTheme].name, null, 'themes');
+  if(cardEl) for(const [id,def] of Object.entries(THEMES))
+    cardEl.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
       ()=>{ ownedThemes.push(id); curTheme=id; }, ()=>{ curTheme=id; }));
 
-  const sc = document.getElementById('scards'); sc.innerHTML = '';
-  for(const [id,def] of Object.entries(FLOORS))
-    sc.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
+  cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates');
+  if(cardEl) for(const [id,def] of Object.entries(FLOORS))
+    cardEl.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
       ()=>{ ownedFloors.push(id); curFloor=id; }, ()=>{ curFloor=id; }));
 
-  const bc = document.getElementById('bcards'); bc.innerHTML = '';
-  for(const [id,def] of Object.entries(BUBBLES))
-    bc.appendChild(makeCosmCard(id,def,ownedBubbles.includes(id),curBubble===id,playerLevel<def.req,'var(--ui-accent)',
+  cardEl = makeAccordion('acc-bubbles','Bubble Styles', BUBBLES[curBubble].name, null, 'bubbles');
+  if(cardEl) for(const [id,def] of Object.entries(BUBBLES))
+    cardEl.appendChild(makeCosmCard(id,def,ownedBubbles.includes(id),curBubble===id,playerLevel<def.req,'var(--ui-accent)',
       ()=>{ ownedBubbles.push(id); curBubble=id; }, ()=>{ curBubble=id; }));
 
-  const brc = document.getElementById('brcards'); brc.innerHTML = '';
-  for(const [id,def] of Object.entries(BORDERS))
-    brc.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
+  cardEl = makeAccordion('acc-borders','Tank Border', BORDERS[curBorder].name, null, 'borders');
+  if(cardEl) for(const [id,def] of Object.entries(BORDERS))
+    cardEl.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
       ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
 }
 
@@ -1748,6 +1866,14 @@ function buildSocial(){
   document.getElementById('sorders').textContent=completedOrders;
   document.getElementById('stotal').textContent=totalCoins.toLocaleString();
   document.getElementById('scodes').textContent=codesRedeemed;
+  
+  const ml = document.getElementById('m-list');
+  const completedMilestones = currentOrders.filter(o => o.claimed && (o.id.startsWith('q') || o.ftyperew));
+  if(completedMilestones.length){
+    ml.innerHTML = completedMilestones.map(o => `<div class="srow" style="opacity:0.9;"><span>${o.icon} ${o.desc.replace('!','')}</span><span style="color:#fbbf24">${ICONS.done} Achieved</span></div>`).join('');
+  } else {
+    ml.innerHTML = '<span style="opacity:0.5; font-style:italic;">Complete quests to unlock achievements...</span>';
+  }
   
   const gl = document.getElementById('gift-list');
   if(!fishList.length) { gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; return; }
@@ -1930,6 +2056,12 @@ function claimOrder(i) {
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
     eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
+    updateHUD();
+  } else if(o.ftyperew) {
+    const def = TYPES[o.ftyperew];
+    const genes = { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: ['active', 'greedy'], isRareMut:false };
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:false});
+    spawnJuice(W/2, H/3, ICONS.egg + ' NEW FISH!','var(--ui-accent)', 1.4);
     updateHUD();
   } else {
     addCoins(o.reward, W/2, H/3, true);
