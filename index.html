@@ -55,8 +55,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .panel{position:fixed;bottom:0;left:0;right:0;background:rgb(10,18,32);border-top:1px solid rgba(255,255,255,0.15);border-radius:30px 30px 0 0;padding:22px 18px 0;z-index:21;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1),height .4s cubic-bezier(.2,.8,.2,1);height:52dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -5px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);will-change:transform;}
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
-.panel.open{transform:translateY(0);pointer-events:auto;height:52dvh;opacity:1;}
-.panel.full{transform:translateY(0);pointer-events:auto;height:92dvh;opacity:1;background:rgb(10,18,32);}
+.panel.open{transform:translateY(0);pointer-events:auto;height:52dvh;opacity:1;filter:none;}
+.panel.full{transform:translateY(0);pointer-events:auto;height:92dvh;opacity:1;filter:none;background:rgb(10,18,32);}
 .panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
 .pt{color:#fff;font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(103,232,249,.5);}
@@ -239,7 +239,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <button class="cbtn2" style="width:48%;" onclick="exportSave()">Export Save</button>
       <button class="cbtn2" style="width:48%;" onclick="importSaveClick()">Import Save</button>
     </div>
-    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.8.3</span></div>
+    <div class="sechead" style="display:flex;justify-content:space-between;align-items:flex-end;">Development Tools <span style="font-size:10px;color:rgba(255,255,255,.3);font-family:monospace;text-transform:none;letter-spacing:0;text-shadow:none;font-weight:normal;">v1.8.4</span></div>
     <div style="display:flex;gap:5px;margin-bottom:10px;">
       <button onclick="location.reload(true)" class="cbtn2" style="flex:1;background:rgba(52,211,153,.15);color:#34d399;border-color:rgba(52,211,153,.3);">Refresh App</button>
       <button onclick="resetSave()" class="cbtn2" style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);">Reset Save</button>
