@@ -542,6 +542,7 @@ function buildSave(){
     dailyStreak,lastDailyTs,completedOrders,codesRedeemed,
     upgrades:Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     fish:fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name})),
+    eggs:eggs.map(e=>({type:e.type, genes:e.genes, timer:e.timer, x:e.x, y:e.y, isRareMut:e.isRareMut})),
     clams:clams.length,currentOrders,sm,
     claimedCodes:[...claimedCodes], marketRates,
     curTheme, curFloor, curBubble, curBorder,
@@ -586,6 +587,14 @@ function applyState(s){
   
   for(const[k,v] of Object.entries(s.upgrades??{}))if(UPGRADES[k])UPGRADES[k].owned=v;
   
+  const elapsedSec = (Date.now() - (s.ts||Date.now())) / 1000;
+  const elapsedFrames = elapsedSec * 60;
+  
+  eggs = [];
+  for(const e of (s.eggs??[])){
+    eggs.push({...e, timer: Math.max(0, e.timer - elapsedFrames)});
+  }
+
   for(const f of(s.fish??[])){
     const def=TYPES[f.type];if(!def)continue;
     const genes = f.genes || generateRandomGenes(f.type);
@@ -828,7 +837,7 @@ function updateFish(f){
       const childGenes = mendelianCross(f.genes, mate.genes, def);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
-      eggs.push({x:(f.x+mate.x)/2,y:H-25,type:f.type,timer:1200, genes:childGenes, isRareMut:childGenes.isRareMut});
+      eggs.push({x:(f.x+mate.x)/2,y:H-25,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -1446,6 +1455,17 @@ function decodeFish(code) {
   return {type, t1, t2, isRare};
 }
 
+function getEggTimerFrames(type) {
+  const req = TYPES[type]?.req || 1;
+  let mins = 5;
+  if(req === 2) mins = 10;
+  if(req === 3) mins = 20;
+  if(req === 4) mins = 30;
+  if(req === 5) mins = 45;
+  if(req === 6) mins = 60;
+  return mins * 60 * 60;
+}
+
 let lastGiftCode = '';
 function giftFish(id) {
   const idx = fishList.findIndex(f=>f.id===id);
@@ -1553,7 +1573,7 @@ function buildShop(){
     if(can)c.onclick=()=>{
       coins-=def.cost;document.getElementById('cv').textContent=coins;
       const g = generateRandomGenes(type);
-      eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type,timer:2400,genes:g,isRareMut:g.isRareMut});
+      eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type,timer:getEggTimerFrames(type),genes:g,isRareMut:g.isRareMut});
       updateHUD();
       spawnJuice(W/2,H/2, ICONS.egg + ' Egg!','#4ade80',1.4);buildShop();saveGame();
     };
@@ -1589,7 +1609,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:fData.type,timer:1800,genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -1788,7 +1808,7 @@ function claimOrder(i) {
     if(fIdx>=0) fishList.splice(fIdx, 1);
     const def = TYPES[o.ftyperew];
     const genes = { c1: [def.rare.c1, def.rare.c1], c2: [def.rare.c2, def.rare.c2], trait: ['active', 'greedy'], isRareMut:true };
-    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:o.ftyperew,timer:3600,genes:genes,isRareMut:true});
+    eggs.push({x:W/2+(Math.random()*40-20),y:H-25,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes:genes,isRareMut:true});
     spawnJuice(W/2, H/3, ICONS.egg + ' RARE EGG!','#fbbf24', 1.4);
     updateHUD();
   } else {
