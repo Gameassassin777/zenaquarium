@@ -1717,7 +1717,7 @@ function addCoins(amt,x,y,bonus=false){
   checkLevel();
   spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
-const LEVEL_THRESHOLDS=[0,600,2200,6500,16000,38000,90000,210000,480000,1100000];
+const LEVEL_THRESHOLDS=[0,400,1800,7000,25000,80000,240000,680000,1800000,4500000];
 function checkLevel(){
   const old=playerLevel;
   for(let i=LEVEL_THRESHOLDS.length-1;i>=1;i--){
