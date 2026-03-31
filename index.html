@@ -274,8 +274,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="pscroll" id="socdiv" style="padding:15px;"></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
 <div id="fpanel" class="panel">
@@ -1717,10 +1717,9 @@ try {
     const getH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 
     ctx.fillStyle = f.c;
-    ctx.beginPath(); ctx.moveTo(0, H + 5); ctx.lineTo(0, by + getH(0));
-    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.lineTo(W, by + getH(W)); // Fixes the right-side cliff
-    ctx.lineTo(W, H + 5);
+    ctx.beginPath(); ctx.moveTo(-20, H + 5); ctx.lineTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
+    ctx.lineTo(W + 40, H + 5);
     ctx.fill();
 
     ctx.save();
@@ -1740,7 +1739,7 @@ try {
        const r2 = (Math.cos(i * 78.233) * 43758.5453) % 1;
        const pr2 = r2 < 0 ? r2 + 1 : r2;
        
-       const gx = pr1 * W;
+       const gx = -20 + pr1 * (W + 40);
        const gy = by + getH(gx) + pr2 * 110;
 
        // Sand grains
@@ -1761,17 +1760,15 @@ try {
     // Top rim highlight
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(0, by + getH(0));
-    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.lineTo(W, by + getH(W));
+    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
     ctx.stroke();
     
     // Bottom inset shadow for rim
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, by + getH(0) + 1.5);
-    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
-    ctx.lineTo(W, by + getH(W) + 1.5);
+    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20) + 1.5);
+    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
     ctx.stroke();
   }
   drawSubstrate();
@@ -2388,9 +2385,14 @@ function buildSocial(){
       </div>
     </div>
     
-    <div style="display:flex; gap:10px; margin-top:20px; padding-bottom:15px;">
-      <button onclick="exportSave()" class="cbtn" style="flex:1; opacity:0.6; background:transparent;">Export Save</button>
-      <button onclick="importSaveClick()" class="cbtn" style="flex:1; opacity:0.6; background:transparent;">Import Save</button>
+    <div class="ocard" style="margin-top:10px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#cbd5e1;">${ICONS.gear} Data Management</div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="exportSave()" class="cbtn" style="flex:1; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:600;">Export Save</button>
+        <button onclick="importSaveClick()" class="cbtn" style="flex:1; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:600;">Import</button>
+      </div>
     </div>
   `;
 
