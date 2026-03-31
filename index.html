@@ -1309,62 +1309,125 @@ function drawFish(f){
   bg.addColorStop(1, f.genes.c2[0]);
 
   if(f.type==='guppy'){
-    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.moveTo(-s*.2,0);
-    ctx.bezierCurveTo(-s*1.2, -s*.8, -s*1.6, -s+wag, -s*1.8, wag*1.5);
-    ctx.bezierCurveTo(-s*1.6, s+wag, -s*1.2, s*.8, -s*.2, 0);
+    ctx.bezierCurveTo(-s*1.5, -s*1.2, -s*1.8, -s+wag*1.5, -s*2.2, wag*2);
+    ctx.bezierCurveTo(-s*1.8, s+wag*1.5, -s*1.5, s*1.2, -s*.2, 0);
     ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1;
+    for(let i=-3; i<=3; i++){
+      ctx.beginPath(); ctx.moveTo(-s*.2, 0);
+      ctx.quadraticCurveTo(-s*1.2, i*s*.2, -s*2, i*s*.3 + wag*2); ctx.stroke();
+    }
     ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.8,s*.35,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=f.genes.c1[0];
+    for(let i=0; i<6; i++) {
+       ctx.beginPath(); ctx.arc(-s*.4 + i*s*.15, Math.sin(i*2)*s*.1, s*.06, 0, Math.PI*2); ctx.fill();
+    }
     drawEye(ctx, s*.4, -s*.05, s*.12);
-    ctx.fillStyle=f.genes.c2[0]+'99';
+    ctx.fillStyle=f.genes.c2[0]+'bd';
     ctx.beginPath();ctx.ellipse(s*.1, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.1, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='tetra'){
     ctx.fillStyle=f.genes.c1[0];
-    ctx.beginPath();ctx.moveTo(-s*.8,0);ctx.lineTo(-s*1.4,-s*.4+wag);ctx.lineTo(-s*1.4,s*.4+wag);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-s*.8,0);ctx.lineTo(-s*1.5,-s*.5+wag);ctx.lineTo(-s*1.5,s*.5+wag);ctx.fill();
     ctx.fillStyle=f.genes.c2[0];
-    ctx.beginPath();ctx.ellipse(0,0,s*.8,s*.25,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=f.genes.c1[0];
-    ctx.fillRect(-s*.6,-s*.05,s*1.2,s*.1);
-    drawEye(ctx, s*.5, -s*.05, s*.06);
+    ctx.beginPath();ctx.ellipse(0,0,s*.9,s*.28,0,0,Math.PI*2);ctx.fill();
+    
+    ctx.save();
+    ctx.beginPath();ctx.ellipse(0,0,s*.9,s*.28,0,0,Math.PI*2);ctx.clip();
+    const rg=ctx.createLinearGradient(0,0,0,s*.3);
+    rg.addColorStop(0, 'rgba(255,0,0,0)'); rg.addColorStop(1, '#ef4444');
+    ctx.fillStyle=rg; ctx.fillRect(-s,0,s*2,s);
+    ctx.restore();
+
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=s*.12; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(s*.6, -s*.05);
+    ctx.quadraticCurveTo(0, -s*.1, -s*.9, 0); ctx.stroke();
+    
+    drawEye(ctx, s*.5, -s*.05, s*.08);
   }
   else if(f.type==='seahorse'){
     const bob = Math.sin(time*0.1+f.id)*s*0.1;
     ctx.translate(0, bob);
     ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.arc(-s*.2, s*.8, s*.3, 0, Math.PI);ctx.fill(); 
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1;
+    for(let i=0; i<4; i++){ ctx.beginPath(); ctx.moveTo(-s*.2, s*.8); ctx.lineTo(-s*.2 - s*.3 + i*s*.2, s*1.1); ctx.stroke(); }
+    
     ctx.fillStyle=bg;
     ctx.beginPath();
     ctx.moveTo(s*.2, -s*.6); 
     ctx.quadraticCurveTo(-s*.3, -s*.2, -s*.3, s*.3);
-    ctx.quadraticCurveTo(-s*.6, s*1.2, 0, s);
-    ctx.quadraticCurveTo(s*.2, s*.7, -s*.1, s*.4);
-    ctx.quadraticCurveTo(s*.6, s*2.2, 0, -s*.2);
-    ctx.lineTo(s*.4, -s*.3); ctx.lineTo(s*.4, -s*.5);
+    ctx.quadraticCurveTo(-s*.6, s*1.2, 0, s*1.2);
+    let tx=0, ty=s*1.2;
+    for(let r=0; r<=Math.PI*2.5; r+=0.2){
+       const rad = s*.4 * (1 - r/(Math.PI*2.5));
+       tx = 0 + rad * Math.cos(r + Math.PI/2 - paddle*0.2);
+       ty = s*1.4 + rad * Math.sin(r + Math.PI/2 - paddle*0.2);
+       ctx.lineTo(tx, ty);
+    }
+    ctx.quadraticCurveTo(s*.3, s*1.2, -s*.1, s*.4);
+    ctx.quadraticCurveTo(s*.5, -s*.2, s*.4, -s*.3);
     ctx.closePath(); ctx.fill();
-    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
-    for(let i=0;i<5;i++){ ctx.beginPath();ctx.moveTo(-s*.3,s*.3-i*s*.15);ctx.lineTo(0,s*.3-i*s*.15);ctx.stroke(); }
-    drawEye(ctx, s*.1, -s*.45, s*.06);
+
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath();ctx.moveTo(s*.1, -s*.6); ctx.lineTo(s*.15, -s*.8); ctx.lineTo(s*.25, -s*.7); ctx.lineTo(s*.3, -s*.9); ctx.lineTo(s*.35, -s*.6); ctx.fill();
+
+    ctx.strokeStyle=f.genes.c1[0]+'88'; ctx.lineWidth=1.5;
+    for(let i=0;i<6;i++){ ctx.beginPath();ctx.moveTo(-s*.3, s*.4-i*s*.18);ctx.lineTo(s*.1, s*.4-i*s*.18);ctx.stroke(); }
+    
+    drawEye(ctx, s*.2, -s*.45, s*.06);
     ctx.fillStyle=f.genes.c2[0]+'99';
-    ctx.beginPath();ctx.ellipse(-s*.4, s*.1, s*.15, s*.2, -paddle*.5, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.1, s*.1, s*.12, s*.18, -paddle*.5, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='goldfish'){
-    ctx.fillStyle=f.genes.c2[0]+'cc';
+    ctx.fillStyle=f.genes.c2[0]+'66';
     ctx.beginPath();ctx.moveTo(-s*.2,0);
-    ctx.bezierCurveTo(-s*1.2, -s*.6+wag, -s*1.5, -s*1.2+wag, -s*1.8, wag*0.5);
-    ctx.bezierCurveTo(-s*1.5, s*1.2+wag, -s*1.2, s*.6+wag, -s*.2, 0); ctx.fill();
+    ctx.bezierCurveTo(-s*1.2, -s*.6+wag, -s*1.8, -s*1.4+wag*1.5, -s*2.2, wag*0.5);
+    ctx.bezierCurveTo(-s*1.5, s*1.4+wag*1.5, -s*1.2, s*.6+wag, -s*.2, 0); ctx.fill();
+    ctx.beginPath();ctx.moveTo(-s*.2,0);
+    ctx.bezierCurveTo(-s*1.3, -s*.2+wag*0.5, -s*1.6, -s*.8+wag, -s*2, wag*1.2);
+    ctx.bezierCurveTo(-s*1.6, s*.8+wag, -s*1.3, s*.2+wag*0.5, -s*.2, 0); ctx.fill();
+    
     ctx.fillStyle=bg; ctx.beginPath(); ctx.ellipse(0,0,s*1.1,s*.6,0,0,Math.PI*2); ctx.fill();
-    drawEye(ctx, s*.6, -s*.1, s*.15);
-    ctx.fillStyle=f.genes.c2[0]+'aa';
+    
+    ctx.fillStyle=f.genes.c1[0];
+    ctx.beginPath();
+    ctx.moveTo(s*.4, -s*.4);
+    for(let i=0; i<6; i++) {
+       const a = (i/5)*Math.PI - Math.PI/2;
+       ctx.arc(s*.6 + Math.cos(a)*s*.3, -s*.2 + Math.sin(a)*s*.4, s*.15, 0, Math.PI*2);
+    }
+    ctx.fill();
+
+    drawEye(ctx, s*.7, -s*.1, s*.12);
+    ctx.fillStyle=f.genes.c2[0]+'99';
     ctx.beginPath();ctx.ellipse(s*.2, s*.2, s*.4, s*.2, Math.PI/4 + paddle*.1, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='angelfish'){
     ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s*1.8,-s*1.5+wag*.5);ctx.lineTo(-s*.2,0);ctx.lineTo(-s*1.8,s*1.5+wag*.5);ctx.fill();
-    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(0, s*.8);ctx.quadraticCurveTo(-s*.5, s*2.5, -s+wag, s*3);ctx.stroke();
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.6,s*.9,0,0,Math.PI*2);ctx.fill();
-    drawEye(ctx, s*.25, -s*.2, s*.1);
+    
+    ctx.fillStyle=bg;
+    const bp = new Path2D(); bp.ellipse(0,0,s*.6,s*.9,0,0,Math.PI*2); ctx.fill(bp);
+
+    ctx.save(); ctx.clip(bp);
+    ctx.fillStyle='#0f172a';
+    for(let i=-1; i<=1; i++){
+       ctx.beginPath(); ctx.moveTo(i*s*.2, -s);
+       ctx.quadraticCurveTo(i*s*.3, 0, i*s*.2, s);
+       ctx.lineTo(i*s*.2 - s*.1, s);
+       ctx.quadraticCurveTo(i*s*.3 - s*.1, 0, i*s*.2 - s*.1, -s); ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(0, s*.8);ctx.quadraticCurveTo(-s*.5, s*2.5, -s+wag*2, s*3);ctx.stroke();
+    ctx.lineWidth=1; 
+    ctx.beginPath(); ctx.moveTo(-s*.1, s*.8); ctx.quadraticCurveTo(-s*.6, s*2.4, -s*1.1+wag*2, s*2.8); ctx.stroke();
+
+    drawEye(ctx, s*.25, -s*.2, s*.08);
     ctx.fillStyle=f.genes.c2[0]+'66';
     ctx.beginPath();ctx.ellipse(s*.1, 0, s*.2, s*.4, Math.PI/4 + paddle*.05, 0, Math.PI*2);ctx.fill();
   }
@@ -1372,26 +1435,64 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.moveTo(-s*.6,0);ctx.lineTo(-s*1.5,-s*.8+wag);ctx.lineTo(-s*1.5,s*.8+wag);ctx.fill();
     ctx.fillStyle=bg; ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=f.genes.c1[0];ctx.lineWidth=2;
-    for(let i=1;i<=3;i++){ctx.beginPath();ctx.arc(0,0,s*.25*i,-Math.PI/2,Math.PI/2);ctx.stroke();}
-    drawEye(ctx, s*.6, -s*.1, s*.12);
+
+    ctx.save();
+    ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.clip();
+    ctx.strokeStyle=f.genes.c1[0]+'99'; ctx.lineWidth=2; ctx.lineCap='round';
+    for(let i=-5; i<=5; i++){
+      ctx.beginPath();
+      for(let x=-s; x<=s; x+=s*.2){
+         const y = i*s*.18 + Math.sin(x*0.1 + f.id)*s*.08;
+         if(x===-s) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    for(let i=-5; i<=5; i++){
+      ctx.beginPath();
+      for(let y=-s; y<=s; y+=s*.2){
+         const x = i*s*.18 + Math.cos(y*0.1 + f.id*2)*s*.08;
+         if(y===-s) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    drawEye(ctx, s*.6, -s*.1, s*.1);
     ctx.fillStyle=f.genes.c2[0];
     ctx.beginPath();ctx.ellipse(0, s*.6, s*.4, s*.2, paddle*.2, 0, Math.PI*2);ctx.fill();
   }
   else if(f.type==='lionfish'){
-    ctx.strokeStyle=f.genes.c1[0]; ctx.lineWidth=2;
+    ctx.strokeStyle=f.genes.c1[0]; ctx.lineCap='round';
     for(let i=0; i<9; i++){
       const a = -Math.PI/2 + (i/8)*Math.PI; 
       const r = s*1.5 + Math.sin(time*2+i)*s*.2;
+      ctx.lineWidth=4; ctx.strokeStyle=f.genes.c1[0];
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.stroke();
+      ctx.lineWidth=2; ctx.strokeStyle=f.genes.c2[0];
+      ctx.setLineDash([s*.2, s*.2]);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.stroke();
+      ctx.setLineDash([]);
     }
     ctx.fillStyle=bg; 
     ctx.beginPath(); ctx.ellipse(0,0,s*.9,s*.5,0,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=3;
-    for(let i=-2; i<=2; i++){ ctx.beginPath();ctx.moveTo(i*s*.25, -s*.45);ctx.lineTo(i*s*.25, s*.45);ctx.stroke(); }
+    ctx.fillStyle=f.genes.c1[0]+'aa';
+    ctx.beginPath();ctx.moveTo(0, s*.2);
+    for(let i=0; i<=5; i++){
+       const a = (i/5)*Math.PI*0.8;
+       ctx.lineTo(-s*1.2 + Math.cos(a)*s*1.5, s*0.2 + Math.sin(a)*s*1.5 + paddle*2);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1;
+    for(let i=0; i<=5; i++){
+       const a = (i/5)*Math.PI*0.8;
+       ctx.beginPath(); ctx.moveTo(0, s*.2); ctx.lineTo(-s*1.2 + Math.cos(a)*s*1.5, s*0.2 + Math.sin(a)*s*1.5 + paddle*2); ctx.stroke();
+    }
+
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(s*.8, -s*.2); ctx.quadraticCurveTo(s*1.2, -s*.4, s*1.4, Math.sin(time*0.1)*s*.1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*.7, s*.2); ctx.quadraticCurveTo(s*.9, s*.5, s*1.1, s*.4 + Math.sin(time*0.1)*s*.1); ctx.stroke();
+
     drawEye(ctx, s*.5, -s*.15, s*.1);
-    ctx.fillStyle=f.genes.c1[0]+'88';
-    ctx.beginPath();ctx.ellipse(0,s*.2,s*.6,s*.6,paddle*.5,0,Math.PI);ctx.fill();
   }
   else if(f.type==='idol'){
     ctx.fillStyle=f.genes.c2[0]+'cc'; 
@@ -1402,10 +1503,21 @@ function drawFish(f){
     ctx.fillStyle=f.genes.c2[0];
     ctx.fillRect(-s*.3, -s, s*.25, s*2); ctx.fillRect(s*.2, -s, s*.15, s*2);
     ctx.restore();
-    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; 
-    ctx.beginPath(); ctx.moveTo(0, -s*.9); ctx.quadraticCurveTo(-s, -s*1.5, -s*2+wag, -s*1.2); ctx.stroke();
+    
+    ctx.strokeStyle='#f8fafc'; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0, -s*.9); 
+    ctx.bezierCurveTo(-s*1, -s*2, -s*2.5+wag, -s*1.5+paddle, -s*3.5+wag*2, -s*1.2-paddle);
+    ctx.stroke();
+
     ctx.fillStyle=f.genes.c1[0];
-    ctx.beginPath(); ctx.moveTo(s*.6, -s*.2); ctx.lineTo(s*1.1, -s*.1); ctx.lineTo(s*1.1, s*.1); ctx.lineTo(s*.7, s*.2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(s*.5, -s*.3); 
+    ctx.quadraticCurveTo(s*.8, -s*.3, s*1.4, -s*.1); 
+    ctx.lineTo(s*1.4, s*.15); 
+    ctx.quadraticCurveTo(s*.8, s*.3, s*.5, s*.3); ctx.fill();
+    
+    ctx.fillStyle=f.genes.c2[0];
+    ctx.beginPath(); ctx.ellipse(s*1.4, 0, s*.1, s*.15, 0, 0, Math.PI*2); ctx.fill();
+
     drawEye(ctx, s*.4, -s*.3, s*.08);
   }
   else if(f.type==='betta'){
@@ -1414,8 +1526,25 @@ function drawFish(f){
     ctx.beginPath();ctx.moveTo(s*.2,s*.1);ctx.bezierCurveTo(-s*.5, s*2.5+wag, -s*2, s*1.5, -s*1.8,s*.5);ctx.fill();
     ctx.fillStyle=f.genes.c1[0]+'99';
     ctx.beginPath();ctx.moveTo(-s*.4,0);ctx.bezierCurveTo(-s*1.5,-s*2+wag*2,-s*3.5,-s*.5+wag*1.5,-s*2.5,0);ctx.bezierCurveTo(-s*3.5,s*.5+wag*1.5,-s*1.5,s*2+wag*2,-s*.4,0);ctx.fill();
-    ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.25,0,0,Math.PI*2);ctx.fill();
-    drawEye(ctx, s*.4, -s*.05, s*.08);
+    
+    ctx.strokeStyle=f.genes.c1[0]+'bb'; ctx.lineWidth=1;
+    for(let i=0; i<5; i++){
+       ctx.beginPath(); ctx.moveTo(0,-s*.2); ctx.quadraticCurveTo(-s*.5 - i*s*.2, -s*1.5 + wag, -s*1.5 - i*s*.1, -s*1); ctx.stroke();
+       ctx.beginPath(); ctx.moveTo(0,s*.2); ctx.quadraticCurveTo(-s*.5 - i*s*.2, s*1.5 + wag, -s*1.5 - i*s*.1, s*1); ctx.stroke();
+    }
+
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.moveTo(-s*.7, 0); ctx.quadraticCurveTo(0, -s*.4, s*.7, -s*.2); 
+    ctx.quadraticCurveTo(s*.8, -s*.3, s*.9, -s*.2); 
+    ctx.lineTo(s*.8, s*.1); 
+    ctx.quadraticCurveTo(s*.6, s*.4, 0, s*.4); 
+    ctx.quadraticCurveTo(-s*.5, s*.3, -s*.7, 0);
+    ctx.fill();
+
+    drawEye(ctx, s*.5, -s*.1, s*.08);
+    ctx.strokeStyle=f.genes.c2[0]; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(s*.3, s*.3); ctx.quadraticCurveTo(s*.1, s+paddle, -s*.2, s*1.2+paddle*2); ctx.stroke();
+
     ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.ellipse(s*.2, s*.1, s*.3, s*.15, Math.PI/6 + paddle*.2, 0, Math.PI*2);ctx.fill();
   }
