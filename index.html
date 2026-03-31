@@ -1675,15 +1675,59 @@ try {
   for(const s of snails){updateSnail(s);drawSnail(s);}
 
   for(const c of clams){
-    c.timer++;ctx.save();ctx.translate(c.x,H-75);
-    ctx.scale(1,1+Math.sin(c.timer*.02)*.05);
-    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,10,15,5,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(0,0,18,Math.PI,0);ctx.fillStyle='#64748b';ctx.fill();
-    if(c.timer%4800>4600){
-      ctx.beginPath();ctx.arc(0,-10,4,0,Math.PI*2);ctx.fillStyle='#f8fafc';ctx.shadowBlur=10;ctx.shadowColor='#fff';ctx.fill();ctx.shadowBlur=0;
+    c.timer++;ctx.save();ctx.translate(c.x, FOOD_FL(c.x) - 10);
+    
+    const breath = Math.sin(c.timer*.02);
+    let openAngle = Math.max(0, breath) * 0.4; 
+    const isPearling = (c.timer%4800 > 4600);
+    if(isPearling) openAngle = 0.8; 
+
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,12,25,8,0,0,Math.PI*2);ctx.fill();
+
+    const sgB = ctx.createLinearGradient(0,10, 0,-10);
+    sgB.addColorStop(0, '#475569'); sgB.addColorStop(1, '#94a3b8');
+    ctx.fillStyle = sgB;
+    ctx.beginPath(); ctx.ellipse(0, 5, 20, 12, 0, 0, Math.PI*2); ctx.fill();
+    
+    const mg = ctx.createRadialGradient(0,0,0, 0,0,20);
+    mg.addColorStop(0, '#38bdf8'); mg.addColorStop(1, '#8b5cf6');
+    ctx.fillStyle = mg;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18, 8 + openAngle*20, 0, 0, Math.PI*2); 
+    ctx.fill();
+
+    if(isPearling){
+      ctx.beginPath();ctx.arc(5, -openAngle*10, 6, 0, Math.PI*2);
+      ctx.fillStyle='#ffffff';ctx.shadowBlur=12;ctx.shadowColor='#38bdf8';ctx.fill();ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(3, -openAngle*10 - 2, 2, 0, Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fill();
     }
-    ctx.rotate(-Math.max(0,Math.sin(c.timer*.02))*.5);ctx.beginPath();ctx.arc(0,0,19,Math.PI,0);ctx.fillStyle='#94a3b8';ctx.fill();ctx.restore();
-    if(c.timer%4800===0){addCoins(45,c.x,H-100,true);spawnJuice(c.x,H-100, ICONS.star + ' PEARL!','#f8fafc',1.5);}
+
+    ctx.save();
+    ctx.translate(-16, 5); 
+    ctx.rotate(-openAngle); 
+    ctx.translate(16, -5);
+    
+    const sgT = ctx.createLinearGradient(0,10, 0,-15);
+    sgT.addColorStop(0, '#64748b'); sgT.addColorStop(1, '#f1f5f9');
+    ctx.fillStyle = sgT;
+    ctx.beginPath(); ctx.ellipse(0, -2, 22, 14, 0, 0, Math.PI*2); ctx.fill();
+    
+    ctx.strokeStyle = '#cbd5e144'; ctx.lineWidth = 2;
+    for(let i=-2; i<=2; i++) {
+        ctx.beginPath();
+        const ax = i*6;
+        ctx.moveTo(-16, 5);
+        ctx.quadraticCurveTo(ax, -10, ax+5, -14);
+        ctx.stroke();
+    }
+    ctx.restore();
+    ctx.restore();
+
+    if(c.timer%4800===0) {
+      addCoins(45, c.x, FOOD_FL(c.x)-30, true);
+      spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL!','#38bdf8',1.5);
+    }
   }
 
   for(let i=bubbles.length-1;i>=0;i--){
