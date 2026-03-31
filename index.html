@@ -1530,15 +1530,38 @@ try {
     ctx.fill();
   }
 
+  // Breeding eggs — special, glowing, rare
   for(const e of eggs){
-    ctx.save();ctx.translate(e.x,e.y);
-    const pulse=1+Math.sin(time*.1)*.1;ctx.scale(pulse,pulse);
-    ctx.beginPath();ctx.ellipse(0,0,6,8,0,0,Math.PI*2);
-    const eg=ctx.createRadialGradient(0,-2,1,0,0,8);
-    eg.addColorStop(0,'#fbcfe8');eg.addColorStop(1,e.genes.c1[0]);
-    ctx.fillStyle=eg;ctx.fill();
-    ctx.beginPath();ctx.ellipse(-2,-3,2,3,Math.PI/4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill();
+    const def = TYPES[e.type];
+    const pulse = 1 + Math.sin(time * 0.08) * 0.12;
+    const glow = Math.abs(Math.sin(time * 0.05));
+
+    // Outer glow aura
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.globalAlpha = 0.18 + glow * 0.15;
+    ctx.beginPath(); ctx.ellipse(0, 0, 18, 22, 0, 0, Math.PI*2);
+    const auraColor = e.isRareMut ? '#c084fc' : e.genes.c1[0];
+    ctx.fillStyle = auraColor; ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Egg body
+    ctx.scale(pulse, pulse);
+    ctx.beginPath(); ctx.ellipse(0, 0, 9, 12, 0, 0, Math.PI*2);
+    const eg = ctx.createRadialGradient(-2, -4, 1, 0, 0, 12);
+    eg.addColorStop(0, '#fff9');
+    eg.addColorStop(0.4, e.isRareMut ? '#e9d5ff' : '#fbcfe8');
+    eg.addColorStop(1, e.genes.c1[0]);
+    ctx.fillStyle = eg;
+    ctx.shadowBlur = 12; ctx.shadowColor = auraColor;
+    ctx.fill(); ctx.shadowBlur = 0;
+
+    // Sheen
+    ctx.beginPath(); ctx.ellipse(-3, -5, 3, 4, Math.PI/4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
     ctx.restore();
+
+    // Species label + rare badge above egg (rendered above front flora)
   }
   
   for(const s of snails){updateSnail(s);drawSnail(s);}
@@ -1588,16 +1611,22 @@ try {
   for(const f of fishList){updateFish(f);drawFish(f);}
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
-  // Draw egg timers ABOVE flora so text is never obscured by plants
+  // Egg timers + species label ABOVE flora
   for(const e of eggs){
+    const def = TYPES[e.type];
     const secs = Math.ceil(e.timer / 60);
     let str = '';
     if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
     else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
     else str = secs + 's';
-    ctx.font='bold 10px -apple-system, sans-serif';ctx.textAlign='center';
-    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillText(str, e.x, e.y - 14);
-    ctx.fillStyle='#fff';ctx.fillText(str, e.x, e.y - 15);
+    const label = (e.isRareMut ? '✨ RARE ' : '') + (def ? def.name : '') + ' Egg';
+    ctx.font = 'bold 9px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    // label
+    ctx.fillStyle = e.isRareMut ? 'rgba(192,132,252,0.9)' : 'rgba(251,207,232,0.9)';
+    ctx.fillText(label, e.x, e.y - 28);
+    // timer
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(str, e.x, e.y - 16);
+    ctx.fillStyle = '#fff'; ctx.fillText(str, e.x, e.y - 17);
   }
 
   function drawSubstrate() {
@@ -2058,6 +2087,23 @@ function spawnFish(type) {
 }
 
 // Helper: buy spawns as egg not adult
+// Buy from shop = instant baby fish (eggs are breeding-only)
+function buySpawnBaby(type) {
+  const g = generateRandomGenes(type);
+  fishList.push({
+    id:fid++, type,
+    x: W/2 + (Math.random()-.5)*120,
+    y: SWIM_BOT() - 20,
+    vx:(Math.random()-.5)*0.6, vy:-0.4,
+    phase:Math.random()*Math.PI*2,
+    timer:0, eat:0, hunger:100,
+    age:0, scale:0.28,
+    bonded:0, bcd:0,
+    genes:g, isRare:g.isRareMut
+  });
+  updateHUD();
+}
+
 function buySpawnEgg(type) {
   const g = generateRandomGenes(type);
   eggs.push({x:W/2+Math.random()*80-40, y:H-85, type, timer:getEggTimerFrames(type), genes:g, isRareMut:g.isRareMut});
@@ -2079,7 +2125,7 @@ function buildShop(){
     c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${Math.floor(u.val*marketRates[id])}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${price}</span><span class="cown">owned:${owned}</span>`;
     if(can)c.onclick=()=>{
       coins-=price; boughtCounts[id]++; 
-      document.getElementById('cv').textContent=formatCoins(coins);buySpawnEgg(id);
+      document.getElementById('cv').textContent=formatCoins(coins);buySpawnBaby(id);
       spawnJuice(W/2,H/2, id.toUpperCase()+'!','var(--ui-accent)',1.4);updateHUD();saveGame();buildShop();
     };else if(full) c.style.opacity='.6'; else c.style.opacity='.4';
     lc.appendChild(c);
@@ -2277,7 +2323,7 @@ try {
     }
   }else{
     const def=TYPES['guppy'];
-    for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?1:-1,vy:0,phase:0,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:5000,scale:1,bonded:0,bcd:0,genes:generateRandomGenes('guppy'),isRare:false});
+    for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?.5:-.5,vy:0,phase:Math.random()*Math.PI*2,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:0,scale:0.28,bonded:0,bcd:0,genes:generateRandomGenes('guppy'),isRare:false});
     updateHUD();
     if(needsDaily())showDailyModal();
   }
