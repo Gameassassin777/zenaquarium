@@ -2560,7 +2560,7 @@ function resetSave(){
      ownedBubbles=['default'];ownedFlora=['seaweed','grass'];
      boughtCounts={};for(let k in TYPES)boughtCounts[k]=0;
      sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0};
-     questStreak=0;
+     questStreak=0; currentOrders=[]; completedOrders=0; codesRedeemed=0;
      Object.values(UPGRADES).forEach(u=>u.owned=0);
      saveGame();
      location.reload(true);
