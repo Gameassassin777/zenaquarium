@@ -1713,27 +1713,65 @@ try {
 
   function drawSubstrate() {
     const f = FLOORS[curFloor];
+    const by = H - 85; 
+    const getH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
+
     ctx.fillStyle = f.c;
-    ctx.beginPath(); ctx.moveTo(0, H+5); ctx.lineTo(0, H-85);
-    for(let i=0; i<=W; i+=40) ctx.lineTo(i, H-85 + Math.sin(i*0.04)*4);
-    ctx.lineTo(W, H+5); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, H + 5); ctx.lineTo(0, by + getH(0));
+    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i));
+    ctx.lineTo(W, by + getH(W)); // Fixes the right-side cliff
+    ctx.lineTo(W, H + 5);
+    ctx.fill();
+
     ctx.save();
     ctx.clip();
-    for(let i=0; i<300; i++) {
-       const gx = (i * 137.5) % W;
-       const gy = H - 85 + (i * 7.1) % 90;
-       ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random()*0.05})`;
-       ctx.fillRect(gx, gy, 1.5, 1.5);
-       if(i % 10 === 0) {
-         ctx.fillStyle = 'rgba(0,0,0,0.1)';
-         ctx.beginPath(); ctx.arc(gx, gy, 2 + Math.random()*3, 0, Math.PI*2); ctx.fill();
+    
+    // Ambient depth shadow
+    const grad = ctx.createLinearGradient(0, by - 10, 0, H);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, by - 15, W, 150);
+
+    // Static pseudo-random texture (eliminates Math.random() flickering)
+    for(let i = 0; i < 400; i++) {
+       const r1 = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+       const pr1 = r1 < 0 ? r1 + 1 : r1;
+       const r2 = (Math.cos(i * 78.233) * 43758.5453) % 1;
+       const pr2 = r2 < 0 ? r2 + 1 : r2;
+       
+       const gx = pr1 * W;
+       const gy = by + getH(gx) + pr2 * 110;
+
+       // Sand grains
+       ctx.fillStyle = `rgba(255,255,255,${0.02 + pr1 * 0.05})`;
+       ctx.fillRect(gx, gy, 1 + pr2 * 1.5, 1 + pr2 * 1.5);
+       
+       // Pebbles & Rocks
+       if(i % 12 === 0) {
+         ctx.fillStyle = pr2 > 0.5 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)';
+         ctx.beginPath(); ctx.arc(gx, gy, 2 + pr1 * 4, 0, Math.PI * 2); ctx.fill();
+         // Pebble highlight for 3D depth
+         ctx.fillStyle = 'rgba(255,255,255,0.12)';
+         ctx.beginPath(); ctx.arc(gx - 1, gy - 1, 1 + pr1, 0, Math.PI * 2); ctx.fill();
        }
     }
     ctx.restore();
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+
+    // Top rim highlight
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, by + getH(0));
+    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i));
+    ctx.lineTo(W, by + getH(W));
+    ctx.stroke();
+    
+    // Bottom inset shadow for rim
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, H-85);
-    for(let i=0; i<=W; i+=40) ctx.lineTo(i, H-85 + Math.sin(i*0.04)*4);
+    ctx.beginPath(); ctx.moveTo(0, by + getH(0) + 1.5);
+    for(let i = 0; i <= W; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
+    ctx.lineTo(W, by + getH(W) + 1.5);
     ctx.stroke();
   }
   drawSubstrate();
