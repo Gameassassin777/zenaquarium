@@ -257,14 +257,14 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="spanel" class="panel">
   <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:15px;flex-shrink:0;">
-    <button class="tabbtn active" onclick="switchShop('upgrades')" id="tab-upgrades">Upgrades</button>
-    <button class="tabbtn" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
+    <button class="tabbtn active" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
+    <button class="tabbtn" onclick="switchShop('upgrades')" id="tab-upgrades">Supplies</button>
   </div>
-  <div class="pscroll" id="shop-upgrades">
-    <div class="cards" id="ucards"></div>
-  </div>
-  <div class="pscroll" id="shop-fish" style="display:none;">
+  <div class="pscroll" id="shop-fish">
     <div class="cards" id="fcards"></div>
+  </div>
+  <div class="pscroll" id="shop-upgrades" style="display:none;">
+    <div class="cards" id="ucards"></div>
   </div>
 </div>
 
@@ -449,7 +449,9 @@ resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
 window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ resize(); initDecor(); }, 200); });
 
-const FOOD_FL=()=>H-85;
+const maxLevel=50;
+const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
+const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
 
 let playerLevel=1,totalCoins=100,isClean=false;
@@ -613,12 +615,12 @@ const ORDER_POOL=[
   {id:'m5', tier:'med',   icon:ICONS.egg,    desc:'Hatch 3 eggs',                  metric:'hatched',     isState:false,target:3,   reward:620, minLvl:2},
   {id:'m6', tier:'med',   icon:ICONS.tank,   desc:'Raise 5 fish simultaneously',   metric:'fish_total',  isState:true, target:5,   reward:360, minLvl:2},
   {id:'m7', tier:'med',   icon:ICONS.tank,   desc:'Grow 3 adult fish',             metric:'adults',      isState:true, target:3,   reward:480, minLvl:3},
-  {id:'m8', tier:'med',   icon:ICONS.tank,   desc:'Own a Royal Betta',             metric:'fish',ftype:'betta',isState:true,target:1,reward:520,minLvl:4},
+  {id:'m8', tier:'med',   icon:ICONS.market, desc:'Deliver a Royal Betta',         metric:'combo_trade',ftypereq:'betta',isTrade:true,reqAmt:1,isState:true,target:1,reward:520,minLvl:4},
   {id:'m9', tier:'med',   icon:ICONS.star,   desc:'Hatch a rare mutation!',        metric:'rares',       isState:false,target:1,   reward:850, minLvl:3},
   {id:'m10',tier:'med',   icon:ICONS.star,   desc:'Collect 2 rare fish',           metric:'rares_owned', isState:true, target:2,   reward:780, minLvl:3},
   {id:'m11',tier:'med',   icon:ICONS.social, desc:'Bond with 10 fish',             metric:'bonded',      isState:false,target:10,  reward:420, minLvl:2},
   {id:'m12',tier:'med',   icon:ICONS.coin,   desc:'Earn 10,000 total coins',       metric:'totalCoins',  isState:true, target:10000,reward:650,minLvl:3},
-  {id:'m13',tier:'med',   icon:ICONS.tank,   desc:'Own a Goldfish',                metric:'fish',ftype:'goldfish',isState:true,target:1,reward:400,minLvl:3},
+  {id:'m13',tier:'med',   icon:ICONS.market, desc:'Deliver a Goldfish',            metric:'combo_trade',ftypereq:'goldfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:400,minLvl:3},
   // ═ HARD ═
   {id:'h0a', tier:'hard', icon:ICONS.shop,   desc:'Industrialized (Buy 6 Upgrades)', metric:'upgrades_owned', isState:true, target:6, reward:3500, minLvl:5},
   {id:'h0b', tier:'hard', icon:ICONS.decor,  desc:'Interior Designer (Unlock 5 Decors)', metric:'decor_owned', isState:true, target:5, reward:4000, minLvl:5},
@@ -630,8 +632,8 @@ const ORDER_POOL=[
   {id:'h5', tier:'hard',  icon:ICONS.egg,    desc:'Hatch 8 eggs',                  metric:'hatched',     isState:false,target:8,   reward:1600,minLvl:4},
   {id:'h6', tier:'hard',  icon:ICONS.tank,   desc:'Pack tank with 10 fish',        metric:'fish_total',  isState:true, target:10,  reward:1200,minLvl:4},
   {id:'h7', tier:'hard',  icon:ICONS.star,   desc:'Collect 3 rare fish',           metric:'rares_owned', isState:true, target:3,   reward:2000,minLvl:5},
-  {id:'h8', tier:'hard',  icon:ICONS.tank,   desc:'Own an Angelfish',              metric:'fish',ftype:'angelfish',isState:true,target:1,reward:1200,minLvl:5},
-  {id:'h9', tier:'hard',  icon:ICONS.tank,   desc:'Own a Blue Discus',             metric:'fish',ftype:'discus',isState:true,target:1,reward:1500,minLvl:6},
+  {id:'h8', tier:'hard',  icon:ICONS.market, desc:'Deliver an Angelfish',          metric:'combo_trade',ftypereq:'angelfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:1200,minLvl:5},
+  {id:'h9', tier:'hard',  icon:ICONS.market, desc:'Deliver a Blue Discus',         metric:'combo_trade',ftypereq:'discus',isTrade:true,reqAmt:1,isState:true,target:1,reward:1500,minLvl:6},
   {id:'h10',tier:'hard',  icon:ICONS.tank,   desc:'Raise 5 adult fish',            metric:'adults',      isState:true, target:5,   reward:1400,minLvl:4},
   {id:'h11',tier:'hard',  icon:ICONS.coin,   desc:'Earn 100,000 total coins',      metric:'totalCoins',  isState:true, target:100000,reward:2500,minLvl:5},
   {id:'h12',tier:'hard',  icon:ICONS.social, desc:'Bond with 30 fish',             metric:'bonded',      isState:false,target:30,  reward:1500,minLvl:4},
@@ -640,11 +642,11 @@ const ORDER_POOL=[
   {id:'l1', tier:'legend',icon:ICONS.star,   desc:'Harmony for a full hour',       metric:'harmonySec',  isState:false,target:3600,reward:6000,minLvl:5},
   {id:'l2', tier:'legend',icon:ICONS.egg,    desc:'Hatch 20 eggs total',           metric:'hatched',     isState:false,target:20,  reward:5000,minLvl:5},
   {id:'l3', tier:'legend',icon:ICONS.star,   desc:'Collect 5 rare fish',           metric:'rares_owned', isState:true, target:5,   reward:0,   minLvl:6,ftyperew:'jellyfish'},
-  {id:'l4', tier:'legend',icon:ICONS.tank,   desc:'Own a Moon Jelly',              metric:'fish',ftype:'jellyfish',isState:true,target:1,reward:4000,minLvl:7},
+  {id:'l4', tier:'legend',icon:ICONS.market, desc:'Deliver a Moon Jelly',          metric:'combo_trade',ftypereq:'jellyfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:4000,minLvl:7},
   {id:'l5', tier:'legend',icon:ICONS.coin,   desc:'Earn 1,000,000 coins',          metric:'totalCoins',  isState:true, target:1000000,reward:0,minLvl:7,ftyperew:'narwhal'},
-  {id:'l6', tier:'legend',icon:ICONS.market, desc:'Sell 20 fish at the Market',   metric:'marketSales', isState:false,target:20,  reward:8000,minLvl:6},
+  {id:'l6', tier:'legend',icon:ICONS.market, desc:'Sell 20 fish at the Market',    metric:'marketSales', isState:false,target:20,  reward:8000,minLvl:6},
   {id:'l7', tier:'legend',icon:ICONS.egg,    desc:'Hatch 10 rare mutations',       metric:'rares',       isState:false,target:10,  reward:10000,minLvl:7},
-  {id:'l8', tier:'legend',icon:ICONS.tank,   desc:'Own an Octopus',               metric:'fish',ftype:'octopus',isState:true,target:1,reward:0,minLvl:8,ftyperew:'octopus'},
+  {id:'l8', tier:'legend',icon:ICONS.market, desc:'Deliver an Octopus',            metric:'combo_trade',ftypereq:'octopus',isTrade:true,reqAmt:1,isState:true,target:1,reward:0,minLvl:8,ftyperew:'octopus'},
 ];
 
 // ── PROCEDURALLY GENERATED QUESTS (150+ Total) ──
@@ -999,9 +1001,11 @@ function updateEco(){
     if(hf)foodList.push({x:hf.x+(Math.random()*40-20),y:20,vy:0,vx:(Math.random()-.5)*.5,life:1,eaten:false});
   }
   
+  const now = Date.now();
   for(let i=eggs.length-1;i>=0;i--){
-    const e=eggs[i];e.timer--;
-    if(e.timer<=0){
+    const e=eggs[i];
+    if(e.hatchTime===undefined){e.hatchTime=now+(e.timer||0)*16.666;delete e.timer;}
+    if(now >= e.hatchTime){
       fishList.push({id:fid++,type:e.type,x:e.x,y:e.y-10,vx:(Math.random()-.5),vy:-1,phase:0,timer:0,eat:0,hunger:100,age:0,scale:.3,bcd:3000,genes:e.genes,isRare:e.isRareMut,bonded:0});
       sm.hatched++;if(e.isRareMut)sm.rares++;
       spawnJuice(e.x,e.y,'Hatched!','#4ade80',1);
@@ -1067,7 +1071,11 @@ function updateFish(f){
     if(f.timer%90===0) particles.push({x:f.x, y:f.y-20, vx:(Math.random()-.5)*1, vy:-1.5, life:1, c:'#fb7185'});
   }
   
-  f.age++;if(f.scale<1){f.scale+=.0002;if(f.scale>1)f.scale=1;}
+  const now = Date.now();
+  if (f.birthTime === undefined) { f.birthTime = now - (f.age || 0) * 16.666; delete f.age; }
+  f.age = Math.floor((now - f.birthTime) / 16.666);
+  f.scale = Math.min(1, 0.3 + f.age * 0.0002);
+  
   if(f.bcd>0)f.bcd--;
   
   let hDrain = isHarmony ? 0.01 : 0.015;
@@ -1086,7 +1094,13 @@ function updateFish(f){
       const childGenes = mendelianCross(f.genes, mate.genes, def);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
-      eggs.push({x:(f.x+mate.x)/2,y:H-85,type:f.type,timer:getEggTimerFrames(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      let sx = (f.x+mate.x)/2;
+      for(let i=0; i<8; i++) {
+        if(!eggs.some(e => Math.abs(e.x - sx) < 45)) break;
+        sx += (Math.random() < 0.5 ? -45 : 45);
+        if(sx < 50) sx = 50; if(sx > W-50) sx = W-50;
+      }
+      eggs.push({x:sx, y:FOOD_FL(sx), type:f.type, hatchTime:getEggHatchTime(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -1115,7 +1129,7 @@ function updateFish(f){
     f.vx+=(dx/d)*.8;f.vy+=(dy/d)*.6;
     const sp=Math.hypot(f.vx,f.vy),cap=baseSpd*3*sm2;
     if(sp>cap){f.vx*=cap/sp;f.vy*=cap/sp;}
-    if(d<22*f.scale)triggerEat(f,best,def);
+    if(d<35*f.scale)triggerEat(f,best,def);
   }else{
     if(f.timer%120===0){
       if(trait === 'lazy' && Math.random() < 0.5) { f.vx *= 0.3; f.vy *= 0.3; }
@@ -1211,7 +1225,9 @@ function drawSnail(s){
   const sy=s.state==='moving'?Math.abs(Math.sin(s.ph))*2:0;
   ctx.beginPath();ctx.arc(-2,-10-sy,12,0,Math.PI*2);
   const sg=ctx.createRadialGradient(-2,-10-sy,2,-2,-10-sy,12);
-  sg.addColorStop(0,'#fde047');sg.addColorStop(1,'#b45309');
+  s.hue = (s.hue || Math.random()*360) + 0.05;
+  sg.addColorStop(0,`hsl(${s.hue%360}, 90%, 65%)`);
+  sg.addColorStop(1,`hsl(${(s.hue-30)%360}, 100%, 35%)`);
   ctx.fillStyle=sg;ctx.fill();
   ctx.beginPath();ctx.arc(-2,-10-sy,6,0,Math.PI);ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=1.5;ctx.stroke();
   ctx.restore();
@@ -1606,9 +1622,9 @@ try {
 
   ctx.fillStyle = 'rgba(0,5,15,0.4)';
   for(const f of fishList) {
-    const s = TYPES[f.type].sz * f.scale * (f.genes.szMod||1);
+    const sSize = TYPES[f.type].sz * f.scale * (f.genes.szMod||1) * 0.85;
     ctx.beginPath();
-    ctx.ellipse(f.x, H-80, s*1.2, s*0.4, 0, 0, Math.PI*2);
+    ctx.ellipse(f.x, H-80, sSize*1.2, sSize*0.4, 0, 0, Math.PI*2);
     ctx.fill();
   }
 
@@ -1674,7 +1690,7 @@ try {
     else{
       fd.vy=Math.min(fd.vy+.02,1.2);fd.vx*=.98;
       fd.x+=fd.vx+Math.sin(time*.02+fd.y)*.2;fd.y+=fd.vy;
-      if(fd.y>=FOOD_FL()){fd.y=FOOD_FL();fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
+      if(fd.y>=FOOD_FL(fd.x)){fd.y=FOOD_FL(fd.x);fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
     }
     if(fd.life<=0){foodList.splice(i,1);continue;}
     ctx.globalAlpha=Math.max(0,fd.life);
@@ -1693,22 +1709,19 @@ try {
   for(const f of fishList){updateFish(f);drawFish(f);}
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
-  // Egg timers + species label ABOVE flora
+  // Egg timers ABOVE flora
+  const now = Date.now();
   for(const e of eggs){
-    const def = TYPES[e.type];
-    const secs = Math.ceil(e.timer / 60);
+    if(e.hatchTime===undefined){e.hatchTime=now+(e.timer||0)*16.666;delete e.timer;}
+    const msLeft = Math.max(0, e.hatchTime - now);
+    const secs = Math.ceil(msLeft / 1000);
     let str = '';
     if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
     else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
     else str = secs + 's';
-    const label = (e.isRareMut ? ICONS.sparkle + ' RARE ' : '') + (def ? def.name : '') + ' Egg';
     ctx.font = 'bold 9px -apple-system, sans-serif'; ctx.textAlign = 'center';
-    // label
-    ctx.fillStyle = e.isRareMut ? 'rgba(192,132,252,0.9)' : 'rgba(251,207,232,0.9)';
-    ctx.fillText(label, e.x, e.y - 28);
-    // timer
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(str, e.x, e.y - 16);
-    ctx.fillStyle = '#fff'; ctx.fillText(str, e.x, e.y - 17);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(str, e.x, e.y - 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(str, e.x, e.y - 15);
   }
 
   function drawSubstrate() {
@@ -1850,6 +1863,7 @@ function toggleMode(){
 
 let _tt;
 function toast(msg,col='#10b981'){
+  if(sm.hidePopups) return;
   const t=document.getElementById('toast');t.innerHTML=msg;t.style.background=col;t.style.opacity=1;
   clearTimeout(_tt);_tt=setTimeout(()=>t.style.opacity=0,3200);
 }
@@ -2075,7 +2089,7 @@ function decodeFish(code) {
   return {type, t1, t2, isRare};
 }
 
-function getEggTimerFrames(type) {
+function getEggHatchTime(type) {
   const req = (TYPES[type] && TYPES[type].req) || 1;
   let mins = 5;
   if(req === 2) mins = 10;
@@ -2083,7 +2097,7 @@ function getEggTimerFrames(type) {
   if(req === 4) mins = 30;
   if(req === 5) mins = 45;
   if(req === 6) mins = 60;
-  return mins * 60 * 60;
+  return Date.now() + mins * 60 * 1000;
 }
 
 let lastGiftCode = '';
@@ -2199,10 +2213,10 @@ function applyBorder() {
 }
 
 function switchShop(tab) {
-  document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
   document.getElementById('shop-fish').style.display = tab==='fish' ? 'block' : 'none';
-  document.getElementById('tab-upgrades').className = tab==='upgrades' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
   document.getElementById('tab-fish').className = tab==='fish' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-upgrades').className = tab==='upgrades' ? 'tabbtn active' : 'tabbtn';
 }
 
 function spawnFish(type) {
@@ -2222,7 +2236,7 @@ function buySpawnBaby(type) {
     vx:(Math.random()-.5)*0.6, vy:-0.4,
     phase:Math.random()*Math.PI*2,
     timer:0, eat:0, hunger:100,
-    age:0, scale:0.28,
+    age:0, birthTime:Date.now(), scale:0.28,
     bonded:0, bcd:0,
     genes:g, isRare:g.isRareMut
   });
@@ -2231,7 +2245,7 @@ function buySpawnBaby(type) {
 
 function buySpawnEgg(type) {
   const g = generateRandomGenes(type);
-  eggs.push({x:W/2+Math.random()*80-40, y:H-85, type, timer:getEggTimerFrames(type), genes:g, isRareMut:g.isRareMut});
+  eggs.push({x:W/2+Math.random()*80-40, y:FOOD_FL(W/2), type, hatchTime:getEggHatchTime(type), genes:g, isRareMut:g.isRareMut});
   updateHUD();
 }
 
@@ -2387,7 +2401,13 @@ function buildSocial(){
     
     <div class="ocard" style="margin-top:10px;">
       <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
-        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#cbd5e1;">${ICONS.gear} Data Management</div>
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#cbd5e1;">${ICONS.gear} Game Settings</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05);">
+        <label style="display:flex; align-items:center; gap:10px; color:#e2e8f0; font-size:12px; cursor:pointer;">
+          <input type="checkbox" id="cfg-tut" ${sm.hidePopups?'checked':''} onchange="sm.hidePopups=this.checked;saveGame();" style="width:16px;height:16px;accent-color:var(--ui-accent);">
+          Hide Tutorial & Achievement Popups
+        </label>
       </div>
       <div style="display:flex; gap:10px; margin-top:15px;">
         <button onclick="exportSave()" class="cbtn" style="flex:1; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:600;">Export Save</button>
@@ -2699,8 +2719,7 @@ function buildOrders() {
   let html='';
 
   if(questStreak>=2){
-    const bonusPct=Math.min(Math.round((questStreak-1)*10),100);
-    html+=`<div class="ostreak"><span style="font-size:20px; color:#fb923c;">${ICONS.fire}</span><div><div style="color:#fbbf24;font-weight:900;font-size:13px;display:flex;align-items:center;gap:4px;">Quest Streak ×${questStreak}</div><div style="color:#94a3b8;font-size:10px;">+${bonusPct}% bonus coins on next claim!</div></div></div>`;
+    // Streak UI explicitly hidden per user request to keep UI clean and compact
   }
 
   html+=currentOrders.map((o,i)=>{
@@ -2727,9 +2746,8 @@ function buildOrders() {
       <div class="ofoot">
         <span class="ocnt">${o.claimed?ICONS.done+' Claimed':Math.min(p,o.target)+' / '+o.target}</span>
         <div style="display:flex;gap:6px;">
-          ${(!done && !o.claimed) ? `<button class="cbtn2" onclick="rerollOrder(${i})" style="padding:6px 10px; border-color:#64748b; color:#94a3b8; background:transparent;">${ICONS.gear} Reroll (${getRerollCost()})</button>` : ''}
           <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${tm.strip};color:${tm.strip};background:${tm.strip}18;`:''}">
-            ${o.claimed?ICONS.done+' Done':'Claim!'}
+            ${o.claimed?(ICONS.done+' Done'):(done&&o.isTrade)?'Deliver!':'Claim!'}
           </button>
         </div>
       </div>
