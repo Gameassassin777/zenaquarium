@@ -243,7 +243,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="dpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-decor"></span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="ph"><span class="pt" id="ph-decor"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="decor-scroll">
     <div class="sechead" style="margin-top:0;text-align:center;">UI Accent Color</div>
     <div class="swatch-row" id="swatches"></div>
@@ -255,7 +255,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="spanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:15px;flex-shrink:0;">
     <button class="tabbtn active" onclick="switchShop('upgrades')" id="tab-upgrades">Upgrades</button>
     <button class="tabbtn" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
@@ -274,12 +274,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="socdiv" style="padding:15px;"></div>
 </div>
 
 <div id="fpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-finder">Fish Finder</span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="ph"><span class="pt" id="ph-finder">Fish Finder</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="flist"></div>
 </div>
 
@@ -360,7 +360,16 @@ const ICONS = {
   lazy: svg('<path d="M6 8 H14 L6 16 H14" fill="none" stroke="currentColor" stroke-width="2"/>'), 
   active: svg('<polygon points="13,2 5,13 12,13 11,22 19,11 12,11"/>'), 
   egg: svg('<ellipse cx="12" cy="12" rx="6" ry="9" fill="currentColor"/>'),
-  finder: svg('<circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')
+  finder: svg('<circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  crown: svg('<path d="M2.5 19h19v2h-19z M3 5 l4 8 l5 -9 l5 9 l4 -8 l-1 12H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'),
+  fire: svg('<path d="M12 2c0 0-4 4-6 8s-2 8 1 10s5 2 8 0s3-6 1-10s-6-8-6-8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12c0 0-2 2-2 4s2 4 2 4s2-2 2-4s-2-4-2-4z" fill="currentColor"/>'),
+  sparkle: svg('<path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z M20 16l1 3 3 1-3 1-1 3-1-3-3-1 3-1z M4 16l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="currentColor"/>'),
+  check: svg('<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'),
+  trophy: svg('<path d="M8 21h8M12 17v4M7 4h10M5 4h2v7H5zM17 4h2v7h-2zM7 4v7a5 5 0 0 0 10 0V4" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  pencil: svg('<path d="M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  gift: svg('<rect x="4" y="8" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="20" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/><path d="M12 8 C8 4 6 8 12 8 M12 8 C16 4 18 8 12 8" fill="none" stroke="currentColor" stroke-width="2"/>'),
+  heart: svg('<path d="M12 21 l-1.45-1.3C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21z" fill="currentColor"/>'),
+  close: svg('<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')
 };
 
 // UI INJECTION
@@ -1631,7 +1640,7 @@ try {
     if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
     else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
     else str = secs + 's';
-    const label = (e.isRareMut ? '✨ RARE ' : '') + (def ? def.name : '') + ' Egg';
+    const label = (e.isRareMut ? ICONS.sparkle + ' RARE ' : '') + (def ? def.name : '') + ' Egg';
     ctx.font = 'bold 9px -apple-system, sans-serif'; ctx.textAlign = 'center';
     // label
     ctx.fillStyle = e.isRareMut ? 'rgba(192,132,252,0.9)' : 'rgba(251,207,232,0.9)';
@@ -1758,7 +1767,7 @@ function addCoins(amt,x,y,bonus=false){
   checkLevel();
   spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
-const LEVEL_THRESHOLDS=[0,400,1800,7000,25000,80000,240000,680000,1800000,4500000];
+const LEVEL_THRESHOLDS=[0,2500,8000,25000,80000,250000,800000,2500000,8000000,25000000];
 function checkLevel(){
   const old=playerLevel;
   for(let i=LEVEL_THRESHOLDS.length-1;i>=1;i--){
@@ -1830,7 +1839,9 @@ function buildFishFinder() {
     const pers = getPersonality(f);
     const trait = f.genes.trait[0];
     const bondLv = Math.min(5, Math.floor((f.bonded || 0) / 720) + 1);
-    const hearts = '❤️'.repeat(bondLv) + '<span style="opacity:0.2;">' + '❤️'.repeat(5-bondLv) + '</span>';
+    const hStr = Array(bondLv).fill(`<span style="color:#f43f5e">${ICONS.heart}</span>`).join('') + 
+                 Array(5-bondLv).fill(`<span style="opacity:0.2">${ICONS.heart}</span>`).join('');
+    const hearts = `<div style="display:flex;gap:2px;">${hStr}</div>`;
     
     let html = `<div class="finder-card">
       <div style="display:flex; align-items:center; gap:12px;">
@@ -2214,41 +2225,67 @@ function redeemCode(raw){
 function buildSocial(){
   const s=document.getElementById('socdiv');
   s.innerHTML = `
-    <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:12px; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
-      <div style="flex:1;"><div style="color:#ef4444; font-weight:bold; font-size:12px;">Difficulty / Settings <span style="font-size:9px; opacity:0.5; margin-left:5px;">v2.0.0</span></div><div style="font-size:10px; opacity:0.7;">Progress is saved automatically.</div></div>
-      <button onclick="resetSave()" class="cbtn" style="background:#ef4444; color:white; padding:6px 12px; font-size:11px;">Reset Save</button>
+    <div class="ocard" style="border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); margin-bottom:15px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(239,68,68,0.15)">
+        <div class="otier" style="background:rgba(239,68,68,0.2); color:#fca5a5;">SYSTEM</div>
+        <div class="otitle" style="font-size:13px;">Save Data (v2.1.6.c013c77)</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
+        <div style="font-size:10px; color:#94a3b8; line-height:1.4;">Progress is saved locally.<br>Take care of your fish!</div>
+        <button onclick="resetSave()" class="cbtn" style="background:rgba(239,68,68,0.2); color:#fca5a5; border-color:rgba(239,68,68,0.4);">Reset Account</button>
+      </div>
     </div>
 
-    <div class="scard">
-      <div class="srow"><span>Daily Streak</span><span id="sstreak"></span></div>
-      <div class="srow"><span>Orders Completed</span><span id="sorders"></span></div>
-      <div class="srow"><span>Total Coins Earned</span><span id="stotal"></span></div>
-      <div class="srow"><span>Codes Redeemed</span><span id="scodes"></span></div>
+    <div class="ocard">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px;">${ICONS.decor} General Statistics</div>
+      </div>
+      <div style="padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+        <div class="srow"><span>Daily Streak</span><span id="sstreak" style="font-weight:bold; color:#fff;"></span></div>
+        <div class="srow"><span>Orders Completed</span><span id="sorders" style="font-weight:bold; color:#fff;"></span></div>
+        <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="font-weight:bold; color:#fbbf24;"></span></div>
+        <div class="srow"><span>Codes Redeemed</span><span id="scodes" style="font-weight:bold; color:#fff;"></span></div>
+      </div>
     </div>
 
-    <div class="sechead" style="margin-top:20px;">🏆 Achievements</div>
-    <div class="scard" id="m-list" style="max-height:150px; overflow-y:auto; font-size:11px;"></div>
-
-    <div class="sechead" style="margin-top:20px;">🎁 My Fish Finder</div>
-    <div class="scard" id="gift-list" style="max-height:200px; overflow-y:auto;"></div>
-
-    <div class="sechead" style="margin-top:20px;">🎟️ Your Friend Code</div>
-    <div class="scard" style="text-align:center;">
-       <div id="mycode" style="font-size:24px; font-weight:900; color:var(--ui-accent); margin-bottom:8px; letter-spacing:2px;"></div>
-       <button class="cbtn" onclick="copyCode()">Copy to Clipboard</button>
-       <p style="font-size:10px; opacity:0.6; margin-top:8px;">Share your code with friends to trade rare species!</p>
+    <div class="ocard" style="margin-top:10px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px;">${ICONS.trophy} Quest Achievements</div>
+      </div>
+      <div id="m-list" style="padding-top:10px; max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
-    <div class="sechead" style="margin-top:20px;">✨ Redeem Code</div>
-    <div class="scard">
-      <input type="text" id="codein" placeholder="Enter code here..." style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#fff; font-family:monospace; margin-bottom:10px; outline:none;">
-      <button class="cbtn" style="width:100%;" onclick="redeemCode(document.getElementById('codein').value)">Redeem Now</button>
-      <div id="soclog" style="font-size:10px; margin-top:8px; text-align:center; min-height:15px; opacity:0.8;"></div>
+    <div class="ocard" style="margin-top:10px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#c084fc;">${ICONS.gift} My Fish Collection</div>
+      </div>
+      <div id="gift-list" style="padding-top:10px; max-height:200px; overflow-y:auto;"></div>
+    </div>
+
+    <div class="ocard" style="margin-top:10px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#38bdf8;">${ICONS.social} Your Friend Code</div>
+      </div>
+      <div style="padding-top:10px; text-align:center;">
+         <div id="mycode" style="font-size:24px; font-weight:900; color:var(--ui-accent); margin-bottom:8px; letter-spacing:2px; padding:10px; background:rgba(0,0,0,0.3); border-radius:12px;"></div>
+         <button class="cbtn" onclick="copyCode()" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); color:#38bdf8; width:100%;">Copy to Clipboard</button>
+      </div>
+    </div>
+
+    <div class="ocard" style="margin-top:10px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#f472b6;">${ICONS.sparkle} Redeem Code</div>
+      </div>
+      <div style="padding-top:10px;">
+        <input type="text" id="codein" placeholder="Enter code here..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px; color:#fff; font-family:monospace; margin-bottom:10px; outline:none; text-align:center; font-size:16px;">
+        <button class="cbtn" style="width:100%; background:rgba(244,114,182,0.15); border-color:rgba(244,114,182,0.4); color:#f472b6;" onclick="redeemCode(document.getElementById('codein').value)">Redeem Now</button>
+        <div id="soclog" style="font-size:11px; margin-top:10px; text-align:center; min-height:15px; color:#94a3b8;"></div>
+      </div>
     </div>
     
-    <div style="display:flex; gap:10px; margin-top:20px;">
-      <button onclick="exportSave()" class="cbtn" style="flex:1; opacity:0.7;">Export Save</button>
-      <button onclick="importSaveClick()" class="cbtn" style="flex:1; opacity:0.7;">Import Save</button>
+    <div style="display:flex; gap:10px; margin-top:20px; padding-bottom:15px;">
+      <button onclick="exportSave()" class="cbtn" style="flex:1; opacity:0.6; background:transparent;">Export Save</button>
+      <button onclick="importSaveClick()" class="cbtn" style="flex:1; opacity:0.6; background:transparent;">Import Save</button>
     </div>
   `;
 
@@ -2261,24 +2298,24 @@ function buildSocial(){
   const ml = document.getElementById('m-list');
   const completedMilestones = currentOrders.filter(o => o.claimed && (o.id.startsWith('q') || o.ftyperew));
   if(completedMilestones.length){
-    ml.innerHTML = completedMilestones.map(o => `<div class="srow" style="opacity:0.9;"><span>${o.icon} ${o.desc.replace('!','')}</span><span style="color:#fbbf24">${ICONS.done} Achieved</span></div>`).join('');
+    ml.innerHTML = completedMilestones.map(o => `<div class="srow" style="font-size:11px; padding:6px; background:rgba(255,255,255,0.03); border-radius:6px;"><span>${o.icon} ${o.desc.replace('!','')}</span><span style="color:#fbbf24; display:flex; align-items:center; gap:4px;">${ICONS.done} Done</span></div>`).join('');
   } else {
-    ml.innerHTML = '<span style="opacity:0.5; font-style:italic;">Complete quests to unlock achievements...</span>';
+    ml.innerHTML = '<div style="color:#64748b; text-align:center; font-style:italic; padding:10px;">Complete quests to unlock achievements...</div>';
   }
   
   const gl = document.getElementById('gift-list');
   if(!fishList.length) { 
-    gl.innerHTML = '<div style="color:#475569;text-align:center;font-size:11px;padding:10px;">Your tank is empty.</div>'; 
+    gl.innerHTML = '<div style="color:#64748b; text-align:center; padding:10px; font-style:italic;">Your tank is empty.</div>'; 
   } else {
     gl.innerHTML = fishList.map(f => {
       const def = TYPES[f.type];
       const traitIco = TRAIT_ICONS[f.genes.trait[0]] || '';
       const fn = f.name ? `"${f.name}"` : def.name;
-      return `<div class="gift-fish-row">
-        <span><span class="trait-icon">${traitIco}</span> ${f.isRare? ICONS.star : ''}${fn}</span>
-        <div style="display:flex;gap:4px;">
-          <button class="giftbtn" style="background:var(--ui-accent-dark)" onclick="renameFish(${f.id})">✏️</button>
-          <button class="giftbtn" onclick="giftFish(${f.id})">Gift</button>
+      return `<div class="srow" style="padding:8px; background:rgba(255,255,255,0.03); border-radius:8px; font-size:12px;">
+        <span style="display:flex; align-items:center; gap:6px;"><span class="trait-icon" style="font-size:14px;">${traitIco}</span> <span style="color:#f472b6;">${f.isRare? ICONS.sparkle : ''}</span>${fn}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="cbtn" style="padding:4px 8px; font-size:10px; display:flex; align-items:center; gap:4px;" onclick="renameFish(${f.id})"><span style="color:var(--ui-accent);">${ICONS.pencil}</span> Edit</button>
+          <button class="cbtn" style="padding:4px 8px; font-size:10px; display:flex; align-items:center; gap:4px;" onclick="giftFish(${f.id})"><span style="color:#c084fc;">${ICONS.gift}</span> Gift</button>
         </div>
       </div>`;
     }).join('');
@@ -2388,12 +2425,13 @@ function getDifficultyScale() {
 }
 
 function _selectTier(slotIdx) {
+  // Exactly 10% global chance for a legendary across the 5 slots
   const probs = [
-    [80, 18, 2,  0 ],
-    [45, 42, 11, 2 ],
-    [10, 50, 35, 5 ],
-    [0,  22, 60, 18],
-    [0,  5,  48, 47],
+    [80, 20, 0,  0 ], // Slot 0
+    [40, 50, 10, 0 ], // Slot 1
+    [20, 50, 30, 0 ], // Slot 2
+    [0,  30, 60, 10], // Slot 3
+    [0,  10, 50, 40], // Slot 4
   ][Math.min(slotIdx, 4)];
   const maxTierIdx = playerLevel < 3 ? 1 : playerLevel < 5 ? 2 : playerLevel < 7 ? 3 : 4;
   const capped = probs.map((p,i) => i < maxTierIdx ? p : 0);
@@ -2416,7 +2454,13 @@ function generateSingleOrder(index) {
   const tmpl = src[Math.floor(Math.random()*src.length)];
   const scale = getDifficultyScale();
   const t = tmpl.isState ? tmpl.target : Math.ceil(tmpl.target*scale);
-  const r = tmpl.reward>0 ? Math.ceil(tmpl.reward*scale) : 0;
+  let r = tmpl.reward>0 ? Math.ceil(tmpl.reward*scale) : 0;
+  
+  if (tier === 'legend') {
+    r *= 5; // Way more interesting coin reward
+    if (Math.random() < 0.2) tmpl.ftyperew = 'narwhal';
+  }
+
   currentOrders[index]={
     id:tmpl.id, icon:tmpl.icon, desc:tmpl.desc, tier:tmpl.tier||'easy',
     metric:tmpl.metric, ftype:tmpl.ftype, isState:tmpl.isState,
@@ -2465,7 +2509,7 @@ function claimOrder(i) {
   if(o.reward>0){
     const bonused=Math.ceil(o.reward*(1+streakBonus));
     addCoins(bonused,W/2,H/3,true);
-    if(streakBonus>0) setTimeout(()=>spawnJuice(W/2,H/3-50,`🔥 +${Math.round(streakBonus*100)}% streak!`,'#f59e0b',1.3),120);
+    if(streakBonus>0) setTimeout(()=>spawnJuice(W/2,H/3-50,`<div style="display:flex;align-items:center;gap:4px;">${ICONS.fire} +${Math.round(streakBonus*100)}% streak!</div>`,'#f59e0b',1.3),120);
   }
 
   // Give fish egg unlock
@@ -2478,23 +2522,20 @@ function claimOrder(i) {
     updateHUD();
   }
 
-  // Tiered celebration
-  const cel={easy:'✅',med:'⭐',hard:'🏆',legend:'👑'}[o.tier]||'✅';
-  spawnJuice(W/2,H/5,`${cel} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
+  spawnJuice(W/2,H/5,`${tm.icon} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
 
-  // Legendary firework burst
   if(o.tier==='legend'){
     for(let b=0;b<16;b++){
       setTimeout(()=>{
         const bx=80+Math.random()*(W-160);
         const by=60+Math.random()*(H*0.5);
-        spawnJuice(bx,by,'✨','#fbbf24',1.2);
+        spawnJuice(bx,by,ICONS.sparkle,'#fbbf24',1.2);
         for(let p=0;p<4;p++) particles.push({x:bx,y:by,vx:(Math.random()-.5)*8,vy:-2-Math.random()*5,life:1,c:tm.strip});
       },b*60);
     }
   }
 
-  const sText=questStreak>1?` 🔥${questStreak} streak!`:'';
+  const sText=questStreak>1?` <div style="display:flex;align-items:center;gap:4px">${ICONS.fire}${questStreak} streak!</div>`:'';
   toast(ICONS.done+` Quest claimed!${sText}`,tm.strip);
   generateSingleOrder(i);
   buildOrders();
@@ -2506,10 +2547,9 @@ function buildOrders() {
   if(!olist) return;
   let html='';
 
-  // Streak banner
   if(questStreak>=2){
     const bonusPct=Math.min(Math.round((questStreak-1)*10),100);
-    html+=`<div class="ostreak"><span style="font-size:20px;">🔥</span><div><div style="color:#fbbf24;font-weight:900;font-size:13px;">Quest Streak ×${questStreak}</div><div style="color:#94a3b8;font-size:10px;">+${bonusPct}% bonus coins on next claim!</div></div></div>`;
+    html+=`<div class="ostreak"><span style="font-size:20px; color:#fb923c;">${ICONS.fire}</span><div><div style="color:#fbbf24;font-weight:900;font-size:13px;display:flex;align-items:center;gap:4px;">Quest Streak ×${questStreak}</div><div style="color:#94a3b8;font-size:10px;">+${bonusPct}% bonus coins on next claim!</div></div></div>`;
   }
 
   html+=currentOrders.map((o,i)=>{
@@ -2536,7 +2576,7 @@ function buildOrders() {
       <div class="ofoot">
         <span class="ocnt">${o.claimed?ICONS.done+' Claimed':Math.min(p,o.target)+' / '+o.target}</span>
         <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${tm.strip};color:${tm.strip};background:${tm.strip}18;`:''}">
-          ${o.claimed?'✓ Done':'Claim!'}
+          ${o.claimed?ICONS.done+' Done':'Claim!'}
         </button>
       </div>
     </div>`;
@@ -2549,7 +2589,7 @@ function buildOrders() {
 
 // RESET SAVE
 function resetSave(){
-  if(confirm('🗑️ Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
+  if(confirm('Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
      localStorage.clear();
      coins=100;totalCoins=100;playerLevel=1;algae=0;
      fishList=[];eggs=[];foodList=[];bubbles=[];
