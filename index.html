@@ -830,13 +830,15 @@ function calcOffline(s){
   const elapsed=Math.min((Date.now()-s.ts)/1000,8*3600);
   if(elapsed<90)return null;
   let total=0;const items=[];
+  const lvlScale = Math.max(0.02, Math.pow((s.playerLevel||1)/10, 2)); // Level 1 = 2%, Level 10 = 100%
+  
   const sc=(s.upgrades && s.upgrades.snail) || 0;
-  if(sc>0){const e=Math.floor(sc*.2*elapsed);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
-  if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
+  if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
+  if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
   const fish=s.fish || [];
   if(fish.length>0){
     const avg=fish.reduce((a,f)=>a+((TYPES[f.type] && TYPES[f.type].val) || 1),0)/fish.length;
-    const e=Math.floor(fish.length*avg*.015*elapsed);
+    const e=Math.floor(fish.length*avg*.015*elapsed*lvlScale);
     total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});}
   const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
   return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
