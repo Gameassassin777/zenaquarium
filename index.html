@@ -25,6 +25,8 @@
   --border: rgba(255, 255, 255, 0.12);
   --header-bg: rgba(0, 0, 0, 0.5);
   --glass: blur(25px);
+  --water-top: #000d1a;
+  --water-bot: #000;
 }
 
 @media (prefers-color-scheme: light) {
@@ -40,6 +42,8 @@
     --border: rgba(0, 0, 0, 0.08);
     --header-bg: rgba(255, 255, 255, 0.4);
     --ui-accent: #0891b2;
+    --water-top: #bae6fd;
+    --water-bot: #e0f2fe;
   }
 }
 html, body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
@@ -75,8 +79,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #combo-ui.on{transform:translateX(-50%) scale(1);opacity:1;}
 .cbar{width:100%;height:3px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
-.xpb{width:36px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:3px;overflow:hidden;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);}
-.xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.3s ease;}
+.xpb{width:100%;height:3px;background:rgba(0,0,0,0.12);border-radius:2px;margin-top:5px;overflow:hidden;position:absolute;bottom:0px;left:0;}
+.xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.45s cubic-bezier(.4,1.8,.6,1);}
 
 #nav{position:fixed;bottom:0;left:0;right:0;padding:10px 0 2px 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.6) 30%, rgba(0,0,0,.85) 100%);display:flex;z-index:25;pointer-events:none;}
 /* docked into safe area */
@@ -246,7 +250,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="ui">
   <div style="display:flex; flex-direction:column; gap:8px;">
     <div class="dash" id="mdash" style="margin:0;">
-      <div class="stat" style="position:relative;padding-bottom:12px;">
+      <div class="stat" style="position:relative;padding-bottom:12px; min-width:32px;">
         <span class="slbl">Lvl</span><span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
       </div>
@@ -1065,12 +1069,13 @@ function updateEco(){
   if(time%300===0) tickOrders();
   if(time%1200===0) tickMarket();
 
-  // Passive coin loss for dirty tanks (WQ < 10%)
+  // Passive coin loss for dirty tanks (WQ < 10% / Algae > 90)
   if(algae > 90 && time % 60 === 0 && fishList.length > 0) {
-    const loss = Math.ceil((algae - 90) * 0.15 * fishList.length);
+    // Exponential growth: 1 coin base, scaling rapidly at extreme algae
+    const loss = Math.ceil(Math.pow(algae - 89, 1.6) * 0.12 * fishList.length);
     coins = Math.max(0, coins - loss);
     document.getElementById('cv').textContent = formatCoins(coins);
-    spawnJuice(W/2, H/2, `-${loss} Dirty Tank!`, '#ef4444', 1.2);
+    spawnJuice(W/2, H/3, `-${loss} POLLUTED TANK!`, '#ef4444', 1.4);
   }
 }
 
@@ -1739,6 +1744,20 @@ function drawFish(f){
 // GAME LOOP
 function loop(){
 try {
+  time++;
+  
+  // Theme-aware Water Background
+  const wTop = getComputedStyle(document.documentElement).getPropertyValue('--water-top').trim();
+  const wBot = getComputedStyle(document.documentElement).getPropertyValue('--water-bot').trim();
+  const wGrad = ctx.createLinearGradient(0, 0, 0, H);
+  wGrad.addColorStop(0, wTop); wGrad.addColorStop(1, wBot);
+  ctx.fillStyle = wGrad; ctx.fillRect(0, 0, W, H);
+
+  // Distant murkiness overlay
+  if(algae > 10) {
+    ctx.fillStyle = `rgba(34,139,34,${algae * 0.0015})`;
+    ctx.fillRect(0, 0, W, H);
+  }
   if(!W || !H) resize();
   time++;updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
@@ -1997,8 +2016,10 @@ try {
     const fd=foodList[i];
     if(fd.eaten)fd.life-=.1;
     else{
-      fd.vy=Math.min(fd.vy+.008,0.8);fd.vx*=.98;
-      fd.x+=fd.vx+Math.sin(time*.02+fd.y)*.2;fd.y+=fd.vy;
+      // methodic buoyancy: slow sink with gentle horizontal drift
+      fd.vy=Math.min(fd.vy+.006,0.5);
+      fd.vx=(Math.sin(time*0.03 + fd.y*0.1)*0.2) + (fd.vx*0.98); 
+      fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.y>=FOOD_FL(fd.x)){fd.y=FOOD_FL(fd.x);fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
     }
     if(fd.life<=0){foodList.splice(i,1);continue;}
@@ -2918,7 +2939,7 @@ function generateSingleOrder(index) {
     metric:tmpl.metric, ftype:tmpl.ftype, isState:tmpl.isState, isTrade:tmpl.isTrade, ftypereq:tmpl.ftypereq,
     reqAdult:tmpl.reqAdult, reqRare:tmpl.reqRare, reqAmt:tmpl.reqAmt, reqCoins:tmpl.reqCoins, rewardIsRare:tmpl.rewardIsRare,
     ftyperew:tmpl.ftyperew, target:t, reward:r,
-    startVal:0, progress:0, complete:false, claimed:false
+    startVal:0, progress:0, complete:false, claimed:false, delivered:false
   };
   if(!tmpl.isState) currentOrders[index].startVal=getRawMetricValue(currentOrders[index]);
 }
@@ -2968,7 +2989,7 @@ function tickOrders() {
 
 function claimOrder(i) {
   const o=currentOrders[i];if(!o||!o.complete||o.claimed)return;
-  if(o.isTrade) {
+  if(o.isTrade && !o.delivered) {
     const qty = o.reqAmt || 1;
     let found = 0;
     const toRemove = [];
@@ -2982,9 +3003,18 @@ function claimOrder(i) {
     }
     if(found >= qty) {
       if(o.reqCoins && coins < o.reqCoins) { toast(ICONS.close + " Not enough coins!", "#ef4444"); return; }
-      if(o.reqCoins) { coins -= o.reqCoins; sm.coinsSpent=(sm.coinsSpent||0)+o.reqCoins; document.getElementById('cv').textContent=formatCoins(coins); }
+      if(o.reqCoins) { 
+        coins -= o.reqCoins; 
+        sm.coinsSpent=(sm.coinsSpent||0)+o.reqCoins; 
+        document.getElementById('cv').textContent=formatCoins(coins); 
+      }
       for(let j=toRemove.length-1; j>=0; j--) fishList.splice(toRemove[j], 1);
-    } else return; // Spoofed call / fish died
+      o.delivered = true;
+      toast(ICONS.done + " Project Delivered!", "#f59e0b");
+      buildOrders();
+      saveGame();
+      return;
+    } else return; 
   }
   o.claimed=true; completedOrders++;
   questStreak++;
@@ -3059,10 +3089,10 @@ function buildOrders() {
       </div>
       <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%;background:${done?`linear-gradient(90deg,${tm.strip},${tm.strip}88)`:`linear-gradient(90deg,${tm.strip}66,${tm.strip}33)`};transition:width .4s;"></div></div>
       <div class="ofoot">
-        <span class="ocnt">${o.claimed?ICONS.done+' Claimed':Math.min(p,o.target)+' / '+o.target}</span>
+        <span class="ocnt">${o.claimed?ICONS.done+' Claimed':(o.delivered?ICONS.done+' Delivered':Math.min(p,o.target)+' / '+o.target)}</span>
         <div style="display:flex;gap:6px;">
-          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${o.isTrade?'#f59e0b':tm.strip};color:${o.isTrade?'#f59e0b':tm.strip};background:${o.isTrade?'rgba(245,158,11,0.15)':tm.strip+'18'};`:''}">
-            ${o.claimed?(ICONS.done+' Done'):(done&&o.isTrade)?(ICONS.market+' Complete Delivery'):'Claim!'}
+          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};background:${(o.isTrade&&!o.delivered)?'rgba(245,158,11,0.15)':tm.strip+'18'};`:''}">
+            ${o.claimed?(ICONS.done+' Done'):(o.isTrade&&!o.delivered)?(ICONS.market+' Hand In'):'Claim Reward!'}
           </button>
         </div>
       </div>
