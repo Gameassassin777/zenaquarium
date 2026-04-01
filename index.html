@@ -27,25 +27,46 @@
   --glass: blur(25px);
   --water-top: #000d1a;
   --water-bot: #000;
+  --card-text: #f8fafc;
+  --tier-easy: #10b981;
+  --tier-med: #fbbf24;
+  --tier-hard: #ef4444;
+  --tier-legend: #a855f7;
+  --legend-bg: linear-gradient(145deg, rgba(20, 0, 40, 0.7), rgba(0, 10, 30, 0.8));
+  --streak-bg: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(249, 115, 22, 0.06));
+  --row-bg: rgba(255, 255, 255, 0.03);
+  --card-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
+:root { --money-val: #fbbf24; }
 
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f8fafc;
     --app-bg: #e2e8f0;
-    --panel-bg: rgba(255, 255, 255, 0.88);
+    --panel-bg: rgba(255, 255, 255, 0.94);
     --text-main: #0f172a;
-    --text-sub: #334155;
-    --text-dim: #64748b;
-    --dash-bg: rgba(255, 255, 255, 0.7);
-    --card-bg: rgba(255, 255, 255, 0.6);
-    --border: rgba(0, 0, 0, 0.08);
-    --header-bg: rgba(255, 255, 255, 0.4);
+    --text-sub: #1e293b;
+    --text-dim: #475569;
+    --dash-bg: rgba(255, 255, 255, 0.75);
+    --card-bg: rgba(255, 255, 255, 0.82);
+    --border: rgba(0, 0, 0, 0.15);
+    --header-bg: rgba(255, 255, 255, 0.5);
     --ui-accent: #0891b2;
     --water-top: #bae6fd;
-    --water-bot: #e0f2fe;
+    --water-bot: #dbeafe;
+    --money-val: #854d0e;
+    --card-text: #0f172a;
+    --tier-easy: #059669;
+    --tier-med: #b45309;
+    --tier-hard: #dc2626;
+    --tier-legend: #7e22ce;
+    --legend-bg: linear-gradient(145deg, #f5f3ff, #ede9fe);
+    --streak-bg: linear-gradient(135deg, #fffbeb, #fef3c7);
+    --row-bg: rgba(0, 0, 0, 0.03);
+    --card-shadow: 0 4px 10px rgba(0,0,0,0.06);
   }
 }
+
 html, body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
 canvas{position:absolute;inset:0;width:100%;height:100%;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
@@ -55,11 +76,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .dash.harmony{border-color:rgba(251,191,36,.5);box-shadow:0 0 20px rgba(251,191,36,.3), inset 0 0 10px rgba(251,191,36,.2);background:rgba(251,191,36,.05);}
 .stat{display:flex;flex-direction:column;align-items:center;padding:0 4px;border-right:1px solid rgba(255,255,255,.07);}
 .stat:last-child{border-right:none;}
-.slbl{font-size:9px;text-transform:uppercase;color:var(--text-dim);letter-spacing:.5px;font-weight:700;}
+.slbl{font-size:9px;text-transform:uppercase;color:var(--text-sub);letter-spacing:.5px;font-weight:800;}
 .sval{font-size:14px;font-weight:800;color:var(--text-main);transition:color .2s; display:flex; align-items:center; gap:3px;}
 .sval svg { color: var(--ui-accent); width:1.1em; height:1.1em; }
-.vg{color:#fbbf24;} .vg svg{color:#fbbf24;} 
+.vg{color:#10b981;} .vg svg{color:#10b981;} 
 .vw{color:#ef4444;} .vw svg{color:#ef4444;}
+.v-money{color:var(--money-val); font-weight:900;}
 
 .hbtn{pointer-events:all;cursor:pointer;font-family:inherit;font-weight:bold;-webkit-tap-highlight-color:transparent;transition:all .15s;border-radius:20px;padding:8px 13px;font-size:12px; display:flex; align-items:center; gap:5px;box-shadow:0 4px 12px rgba(0,0,0,.15);border:1px solid var(--border);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);}
 .hbtn:active{transform:scale(.91);}
@@ -84,7 +106,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 #nav{position:fixed;bottom:0;left:0;right:0;padding:10px 0 2px 0;background:linear-gradient(to bottom, transparent, rgba(0,0,0,.6) 30%, rgba(0,0,0,.85) 100%);display:flex;z-index:25;pointer-events:none;}
 /* docked into safe area */
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;color:var(--text-dim);font-size:9px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:15px 0 0 0;pointer-events:auto;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;color:var(--text-sub);font-size:9px;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:none;border-radius:0;transition:all .2s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent;position:relative;padding:15px 0 0 0;pointer-events:auto;}
 .nb svg {font-size:24px; transition:transform .2s; filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
 .nb.active{color:var(--ui-accent); text-shadow:0 0 12px rgba(var(--ui-accent-rgb),.4), 0 0 24px rgba(var(--ui-accent-rgb),.3);}
 .nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(var(--ui-accent-rgb),.4));}
@@ -114,34 +136,34 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .sechead{color:var(--ui-accent);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;margin:20px 0 10px;text-shadow:0 0 10px rgba(103,232,249,.4);}
 .sechead:first-child{margin-top:0;}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.card{background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:14px 10px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:14px 10px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;box-shadow:var(--card-shadow);}
 .card:active{transform:scale(.95);}
 .buyable{border-color:rgba(52,211,153,.3)!important;background:rgba(52,211,153,.05)!important;box-shadow:0 0 20px rgba(52,211,153,.15)!important;}
 .equipped{border-color:var(--ui-accent)!important;background:rgba(103,232,249,.08)!important;box-shadow:0 0 20px rgba(103,232,249,.2)!important;}
 .full{opacity:.38;cursor:default;filter:grayscale(70%);}
 .full:active{transform:none!important;}
 .locked{opacity:.38;pointer-events:none;}
-.locked::after{content:'LOCKED Lv'attr(data-req);position:absolute;inset:0;background:rgba(0,5,16,.82);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#475569;border-radius:13px;}
+.locked::after{content:'LOCKED Lv'attr(data-req);position:absolute;inset:0;background:var(--dash-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:var(--text-dim);border-radius:13px;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);}
 
 /* MARKET REVAMP */
-.m-header { background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; box-shadow:inset 0 0 20px rgba(251,191,36,0.05); }
+.m-header { background:var(--streak-bg); border:1px solid rgba(var(--ui-accent-rgb),0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; box-shadow:inset 0 0 20px rgba(var(--ui-accent-rgb),0.05); }
 .m-header::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent); animation:mshine 3s infinite; }
 .m-badge { font-size:8.5px; font-weight:800; padding:2px 5px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px; }
 .b-trait { background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
 .b-age { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.25); }
-.b-rare { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
-.m-price { font-weight:900; color:#fbbf24; font-size:13.5px; text-shadow:0 0 10px rgba(251,191,36,0.25); }
+.b-rare { background:rgba(var(--ui-accent-rgb),0.12); color:var(--tier-med); border:1px solid rgba(var(--ui-accent-rgb),0.25); }
+.m-price { font-weight:900; color:var(--money-val); font-size:13.5px; text-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.25); }
 .m-surge-hl { border:1.5px solid rgba(245,158,11,0.5) !important; background:rgba(245,158,11,0.04) !important; box-shadow:0 0 15px rgba(245,158,11,0.1); }
 @keyframes mshine { 0% { left:-150%; } 100% { left:150%; } }
 
 /* FISH COLORS & FINDER */
 .c-dot { width:12px; height:12px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 8px rgba(0,0,0,0.5); position:relative; }
 .c-dot::after { content:''; position:absolute; inset:0; border-radius:50%; box-shadow:0 0 10px inherit; opacity:0.6; }
-.finder-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:16px; margin-bottom:12px; transition:transform 0.2s; position:relative; overflow:hidden;}
+.finder-card { background:var(--row-bg); border:1px solid var(--border); border-radius:18px; padding:16px; margin-bottom:12px; transition:transform 0.2s; position:relative; overflow:hidden;}
 .finder-card:active { transform:scale(0.98); }
 .finder-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--ui-accent); opacity:0.3; }
 .f-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:11px; color:#94a3b8; }
-.f-val { color:#fff; font-weight:800; text-shadow:0 0 10px rgba(255,255,255,0.2); }
+.f-val { color:var(--text-main); font-weight:800; text-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.2); }
 .f-trait-desc { font-style:italic; font-size:10px; color:#475569; margin-top:3px; padding-left:4px; }
 .f-personality { background:rgba(103,232,249,0.08); border:1px solid rgba(103,232,249,0.15); border-radius:10px; padding:10px; margin-top:12px; color:#67e8f9; font-size:11px; line-height:1.4; text-shadow:0 0 8px rgba(103,232,249,0.2); }
 
@@ -166,12 +188,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .ohead{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .oico{font-size:22px; color:var(--text-main);}
 .odesc{color:var(--text-main);font-size:12px;font-weight:600;display:block;}
-.orew{color:#fbbf24;font-size:11px;font-weight:700;}
+.orew{color:var(--money-val);font-size:11px;font-weight:700;}
 .opbg{background:var(--dash-bg);border-radius:4px;height:6px;overflow:hidden;margin-bottom:7px;}
 .opf{height:100%;background:linear-gradient(90deg, var(--ui-accent), #38bdf8);border-radius:4px;transition:width .4s;}
 .opf.odone{background:linear-gradient(90deg,#10b981,#34d399);}
 .ofoot{display:flex;justify-content:space-between;align-items:center;}
-.ocnt{color:#374151;font-size:10px; display:flex; align-items:center; gap:4px;}
+.ocnt{color:var(--text-dim);font-size:10px; display:flex; align-items:center; gap:4px;}
 
 .cbtn2{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);color:#34d399;border-radius:12px;padding:8px 16px;font-weight:bold;font-size:12px;cursor:pointer;transition:all .2s;box-shadow:0 0 15px rgba(52,211,153,.1);-webkit-tap-highlight-color:transparent;}
 .cbtn2:disabled{background:rgba(255,255,255,.05);color:#64748b;border-color:rgba(255,255,255,.1);box-shadow:none;cursor:default;}
@@ -232,15 +254,15 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 /* ── QUEST TIER SYSTEM ── */
 .tier-badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.8px;flex-shrink:0;}
-.tbg-easy{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3);}
-.tbg-med{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
-.tbg-hard{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
-.tbg-legend{background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.35);box-shadow:0 0 8px rgba(168,85,247,.2);}
-.ocard.ql{border-color:rgba(168,85,247,.35)!important;background:linear-gradient(145deg,rgba(20,0,40,.7),rgba(0,10,30,.8))!important;}
+.tbg-easy{background:rgba(16,185,129,.1);color:var(--tier-easy);border:1px solid var(--tier-easy);}
+.tbg-med{background:rgba(251,191,36,.1);color:var(--tier-med);border:1px solid var(--tier-med);}
+.tbg-hard{background:rgba(239,68,68,.1);color:var(--tier-hard);border:1px solid var(--tier-hard);}
+.tbg-legend{background:rgba(168,85,247,.1);color:var(--tier-legend);border:1px solid var(--tier-legend);box-shadow:0 0 8px rgba(168,85,247,.15);}
+.ocard.ql{border-color:rgba(168,85,247,.35)!important;background:var(--legend-bg)!important;}
 .claim-ready{animation:claimPulse 1.3s ease-in-out infinite!important;}
 @keyframes claimPulse{0%,100%{box-shadow:0 0 0 rgba(52,211,153,0);}50%{box-shadow:0 0 18px rgba(52,211,153,.6);}}
-.ostreak{background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(249,115,22,.06));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
-.q-total{color:#475569;font-size:10px;font-weight:700;text-align:center;padding:8px 0 4px;letter-spacing:.5px;}
+.ostreak{background:var(--streak-bg);border:1px solid rgba(var(--ui-accent-rgb),.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.q-total{color:var(--text-dim);font-size:10px;font-weight:700;text-align:center;padding:8px 0 4px;letter-spacing:.5px;}
 </style>
 </head>
 <body>
@@ -251,11 +273,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div style="display:flex; flex-direction:column; gap:8px;">
     <div class="dash" id="mdash" style="margin:0;">
       <div class="stat" style="position:relative;padding-bottom:12px; min-width:40px;">
-        <span class="slbl">Lvl <span id="xp-text" style="font-size:7px; opacity:0.6; text-transform:none; margin-left:4px;"></span></span>
+        <span class="slbl">Lvl</span>
         <span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
       </div>
-      <div class="stat"><span class="slbl">Coins</span><span class="sval vg" id="lbl-cv"></span></div>
+      <div class="stat"><span class="slbl">Coins</span><span class="sval v-money" id="lbl-cv"></span></div>
       <div class="stat"><span class="slbl">Water</span><span class="sval" id="wvc"></span></div>
       <div class="stat"><span class="slbl">Fish</span><span class="sval" id="lbl-fv"></span></div>
     </div>
@@ -622,10 +644,10 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
 
 // ── TIER METADATA ──
 const TIER_META={
-  easy:  {label:'EASY',      badge:'tbg-easy',   glow:'rgba(52,211,153,.3)',  strip:'#34d399'},
-  med:   {label:'MEDIUM',    badge:'tbg-med',    glow:'rgba(251,191,36,.3)',  strip:'#fbbf24'},
-  hard:  {label:'HARD',      badge:'tbg-hard',   glow:'rgba(239,68,68,.3)',   strip:'#ef4444'},
-  legend:{label:'LEGENDARY', badge:'tbg-legend', glow:'rgba(168,85,247,.4)', strip:'#c084fc'}
+  easy:  {label:'EASY',      badge:'tbg-easy',   glow:'rgba(16,185,129,.3)',  strip:'var(--tier-easy)'},
+  med:   {label:'MEDIUM',    badge:'tbg-med',    glow:'rgba(251,191,36,.3)',  strip:'var(--tier-med)'},
+  hard:  {label:'HARD',      badge:'tbg-hard',   glow:'rgba(239,68,68,.3)',   strip:'var(--tier-hard)'},
+  legend:{label:'LEGENDARY', badge:'tbg-legend', glow:'rgba(168,85,247,.4)', strip:'var(--tier-legend)'}
 };
 
 // ── QUEST POOL (35 quests across 4 tiers) ──
@@ -856,13 +878,8 @@ function updateHUD(){
     pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
   }
   const xpe = document.getElementById('xp-bar');
-  const xpt = document.getElementById('xp-text');
   if(xpe) {
     xpe.style.width = pct + '%';
-    if(xpt) {
-      const nextVal = th[playerLevel] || totalCoins;
-      xpt.textContent = `${formatCoins(totalCoins)} / ${formatCoins(nextVal)}`;
-    }
     if(playerLevel >= 10) { 
       xpe.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)'; 
       xpe.style.boxShadow = '0 0 10px rgba(251,191,36,0.6)';
@@ -952,7 +969,7 @@ function tickMarket() {
 function buildMarket() {
   const mlist = document.getElementById('mlist');
   if(!fishList.length) {
-    mlist.innerHTML = '<div style="color:#475569;text-align:center;padding:20px;font-weight:bold;">Your tank is empty!</div>';
+    mlist.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;font-weight:bold;">Your tank is empty!</div>';
     return;
   }
   
@@ -961,8 +978,8 @@ function buildMarket() {
     <div class="m-header">
       <div style="font-size:24px;">${surgeDef.icon}</div>
       <div style="flex:1;">
-        <div style="font-size:11px; font-weight:bold; color:#fbbf24; text-transform:uppercase; letter-spacing:1px;">Market Surge</div>
-        <div style="font-size:14px; font-weight:900; color:#f8fafc;">${surgeDef.name} Prices x1.5!</div>
+        <div style="font-size:11px; font-weight:bold; color:var(--money-val); text-transform:uppercase; letter-spacing:1px;">Market Surge</div>
+        <div style="font-size:14px; font-weight:900; color:var(--card-text);">${surgeDef.name} Prices x1.5!</div>
       </div>
     </div>
   `;
@@ -974,7 +991,7 @@ function buildMarket() {
     const price = getPrice(f);
     const rate = marketRates[f.type] || 1;
     const trend = rate > 1.4 ? 'SURGING' : rate < 0.8 ? 'CRASHING' : 'STABLE';
-    const tcol = rate > 1.4 ? '#ef4444' : rate < 0.8 ? '#38bdf8' : '#94a3b8';
+    const tcol = rate > 1.4 ? 'var(--tier-hard)' : rate < 0.8 ? '#0284c7' : 'var(--text-sub)';
     
     let ageTxt = f.age > getAdultAge(f) ? "Adult" : f.age > getJuvAge(f) ? "Juvenile" : "Baby";
 
@@ -983,7 +1000,7 @@ function buildMarket() {
         <span class="oico">${def.icon}</span>
         <div style="flex:1;">
           <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
-            <span class="odesc">${f.isRare? ICONS.star : ''}${def.name} <span style="opacity:0.5; font-size:9px;">#${f.id}</span></span>
+            <span class="odesc" style="color:var(--card-text);">${f.isRare? ICONS.star : ''}${def.name} <span style="opacity:0.5; font-size:9px;">#${f.id}</span></span>
             <span class="m-badge b-age">${ageTxt}</span>
             <div style="display:flex;gap:3px;margin-left:auto;">
               <div class="c-dot" style="background:${f.genes.c1[0]}"></div>
@@ -1077,11 +1094,17 @@ function updateEco(){
 
   // Passive coin loss for dirty tanks (WQ < 10% / Algae > 90)
   if(algae > 90 && time % 60 === 0 && fishList.length > 0) {
-    // Exponential growth: 1 coin base, scaling rapidly at extreme algae
-    const loss = Math.ceil(Math.pow(algae - 89, 1.6) * 0.12 * fishList.length);
-    coins = Math.max(0, coins - loss);
-    document.getElementById('cv').textContent = formatCoins(coins);
-    spawnJuice(W/2, H/3, `-${loss} POLLUTED TANK!`, '#ef4444', 1.4);
+    // Economic Symmetry: At 100% algae, loss per second matches the maximum potential income of the tank's most valuable fish
+    const maxVal = Math.max(...fishList.map(f => getPrice(f))) * 2.5 * 3.0; 
+    const baseLoss = maxVal / 60; // Spread over 60 frames
+    const scaling = Math.pow((algae - 89) / 11, 2); // Squared scaling from 91 -> 100
+    const loss = Math.ceil(baseLoss * scaling * fishList.length);
+    
+    if(loss > 0) {
+      coins = Math.max(0, coins - loss);
+      document.getElementById('cv').textContent = formatCoins(coins);
+      spawnJuice(W/2, H/3, `-${loss}`, '#ef4444', 0.9);
+    }
   }
 }
 
@@ -2216,10 +2239,13 @@ function toast(msg,col='#10b981'){
   clearTimeout(_tt);_tt=setTimeout(()=>t.style.opacity=0,3200);
 }
 function spawnJuice(x,y,html,color,scale=1){
-  for(let i=0;i<5;i++)particles.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5-1,life:1,c:color});
-  const el=document.createElement('div');el.className='ft';
-  el.style.cssText=`left:${x-20}px;top:${y-20}px;color:${color};font-size:${16*scale}px;`;
-  el.innerHTML=html;document.body.appendChild(el);setTimeout(()=>el.remove(),1200);
+  const el=document.createElement('div');
+  const isLoss = typeof html === 'string' && html.startsWith('-');
+  const finalScale = isLoss ? scale * 0.85 : scale;
+  el.style.cssText=`position:fixed;left:${x}px;top:${y-20}px;color:${color};font-weight:900;font-size:${14*finalScale}px;pointer-events:none;z-index:10;text-shadow:0 1px 4px rgba(0,0,0,0.2);animation:juice 1.2s forwards;white-space:nowrap;`;
+  el.innerHTML=html;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
 }
 function addCoins(amt,x,y,bonus=false){
   coins+=amt;totalCoins+=amt;
@@ -2295,7 +2321,7 @@ function getPersonality(f) {
 
 function buildFishFinder() {
   const flist = document.getElementById('flist');
-  if(!fishList.length) { flist.innerHTML = '<div style="color:#475569;text-align:center;padding:20px;">No fish in tank.</div>'; return; }
+  if(!fishList.length) { flist.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No fish in tank.</div>'; return; }
   
   flist.innerHTML = fishList.map(f => {
     const def = TYPES[f.type];
@@ -2309,14 +2335,14 @@ function buildFishFinder() {
     
     let html = `<div class="finder-card">
       <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:28px; filter:drop-shadow(0 0 10px rgba(255,255,255,0.2));">${def.icon}</span>
+        <span style="font-size:28px; filter:drop-shadow(0 0 10px rgba(var(--ui-accent-rgb),0.2));">${def.icon}</span>
         <div style="flex:1;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span style="color:#fff; font-weight:900; font-size:14px; letter-spacing:0.3px;">${f.name || def.name}</span>
+            <span style="color:var(--card-text); font-weight:900; font-size:14px; letter-spacing:0.3px;">${f.name || def.name}</span>
             <span class="m-badge b-age">${ageTxt}</span>
             ${f.isRare?'<span class="m-badge b-rare">RARE</span>':''}
           </div>
-          <div style="color:#475569; font-size:10px; font-weight:700;">${def.name.toUpperCase()} • ID:${f.id}</div>
+          <div style="color:var(--text-dim); font-size:10px; font-weight:700;">${def.name.toUpperCase()} • ID:${f.id}</div>
         </div>
         <div style="display:flex;gap:5px;">
            <div class="c-dot" style="background:${f.genes.c1[0]}; box-shadow:0 0 10px ${f.genes.c1[0]}66;"></div>
@@ -2328,7 +2354,7 @@ function buildFishFinder() {
       html += `
         <div class="f-row"><span>Bond Level</span><span style="font-size:10px;">${hearts}</span></div>
         <div class="f-row"><span>Trait Pattern</span><span class="f-val">${ICONS[trait]} ${trait.toUpperCase()}</span></div>
-        <div class="f-trait-desc">Current multiplier: <span style="color:#fbbf24">x${TRAIT_MARKET_MULT[trait]}</span></div>
+        <div class="f-trait-desc">Current multiplier: <span style="color:var(--money-val)">x${TRAIT_MARKET_MULT[trait]}</span></div>
         <div class="f-row"><span>Condition</span><span class="f-val">${Math.floor(f.hunger)}% Satiated</span></div>
       `;
     }
@@ -2337,12 +2363,12 @@ function buildFishFinder() {
       html += `
         <div class="f-row"><span>Genetics</span><span class="f-val" style="font-family:monospace;font-size:9px;">${f.genes.c1[0]} / ${f.genes.c2[0]}</span></div>
         <div class="f-personality">
-          <div style="font-weight:900; color:#fff; margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
-          <div>Loves: <span style="color:#34d399">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
+          <div style="font-weight:900; color:var(--card-text); margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
+          <div style="color:var(--text-sub);">Loves: <span style="color:#10b981">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
         </div>
       `;
     } else {
-       html += `<div style="font-size:9px; color:#334155; margin-top:10px; font-style:italic; text-align:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">Reach Level ${playerLevel<4?4:7} for detailed bio</div>`;
+       html += `<div style="font-size:9px; color:var(--text-dim); margin-top:10px; font-style:italic; text-align:center; border-top:1px solid var(--border); padding-top:8px;">Reach Level ${playerLevel<4?4:7} for detailed bio</div>`;
     }
 
     html += `
@@ -2693,8 +2719,8 @@ function redeemCode(raw){
 function buildSocial(){
   const s=document.getElementById('socdiv');
   s.innerHTML = `
-    <div class="ocard" style="border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); margin-bottom:15px;">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(239,68,68,0.15)">
+    <div class="ocard" style="border:2px solid rgba(239,68,68,0.25); background:rgba(239,68,68,0.05); margin-bottom:15px;">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otier" style="background:rgba(239,68,68,0.2); color:#fca5a5;">SYSTEM</div>
         <div class="otitle" style="font-size:13px;">Save Data (v2.1.6.c013c77)</div>
       </div>
@@ -2705,47 +2731,47 @@ function buildSocial(){
     </div>
 
     <div class="ocard">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px;">${ICONS.decor} General Statistics</div>
       </div>
       <div style="padding-top:10px; display:flex; flex-direction:column; gap:8px;">
-        <div class="srow"><span>Daily Streak</span><span id="sstreak" style="font-weight:bold; color:#fff;"></span></div>
-        <div class="srow"><span>Orders Completed</span><span id="sorders" style="font-weight:bold; color:#fff;"></span></div>
-        <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="font-weight:bold; color:#fbbf24;"></span></div>
-        <div class="srow"><span>Codes Redeemed</span><span id="scodes" style="font-weight:bold; color:#fff;"></span></div>
+        <div class="srow"><span>Daily Streak</span><span id="sstreak" style="font-weight:bold; color:var(--text-main);"></span></div>
+        <div class="srow"><span>Orders Completed</span><span id="sorders" style="font-weight:bold; color:var(--text-main);"></span></div>
+        <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="font-weight:bold; color:var(--money-val);"></span></div>
+        <div class="srow"><span>Codes Redeemed</span><span id="scodes" style="font-weight:bold; color:var(--text-main);"></span></div>
       </div>
     </div>
 
     <div class="ocard" style="margin-top:10px;">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px;">${ICONS.trophy} Quest Achievements</div>
       </div>
       <div id="m-list" style="padding-top:10px; max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
     <div class="ocard" style="margin-top:10px;">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#c084fc;">${ICONS.gift} My Fish Collection</div>
       </div>
       <div id="gift-list" style="padding-top:10px; max-height:200px; overflow-y:auto;"></div>
     </div>
 
     <div class="ocard" style="margin-top:10px;">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#38bdf8;">${ICONS.social} Your Friend Code</div>
       </div>
       <div style="padding-top:10px; text-align:center;">
-         <div id="mycode" style="font-size:24px; font-weight:900; color:var(--ui-accent); margin-bottom:8px; letter-spacing:2px; padding:10px; background:rgba(0,0,0,0.3); border-radius:12px;"></div>
+         <div id="mycode" style="font-size:24px; font-weight:900; color:var(--ui-accent); margin-bottom:8px; letter-spacing:2px; padding:10px; background:var(--dash-bg); border-radius:12px;"></div>
          <button class="cbtn" onclick="copyCode()" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); color:#38bdf8; width:100%;">Copy to Clipboard</button>
       </div>
     </div>
 
     <div class="ocard" style="margin-top:10px;">
-      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#f472b6;">${ICONS.sparkle} Redeem Code</div>
       </div>
       <div style="padding-top:10px;">
-        <input type="text" id="codein" placeholder="Enter code here..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px; color:#fff; font-family:monospace; margin-bottom:10px; outline:none; text-align:center; font-size:16px;">
+        <input type="text" id="codein" placeholder="Enter code here..." style="width:100%; box-sizing:border-box; background:var(--dash-bg); border:1px solid var(--border); border-radius:8px; padding:12px; color:var(--text-main); font-family:monospace; margin-bottom:10px; outline:none; text-align:center; font-size:16px;">
         <button class="cbtn" style="width:100%; background:rgba(244,114,182,0.15); border-color:rgba(244,114,182,0.4); color:#f472b6;" onclick="redeemCode(document.getElementById('codein').value)">Redeem Now</button>
         <div id="soclog" style="font-size:11px; margin-top:10px; text-align:center; min-height:15px; color:#94a3b8;"></div>
       </div>
@@ -2755,15 +2781,15 @@ function buildSocial(){
       <div class="otop" style="padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
         <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#cbd5e1;">${ICONS.gear} Game Settings</div>
       </div>
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05);">
-        <label style="display:flex; align-items:center; gap:10px; color:#e2e8f0; font-size:12px; cursor:pointer;">
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px; padding-bottom:15px; border-bottom:1px solid var(--border);">
+        <label style="display:flex; align-items:center; gap:10px; color:var(--text-main); font-size:12px; cursor:pointer;">
           <input type="checkbox" id="cfg-tut" ${sm.hidePopups?'checked':''} onchange="sm.hidePopups=this.checked;saveGame();" style="width:16px;height:16px;accent-color:var(--ui-accent);">
           Hide Tutorial & Achievement Popups
         </label>
       </div>
       <div style="display:flex; gap:10px; margin-top:15px;">
-        <button onclick="exportSave()" class="cbtn" style="flex:1; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:600;">Export Save</button>
-        <button onclick="importSaveClick()" class="cbtn" style="flex:1; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:600;">Import</button>
+        <button onclick="exportSave()" class="cbtn" style="flex:1; background:var(--dash-bg); border:1px solid var(--border); color:var(--text-main); font-weight:600;">Export Save</button>
+        <button onclick="importSaveClick()" class="cbtn" style="flex:1; background:var(--dash-bg); border:1px solid var(--border); color:var(--text-main); font-weight:600;">Import</button>
       </div>
     </div>
   `;
@@ -2777,7 +2803,7 @@ function buildSocial(){
   const ml = document.getElementById('m-list');
   const completedMilestones = currentOrders.filter(o => o.claimed && (o.id.startsWith('q') || o.ftyperew));
   if(completedMilestones.length){
-    ml.innerHTML = completedMilestones.map(o => `<div class="srow" style="font-size:11px; padding:6px; background:rgba(255,255,255,0.03); border-radius:6px;"><span>${o.icon} ${o.desc.replace('!','')}</span><span style="color:#fbbf24; display:flex; align-items:center; gap:4px;">${ICONS.done} Done</span></div>`).join('');
+    ml.innerHTML = completedMilestones.map(o => `<div class="srow" style="font-size:11px; padding:6px; background:var(--row-bg); border-radius:6px;"><span>${o.icon} ${o.desc.replace('!','')}</span><span style="color:var(--money-val); display:flex; align-items:center; gap:4px;">${ICONS.done} Done</span></div>`).join('');
   } else {
     ml.innerHTML = '<div style="color:#64748b; text-align:center; font-style:italic; padding:10px;">Complete quests to unlock achievements...</div>';
   }
@@ -3092,7 +3118,7 @@ function buildOrders() {
     const tm=TIER_META[o.tier||'easy']||TIER_META.easy;
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const rewHtml=o.ftyperew&&TYPES[o.ftyperew]
-      ?`<span style="display:flex;align-items:center;gap:3px;color:#c084fc;">${ICONS.egg} Unlocks ${TYPES[o.ftyperew].name} ${o.rewardIsRare?'(Rare) ':''}${o.reward>0?' + '+ICONS.coin+o.reward:''}</span>`
+      ?`<span style="display:flex;align-items:center;gap:3px;color:var(--tier-legend); font-weight:bold;">${ICONS.egg} Unlocks ${TYPES[o.ftyperew].name} ${o.rewardIsRare?'(Rare) ':''}${o.reward>0?' + '+ICONS.coin+o.reward:''}</span>`
       :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span>`;
 
     const btnText = o.claimed 
@@ -3101,13 +3127,13 @@ function buildOrders() {
         ? ((done ? ICONS.market + ' Hand In' : ICONS.market + ' Collect...'))
         : (done ? 'Claim Reward!' : 'In Progress...');
 
-    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''}" style="position:relative;padding-left:20px;overflow:hidden;${done&&!o.claimed?`box-shadow:0 0 22px ${tm.glow},0 2px 8px rgba(0,0,0,.4);`:''}" >
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''}" style="position:relative;padding-left:20px;overflow:hidden;${done&&!o.claimed?`box-shadow:0 0 22px ${tm.glow}, var(--card-shadow);`:''}" >
       <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${tm.strip};border-radius:4px 0 0 4px;opacity:${o.claimed?.3:1};"></div>
       <div class="ohead"><span class="oico">${o.icon}</span>
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;">
             <span class="tier-badge ${tm.badge}">${tm.label}</span>
-            <span class="odesc">${o.desc}</span>
+            <span class="odesc" style="color:var(--card-text);">${o.desc}</span>
           </div>
           <div class="orew" style="margin-top:1px;">${rewHtml}</div>
         </div>
