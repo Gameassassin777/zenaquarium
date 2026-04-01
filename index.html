@@ -250,8 +250,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="ui">
   <div style="display:flex; flex-direction:column; gap:8px;">
     <div class="dash" id="mdash" style="margin:0;">
-      <div class="stat" style="position:relative;padding-bottom:12px; min-width:32px;">
-        <span class="slbl">Lvl</span><span class="sval vl" id="lbl-lvl"></span>
+      <div class="stat" style="position:relative;padding-bottom:12px; min-width:40px;">
+        <span class="slbl">Lvl <span id="xp-text" style="font-size:7px; opacity:0.6; text-transform:none; margin-left:4px;"></span></span>
+        <span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
       </div>
       <div class="stat"><span class="slbl">Coins</span><span class="sval vg" id="lbl-cv"></span></div>
@@ -855,8 +856,13 @@ function updateHUD(){
     pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
   }
   const xpe = document.getElementById('xp-bar');
+  const xpt = document.getElementById('xp-text');
   if(xpe) {
     xpe.style.width = pct + '%';
+    if(xpt) {
+      const nextVal = th[playerLevel] || totalCoins;
+      xpt.textContent = `${formatCoins(totalCoins)} / ${formatCoins(nextVal)}`;
+    }
     if(playerLevel >= 10) { 
       xpe.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)'; 
       xpe.style.boxShadow = '0 0 10px rgba(251,191,36,0.6)';
@@ -1741,21 +1747,33 @@ function drawFish(f){
   ctx.restore();
 }
 
+// Caching for performance
+let cachedTheme = null;
+function refreshThemeCache() {
+  const root = document.documentElement;
+  cachedTheme = {
+    top: getComputedStyle(root).getPropertyValue('--water-top').trim(),
+    bot: getComputedStyle(root).getPropertyValue('--water-bot').trim()
+  };
+}
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', refreshThemeCache);
+refreshThemeCache();
+
 // GAME LOOP
 function loop(){
 try {
   time++;
   
-  // Theme-aware Water Background
-  const wTop = getComputedStyle(document.documentElement).getPropertyValue('--water-top').trim();
-  const wBot = getComputedStyle(document.documentElement).getPropertyValue('--water-bot').trim();
+  // Theme-aware Water Background (Performance Optimized)
+  if(!cachedTheme) refreshThemeCache();
   const wGrad = ctx.createLinearGradient(0, 0, 0, H);
-  wGrad.addColorStop(0, wTop); wGrad.addColorStop(1, wBot);
+  wGrad.addColorStop(0, cachedTheme.top); wGrad.addColorStop(1, cachedTheme.bot);
   ctx.fillStyle = wGrad; ctx.fillRect(0, 0, W, H);
 
   // Distant murkiness overlay
   if(algae > 10) {
-    ctx.fillStyle = `rgba(34,139,34,${algae * 0.0015})`;
+    const darkness = Math.min(0.2, (algae - 10) * 0.002);
+    ctx.fillStyle = `rgba(34,139,34,${darkness})`;
     ctx.fillRect(0, 0, W, H);
   }
   if(!W || !H) resize();
@@ -3076,18 +3094,7 @@ function buildOrders() {
     const rewHtml=o.ftyperew&&TYPES[o.ftyperew]
       ?`<span style="display:flex;align-items:center;gap:3px;color:#c084fc;">${ICONS.egg} Unlocks ${TYPES[o.ftyperew].name} ${o.rewardIsRare?'(Rare) ':''}${o.reward>0?' + '+ICONS.coin+o.reward:''}</span>`
       :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span>`;
-    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''}" style="position:relative;padding-left:20px;overflow:hidden;${done&&!o.claimed?`box-shadow:0 0 22px ${tm.glow},0 2px 8px rgba(0,0,0,.4);`:''}" >
-      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${tm.strip};border-radius:4px 0 0 4px;opacity:${o.claimed?.3:1};"></div>
-      <div class="ohead"><span class="oico">${o.icon}</span>
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;">
-            <span class="tier-badge ${tm.badge}">${tm.label}</span>
-            <span class="odesc">${o.desc}</span>
-          </div>
-          <div class="orew" style="margin-top:1px;">${rewHtml}</div>
-        </div>
-      </div>
-      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%;background:${done?`linear-gradient(90deg,${tm.strip},${tm.strip}88)`:`linear-gradient(90deg,${tm.strip}66,${tm.strip}33)`};transition:width .4s;"></div></div>
+
     const btnText = o.claimed 
       ? (ICONS.done + ' Done') 
       : (o.isTrade && !o.delivered) 
