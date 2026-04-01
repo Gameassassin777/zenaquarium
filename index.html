@@ -3088,11 +3088,29 @@ function buildOrders() {
         </div>
       </div>
       <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%;background:${done?`linear-gradient(90deg,${tm.strip},${tm.strip}88)`:`linear-gradient(90deg,${tm.strip}66,${tm.strip}33)`};transition:width .4s;"></div></div>
+    const btnText = o.claimed 
+      ? (ICONS.done + ' Done') 
+      : (o.isTrade && !o.delivered) 
+        ? ((done ? ICONS.market + ' Hand In' : ICONS.market + ' Collect...'))
+        : (done ? 'Claim Reward!' : 'In Progress...');
+
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''}" style="position:relative;padding-left:20px;overflow:hidden;${done&&!o.claimed?`box-shadow:0 0 22px ${tm.glow},0 2px 8px rgba(0,0,0,.4);`:''}" >
+      <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${tm.strip};border-radius:4px 0 0 4px;opacity:${o.claimed?.3:1};"></div>
+      <div class="ohead"><span class="oico">${o.icon}</span>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;">
+            <span class="tier-badge ${tm.badge}">${tm.label}</span>
+            <span class="odesc">${o.desc}</span>
+          </div>
+          <div class="orew" style="margin-top:1px;">${rewHtml}</div>
+        </div>
+      </div>
+      <div class="opbg"><div class="opf ${done?'odone':''}" style="width:${pct}%;background:${done?`linear-gradient(90deg,${tm.strip},${tm.strip}88)`:`linear-gradient(90deg,${tm.strip}66,${tm.strip}33)`};transition:width .4s;"></div></div>
       <div class="ofoot">
         <span class="ocnt">${o.claimed?ICONS.done+' Claimed':(o.delivered?ICONS.done+' Delivered':Math.min(p,o.target)+' / '+o.target)}</span>
         <div style="display:flex;gap:6px;">
-          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};background:${(o.isTrade&&!o.delivered)?'rgba(245,158,11,0.15)':tm.strip+'18'};`:''}">
-            ${o.claimed?(ICONS.done+' Done'):(o.isTrade&&!o.delivered)?(ICONS.market+' Hand In'):'Claim Reward!'}
+          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} style="${done&&!o.claimed?`border-color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};color:${(o.isTrade&&!o.delivered)?'#f59e0b':tm.strip};background:${(o.isTrade&&!o.delivered)?'rgba(245,158,11,0.15)':tm.strip+'18'};`:'opacity:0.6;'}">
+            ${btnText}
           </button>
         </div>
       </div>
