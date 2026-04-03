@@ -107,7 +107,7 @@ document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
-document.getElementById('ph-social').innerHTML = ICONS.social + ' Social';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.13';
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 document.querySelectorAll('.xbtn').forEach(b => b.innerHTML = ICONS.close);
@@ -170,6 +170,7 @@ const maxLevel=50;
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
+const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
@@ -515,10 +516,11 @@ function applyState(s){
 
 // Abbreviate large numbers for HUD display
 function formatCoins(n) {
-  if(n >= 1e9) return (n/1e9).toFixed(1) + 'B';
-  if(n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-  if(n >= 1e3) return (n/1e3).toFixed(1) + 'K';
-  return Math.floor(n);
+  if (n === undefined || isNaN(n)) return "0";
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+  return Math.floor(n).toLocaleString('en-US');
 }
 
 function updateHUD(){
@@ -1458,7 +1460,7 @@ try {
     ctx.fillRect(0, 0, W, H);
   }
   if(!W || !H) resize();
-  time++;updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
+  updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
   let theme = THEMES[curTheme] || THEMES['default'];
   if(curTheme === 'default') {
@@ -1707,7 +1709,8 @@ try {
     const b=bubbles[i];b.y-=b.spd;b.x+=Math.sin(time*.004+b.ph)*.6;
     if(b.y<-10){bubbles.splice(i,1);continue;}
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(255,255,255,${b.life*.45})`;ctx.stroke();
+    const bcol = BUBBLES[curBubble].col.replace('{a}', b.life * 0.45);
+    ctx.strokeStyle = bcol; ctx.stroke();
   }
   if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:2+Math.random()*5,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
 
@@ -1717,7 +1720,7 @@ try {
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
       fd.vy=Math.min(fd.vy+.002, 0.2);
-      fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.050; 
+      fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.015; 
       fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
       if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
@@ -2299,7 +2302,7 @@ function buildShop(){
     
     const c=document.createElement('div');
     c.className=`card${can?' buyable':''}${full?' full':''}`;
-    c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${Math.floor(u.val*marketRates[id])}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${price}</span><span class="cown">owned:${owned}</span>`;
+    c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${formatCoins(Math.floor(u.val*marketRates[id]))}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(price)}</span><span class="cown">owned:${owned}</span>`;
     if(can)c.onclick=()=>{
       coins-=price; sm.coinsSpent=(sm.coinsSpent||0)+price; boughtCounts[id]++; 
       document.getElementById('cv').textContent=formatCoins(coins);buySpawnBaby(id);
@@ -2312,10 +2315,10 @@ function buildShop(){
     const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
     const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
     c.setAttribute('data-req',u.req);
-    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
+    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++; 
-      document.getElementById('cv').textContent=coins;
+      document.getElementById('cv').textContent=formatCoins(coins);
       if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
       if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
@@ -2370,9 +2373,9 @@ function redeemCode(raw){
     claimedCodes.add(code);codesRedeemed++;
     const r=100+Math.floor(Math.random()*101);
     addCoins(r,W/2,H/3,true);
-    toast(ICONS.social + ` Gift received! +${r}`,'#10b981');
+    toast(ICONS.social + ` Gift received! +${formatCoins(r)}`,'#10b981');
     document.getElementById('codein').value='';
-    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${r} coins`;
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${formatCoins(r)} coins`;
     saveGame();buildSocial();
   }else{toast('Invalid code format!','#ef4444');}
 }
@@ -2382,7 +2385,7 @@ function buildSocial(){
     <div class="ocard" style="border:2px solid rgba(239,68,68,0.25); background:rgba(239,68,68,0.05); margin-bottom:15px;">
       <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otier" style="background:rgba(239,68,68,0.2); color:#fca5a5;">SYSTEM</div>
-        <div class="otitle" style="font-size:13px;">Save Data (v2.1.6.c013c77)</div>
+        <div class="otitle" style="font-size:13px;">Save Data (v2.1.13)</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
         <div style="font-size:10px; color:#94a3b8; line-height:1.4;">Progress is saved locally.<br>Take care of your fish!</div>
