@@ -1717,7 +1717,7 @@ try {
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
       fd.vy=Math.min(fd.vy+.002, 0.2);
-      fd.vx=(fd.vx*0.95) + (Math.random()-0.5)*0.012; 
+      fd.vx=(fd.vx*0.95) + (Math.random()-0.5)*0.025; 
       fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
       if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
