@@ -78,12 +78,13 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .dash.harmony{border-color:rgba(251,191,36,.5);box-shadow:0 0 20px rgba(251,191,36,.3), inset 0 0 10px rgba(251,191,36,.2);background:rgba(251,191,36,.05);}
 .stat{display:flex;flex-direction:column;align-items:center;padding:0 4px;border-right:1px solid rgba(255,255,255,.07);}
 .stat:last-child{border-right:none;}
-.slbl{font-size:9px;text-transform:uppercase;color:var(--text-sub);letter-spacing:.5px;font-weight:800;}
+.slbl{font-size:10px;text-transform:uppercase;color:var(--text-sub);letter-spacing:0.8px;font-weight:900;opacity:0.75;}
 .sval{font-size:14px;font-weight:800;color:var(--text-main);transition:color .2s; display:flex; align-items:center; gap:3px;}
 .sval svg { color: var(--ui-accent); width:1.1em; height:1.1em; }
-.vg{color:#10b981;} .vg svg{color:#10b981;} 
-.vw{color:#ef4444;} .vw svg{color:#ef4444;}
+.v-good{color:#10b981;} .v-good svg{color:#10b981;} 
+.v-warn{color:#ef4444;} .v-warn svg{color:#ef4444;}
 .v-money{color:var(--money-val); font-weight:900;}
+.v-harmony{color:#fbbf24 !important; text-shadow:0 0 12px rgba(251,191,36,0.5);} 
 
 .hbtn{pointer-events:all;cursor:pointer;font-family:inherit;font-weight:bold;-webkit-tap-highlight-color:transparent;transition:all .15s;border-radius:20px;padding:8px 13px;font-size:12px; display:flex; align-items:center; gap:5px;box-shadow:0 4px 12px rgba(0,0,0,.15);border:1px solid var(--border);-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);}
 .hbtn:active{transform:scale(.91);}
@@ -170,10 +171,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .f-personality { background:rgba(103,232,249,0.08); border:1px solid rgba(103,232,249,0.15); border-radius:10px; padding:10px; margin-top:12px; color:#67e8f9; font-size:11px; line-height:1.4; text-shadow:0 0 8px rgba(103,232,249,0.2); }
 
 /* HUD POLISH */
-.stat { background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:4px 10px; backdrop-filter:blur(4px); transition:all 0.3s; }
-.stat:hover { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); }
-.vl { color:var(--ui-accent) !important; text-shadow:0 0 12px var(--ui-accent); }
-.vg { color:#fbbf24 !important; text-shadow:0 0 12px rgba(251,191,36,0.4); }
+.stat { background:var(--row-bg); border:1px solid var(--border); border-radius:12px; padding:6px 12px; backdrop-filter:blur(8px); transition:all 0.35s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; align-items:center; }
+.stat:hover { background:rgba(255,255,255,0.08); border-color:rgba(var(--ui-accent-rgb),0.3); transform:translateY(-1px); }
+.vl { color:var(--ui-accent) !important; text-shadow:0 0 15px rgba(var(--ui-accent-rgb),0.5); }
 #combo-ui { background:rgba(15,23,42,0.6) !important; backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); }
 
 
@@ -1086,7 +1086,7 @@ function updateEco(){
   if(time%15===0){
     const wq=Math.floor(100-algae);
     document.getElementById('wv').textContent=wq+'%';
-    document.getElementById('wvc').className='sval '+(wq<50?'vw':isHarmony?'vg':'');
+    document.getElementById('wvc').className='sval '+(wq<30?'v-warn':isHarmony?'v-harmony':'v-good');
     const d=document.getElementById('mdash');
     if(isHarmony)d.classList.add('harmony');else d.classList.remove('harmony');
   }
@@ -2060,8 +2060,8 @@ try {
     if(fd.eaten)fd.life-=.1;
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
-      fd.vy=Math.min(fd.vy+.006,0.5);
-      fd.vx=(Math.sin(time*0.03 + fd.y*0.1)*0.2) + (fd.vx*0.98); 
+      fd.vy=Math.min(fd.vy+.002, 0.2);
+      fd.vx=(fd.vx*0.95) + (Math.random()-0.5)*0.012; 
       fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
       if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
@@ -2180,7 +2180,7 @@ try {
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
-    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*10,vx:(Math.random()-.5)*1.5,vy:1.2,life:1,eaten:false});
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*16,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*8,vx:(Math.random()-.5)*0.6,vy:0.4,life:1,eaten:false});
   }
 }
 
