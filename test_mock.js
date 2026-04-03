@@ -107,7 +107,7 @@ document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
-document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.13';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.14';
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 document.querySelectorAll('.xbtn').forEach(b => b.innerHTML = ICONS.close);
@@ -787,15 +787,21 @@ function triggerEat(f,fd,def){
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.15 : 1;
   const flakesMult = UPGRADES.flakes.owned > 0 ? 1.5 : 1;
   const harmonyMult= isHarmony ? 1.3 : 1;
-  const goldMult   = isGold ? 1.3 : 1;
+  let goldMult   = isGold ? 1.3 : 1;
+  const isBredGold = isGold && f.isRare;
+  if (isBredGold) goldMult = 20;
   
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
   const algaePen   = Math.max(0, (90 - algae) / 90);
   
   const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen;
-  const cappedMult = Math.min(rawMult, 2.5); // cap total multiplier at 2.5x
+  // If it's a Legendary (Bred Gold), we bypass the 2.5x cap to allow the full 20x+ bonus
+  const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
   const total = Math.ceil(def.val * cm * cappedMult);
-  if (total > 0) addCoins(total,f.x,f.y,isHarmony || f.bonded>0 || isGold);
+  if (total > 0) {
+    if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
+    addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
+  }
   else spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
 }
 
