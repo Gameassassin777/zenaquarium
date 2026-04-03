@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.13 - Stability & Feature Fixes -->
+<!-- ZenAquarium v2.1.14 - Efficiency & Legendary Update -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.13</title>
+<title>Zen Aquarium v2.1.14</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -343,7 +343,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.13</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.14</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -523,6 +523,15 @@ const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
 const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
+let targetFPS = 120, lastFrameTime = 0, lastEcoTime = 0;
+
+// Performance: Cache UI elements to avoid DOM lookups in high-speed loops
+const UI = {
+  get: (id) => UI.cache[id] || (UI.cache[id] = document.getElementById(id)),
+  cache: {},
+  update: (id, val) => { const el = UI.get(id); if(el) el.textContent = val; },
+  html: (id, val) => { const el = UI.get(id); if(el) el.innerHTML = val; }
+};
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
@@ -786,7 +795,8 @@ function buildSave(){
     clams:clams.length,currentOrders,sm,
     claimedCodes:[...claimedCodes], marketRates,
     curTheme, curFloor, curBubble, curBorder,
-    ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, boughtCounts
+    ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, boughtCounts,
+    targetFPS: targetFPS || 120
   };
 }
 
@@ -831,6 +841,7 @@ function applyState(s){
   ownedFloors = s.ownedFloors || ['default'];
   ownedBubbles = s.ownedBubbles || ['default'];
   ownedBorders = s.ownedBorders || ['none'];
+  targetFPS = s.targetFPS || 120;
   
   for(const[k,v] of Object.entries(s.upgrades || {}))if(UPGRADES[k])UPGRADES[k].owned=v;
   
@@ -1140,15 +1151,21 @@ function triggerEat(f,fd,def){
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.15 : 1;
   const flakesMult = UPGRADES.flakes.owned > 0 ? 1.5 : 1;
   const harmonyMult= isHarmony ? 1.3 : 1;
-  const goldMult   = isGold ? 1.3 : 1;
+  let goldMult   = isGold ? 1.3 : 1;
+  const isBredGold = isGold && f.isRare;
+  if (isBredGold) goldMult = 20;
   
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
   const algaePen   = Math.max(0, (90 - algae) / 90);
   
   const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen;
-  const cappedMult = Math.min(rawMult, 2.5); // cap total multiplier at 2.5x
+  // If it's a Legendary (Bred Gold), we bypass the 2.5x cap to allow the full 20x+ bonus
+  const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
   const total = Math.ceil(def.val * cm * cappedMult);
-  if (total > 0) addCoins(total,f.x,f.y,isHarmony || f.bonded>0 || isGold);
+  if (total > 0) {
+    if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
+    addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
+  }
   else spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
 }
 
@@ -1783,86 +1800,92 @@ function drawFish(f){
   ctx.restore();
 }
 
-// Caching for performance
-let cachedTheme = null;
+// Performance: Cache expensive gradients and only rebuild when states change
+let cachedTheme = null, cachedWaterGrad = null, lastGradAlgae = -1, lastGradTheme = '';
+
 function refreshThemeCache() {
   const root = document.documentElement;
-  cachedTheme = {
-    top: getComputedStyle(root).getPropertyValue('--water-top').trim(),
-    bot: getComputedStyle(root).getPropertyValue('--water-bot').trim()
-  };
+  const top = getComputedStyle(root).getPropertyValue('--water-top').trim();
+  const bot = getComputedStyle(root).getPropertyValue('--water-bot').trim();
+  if(!cachedTheme || cachedTheme.top !== top || cachedTheme.bot !== bot) {
+    cachedTheme = { top, bot };
+    cachedWaterGrad = null; // Invalidate cache
+  }
 }
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', refreshThemeCache);
 refreshThemeCache();
 
 // GAME LOOP
-function loop(){
+function loop(timestamp){
 try {
-  time++;
+  // 1. Frame Rate Throttling
+  const msPerFrame = 1000 / targetFPS;
+  const elapsed = timestamp - lastFrameTime;
+  if(elapsed < msPerFrame) {
+    requestAnimationFrame(loop);
+    return;
+  }
+  lastFrameTime = timestamp - (elapsed % msPerFrame);
   
-  // Theme-aware Water Background (Performance Optimized)
-  if(!cachedTheme) refreshThemeCache();
-  const wGrad = ctx.createLinearGradient(0, 0, 0, H);
-  wGrad.addColorStop(0, cachedTheme.top); wGrad.addColorStop(1, cachedTheme.bot);
-  ctx.fillStyle = wGrad; ctx.fillRect(0, 0, W, H);
-
-  // Distant murkiness overlay
-  if(algae > 10) {
-    const darkness = Math.min(0.2, (algae - 10) * 0.002);
-    ctx.fillStyle = `rgba(34,139,34,${darkness})`;
-    ctx.fillRect(0, 0, W, H);
-  }
+  time++;
   if(!W || !H) resize();
-  updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
-
-  let theme = THEMES[curTheme] || THEMES['default'];
-  if(curTheme === 'default') {
-    const hr = new Date().getHours();
-    const isDay = hr >= 7 && hr < 19;
-    if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
+  
+  // 2. Logic Throttling (Ecosystem/Orders)
+  if(timestamp - lastEcoTime >= 16.66) {
+    lastEcoTime = timestamp;
+    updateEco();
+    if(time % 60 === 0) checkMilestones();
   }
-  const g=ctx.createLinearGradient(0,0,0,H);
 
-  // Dynamic water quality color: clean=blue, dirty=green, putrid=brown
-  const dirtyPct = Math.min(1, algae / 100);
-  // lerp helper
-  const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
-  if(curTheme === 'default') {
-    // clean: [2,132,199] dirty midpoint: [26,74,26] putrid: [60,30,5]
-    const phase2 = Math.min(1, dirtyPct * 2);
-    const phase1 = Math.min(1, dirtyPct * 1.5);
-    const r1 = lerpC(2,  dirtyPct<0.5?26:60,  phase1);
-    const g1 = lerpC(132,dirtyPct<0.5?74:30,  phase1);
-    const b1 = lerpC(199,dirtyPct<0.5?26:5,   phase1);
-    const r2 = lerpC(3,  dirtyPct<0.5?58:100, phase2);
-    const g2 = lerpC(105,dirtyPct<0.5?57:45,  phase2);
-    const b2 = lerpC(161,dirtyPct<0.5?20:5,   phase2);
-    const r3 = lerpC(8,  dirtyPct<0.5?30:70,  phase2);
-    const g3 = lerpC(47, dirtyPct<0.5?20:10,  phase2);
-    const b3 = lerpC(73, dirtyPct<0.5?5:0,    phase2);
-    g.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
-    g.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
-    g.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
-  } else {
-    g.addColorStop(0, theme.c1);
-    g.addColorStop(.5, theme.c2);
-    g.addColorStop(1, theme.c3);
+  ctx.clearRect(0,0,W,H);
+
+  // 3. Optimized Background Rendering
+  if(!cachedTheme) refreshThemeCache();
+  
+  const algaeKey = Math.round(algae);
+  if(!cachedWaterGrad || lastGradAlgae !== algaeKey || lastGradTheme !== curTheme) {
+    lastGradAlgae = algaeKey;
+    lastGradTheme = curTheme;
+    const themeDef = THEMES[curTheme] || THEMES['default'];
+    const g = ctx.createLinearGradient(0,0,0,H);
+    if(curTheme === 'default') {
+      const hr = new Date().getHours();
+      const isDay = hr >= 7 && hr < 19;
+      const dirtyPct = Math.min(1, algae / 100);
+      const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
+      const phase2 = Math.min(1, dirtyPct * 2), phase1 = Math.min(1, dirtyPct * 1.5);
+      const r1 = lerpC(isDay?2:0,  dirtyPct<0.5?26:60,  phase1);
+      const g1 = lerpC(isDay?132:20,dirtyPct<0.5?74:30,  phase1);
+      const b1 = lerpC(isDay?199:40,dirtyPct<0.5?26:5,   phase1);
+      const r2 = lerpC(isDay?3:0,  dirtyPct<0.5?58:100, phase2);
+      const g2 = lerpC(isDay?105:15,dirtyPct<0.5?57:45,  phase2);
+      const b2 = lerpC(isDay?161:30,dirtyPct<0.5?20:5,   phase2);
+      g.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
+      g.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
+      g.addColorStop(1,   isDay ? '#082f49' : '#020617');
+    } else {
+      g.addColorStop(0, themeDef.c1);
+      g.addColorStop(0.5, themeDef.c2);
+      g.addColorStop(1, themeDef.c3);
+    }
+    cachedWaterGrad = g;
   }
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  
+  ctx.fillStyle = cachedWaterGrad;
+  ctx.fillRect(0,0,W,H);
 
-  // Putrid water murk overlay (appears below 30% cleanliness)
+  // 4. Visual Effects & Layers
   if(algae > 70) {
-    const murkAlpha = Math.min(0.35, (algae - 70) / 100);
+    const murkAlpha = Math.min(0.3, (algae - 70) / 100);
     ctx.fillStyle = `rgba(40, 60, 10, ${murkAlpha})`;
     ctx.fillRect(0, 0, W, H);
-    // Floating murk particles
-    if(time % 4 === 0 && particles.length < 200) {
+    if(time % 4 === 0 && particles.length < 150) {
       particles.push({x:Math.random()*W, y:H-90, vx:(Math.random()-.5)*.3, vy:-0.4-Math.random()*.3, life:1, c:'rgba(60,90,20,0.4)', sz:Math.random()*6+2, murk:true});
     }
   }
 
   // Marine Snow
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
   for(let i=0;i<marineSnow.length;i++){
     const p=marineSnow[i];
     p.y -= p.v; p.x += Math.sin(time*0.01 + i)*0.2;
@@ -1878,193 +1901,32 @@ try {
     ctx.beginPath();const rx=(W/4)*i+Math.sin(time*.005+i)*60;
     ctx.moveTo(rx,0);ctx.lineTo(rx-120,H);ctx.lineTo(rx+180,H);
     const rg=ctx.createLinearGradient(0,0,0,H);
-    rg.addColorStop(0,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
+    rg.addColorStop(0,'rgba(255,255,255,.05)');rg.addColorStop(1,'rgba(255,255,255,0)');
     ctx.fillStyle=rg;ctx.fill();
   }
   ctx.globalCompositeOperation='source-over';
 
-  if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.003})`;ctx.fillRect(0,0,W,H);}
-  if(isHarmony){ctx.fillStyle='rgba(251,191,36,.055)';ctx.fillRect(0,0,W,H);}
-
-  function drawFlora(sw) {
-    // Slower, more subtle swaying for organic look
-    const timeMod = time * 0.006 + sw.ph;
-    const swayBase = Math.sin(timeMod) * (4 + sw.h * 0.06);
-    const swayExtra = Math.sin(timeMod * 2.4 - sw.ph) * 1; 
-    const sway = swayBase + swayExtra;
-    ctx.lineCap = 'round';
-    
-    if(sw.type === 'seaweed') {
-      for(let b=0; b<3; b++) {
-        ctx.beginPath();
-        let s = sw.seeds[b];
-        let px = sw.x + (b-1)*8 + (s*6-3), py = H-85;
-        ctx.moveTo(px, py);
-        const hScale = sw.h * (0.6 + s*0.6);
-        const bSway = sway * (0.7 + s*0.6);
-        const cp1x = px + bSway * 0.4 + (s*10-5), cp1y = py - hScale * 0.5;
-        const endX = px + bSway, endY = py - hScale;
-        ctx.quadraticCurveTo(cp1x, cp1y, endX, endY);
-        const g = ctx.createLinearGradient(px, py, endX, endY);
-        g.addColorStop(0, `hsla(${sw.hue}, ${sw.sat}%, ${15 + b*5}%, 0.8)`);
-        g.addColorStop(1, `hsla(${sw.hue + 10}, ${sw.sat + 10}%, ${40 + b*10}%, 0.1)`);
-        ctx.strokeStyle = g; ctx.lineWidth = Math.max(2, 6 - b - s*2); ctx.stroke();
-      }
-    } else if(sw.type === 'grass') {
-      for(let b=0; b<5; b++) {
-        ctx.beginPath();
-        let s = sw.seeds[b];
-        let px = sw.x + (b-2)*4 + (s*4-2), py = H-85;
-        ctx.moveTo(px, py);
-        const hScale = sw.h * (0.5 + s*0.7);
-        const bSway = sway * (0.8 + s*0.5);
-        const cp1x = px + bSway * 0.6 + (s*8-4), cp1y = py - hScale * 0.5;
-        const endX = px + bSway, endY = py - hScale;
-        ctx.quadraticCurveTo(cp1x, cp1y, endX, endY);
-        ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, ${20 + Math.floor(s*20)}%, 0.8)`;
-        ctx.lineWidth = Math.max(1, 3 - s*1.5); ctx.stroke();
-      }
-    } else if(sw.type === 'kelp') {
-      ctx.beginPath();
-      let px = sw.x, py = H-85; ctx.moveTo(px, py);
-      const bSway = sway * 1.2;
-      const cp1x = px + bSway * 0.2, cp1y = py - sw.h * 0.3;
-      const cp2x = px + bSway * 0.7, cp2y = py - sw.h * 0.6;
-      const endX = px + bSway, endY = py - sw.h;
-      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
-      ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, 20%, 0.7)`;
-      ctx.lineWidth = 15; ctx.stroke();
-      for(let l=0; l<sw.segs; l++) {
-        const lp = l/sw.segs;
-        const lx = px + bSway * lp, ly = py - sw.h * lp;
-        ctx.fillStyle = `hsla(${sw.hue}, ${sw.sat + 10}%, 30%, 0.6)`;
-        ctx.beginPath();
-        ctx.ellipse(lx + Math.sin(timeMod + l)*10, ly, 12, 6, Math.PI/4 + Math.sin(timeMod)*0.5, 0, Math.PI*2);
-        ctx.fill();
-      }
-    } else {
-      ctx.beginPath();
-      let px = sw.x, py = H-85;
-      for(let r=-2; r<=2; r++) {
-        ctx.moveTo(px, py);
-        const rx = px + r * 15 + sway;
-        const ry = py - sw.h * 0.6;
-        ctx.quadraticCurveTo(px + r*5, py - sw.h*0.3, rx, ry);
-      }
-      ctx.strokeStyle = `hsla(${sw.hue}, ${sw.sat}%, 45%, 0.5)`;
-      ctx.lineWidth = 4; ctx.stroke();
-    }
-  }
+  if(isHarmony){ctx.fillStyle='rgba(251,191,36,.04)';ctx.fillRect(0,0,W,H);}
 
   for(const sw of seaweeds) { if(sw.z === 'back') drawFlora(sw); }
-
-  ctx.fillStyle = 'rgba(0,5,15,0.4)';
-  for(const f of fishList) {
-    const sSize = TYPES[f.type].sz * f.scale * (f.genes.szMod||1) * 0.85;
-    ctx.beginPath();
-    ctx.ellipse(f.x, H-80, sSize*1.2, sSize*0.4, 0, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // Breeding eggs — special, glowing, rare
-  for(const e of eggs){
-    const def = TYPES[e.type];
-    const pulse = 1 + Math.sin(time * 0.08) * 0.12;
-    const glow = Math.abs(Math.sin(time * 0.05));
-
-    // Outer glow aura
-    ctx.save();
-    ctx.translate(e.x, e.y);
-    ctx.globalAlpha = 0.18 + glow * 0.15;
-    ctx.beginPath(); ctx.ellipse(0, 0, 18, 22, 0, 0, Math.PI*2);
-    const auraColor = e.isRareMut ? '#c084fc' : e.genes.c1[0];
-    ctx.fillStyle = auraColor; ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // Egg body
-    ctx.scale(pulse, pulse);
-    ctx.beginPath(); ctx.ellipse(0, 0, 9, 12, 0, 0, Math.PI*2);
-    const eg = ctx.createRadialGradient(-2, -4, 1, 0, 0, 12);
-    eg.addColorStop(0, '#fff9');
-    eg.addColorStop(0.4, e.isRareMut ? '#e9d5ff' : '#fbcfe8');
-    eg.addColorStop(1, e.genes.c1[0]);
-    ctx.fillStyle = eg;
-    ctx.shadowBlur = 12; ctx.shadowColor = auraColor;
-    ctx.fill(); ctx.shadowBlur = 0;
-
-    // Sheen
-    ctx.beginPath(); ctx.ellipse(-3, -5, 3, 4, Math.PI/4, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
-    ctx.restore();
-
-    // Species label + rare badge above egg (rendered above front flora)
-  }
   
-  for(const s of snails){updateSnail(s);drawSnail(s);}
-
-  for(const c of clams){
-    c.timer++;ctx.save();ctx.translate(c.x, FOOD_FL(c.x) - 10);
-    
-    const breath = Math.sin(c.timer*.02);
-    let openAngle = Math.max(0, breath) * 0.4; 
-    const isPearling = (c.timer%4800 > 4600);
-    if(isPearling) openAngle = 0.8; 
-
-    ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,12,25,8,0,0,Math.PI*2);ctx.fill();
-
-    const sgB = ctx.createLinearGradient(0,10, 0,-10);
-    sgB.addColorStop(0, '#475569'); sgB.addColorStop(1, '#94a3b8');
-    ctx.fillStyle = sgB;
-    ctx.beginPath(); ctx.ellipse(0, 5, 20, 12, 0, 0, Math.PI*2); ctx.fill();
-    
-    const mg = ctx.createRadialGradient(0,0,0, 0,0,20);
-    mg.addColorStop(0, '#38bdf8'); mg.addColorStop(1, '#8b5cf6');
-    ctx.fillStyle = mg;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 18, 8 + openAngle*20, 0, 0, Math.PI*2); 
-    ctx.fill();
-
-    if(isPearling){
-      ctx.beginPath();ctx.arc(5, -openAngle*10, 6, 0, Math.PI*2);
-      ctx.fillStyle='#ffffff';ctx.shadowBlur=12;ctx.shadowColor='#38bdf8';ctx.fill();ctx.shadowBlur=0;
-      ctx.beginPath();ctx.arc(3, -openAngle*10 - 2, 2, 0, Math.PI*2);
-      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fill();
-    }
-
-    ctx.save();
-    ctx.translate(-16, 5); 
-    ctx.rotate(-openAngle); 
-    ctx.translate(16, -5);
-    
-    const sgT = ctx.createLinearGradient(0,10, 0,-15);
-    sgT.addColorStop(0, '#64748b'); sgT.addColorStop(1, '#f1f5f9');
-    ctx.fillStyle = sgT;
-    ctx.beginPath(); ctx.ellipse(0, -2, 22, 14, 0, 0, Math.PI*2); ctx.fill();
-    
-    ctx.strokeStyle = '#cbd5e144'; ctx.lineWidth = 2;
-    for(let i=-2; i<=2; i++) {
-        ctx.beginPath();
-        const ax = i*6;
-        ctx.moveTo(-16, 5);
-        ctx.quadraticCurveTo(ax, -10, ax+5, -14);
-        ctx.stroke();
-    }
-    ctx.restore();
-    ctx.restore();
-
-    if(c.timer%4800===0) {
-      addCoins(45, c.x, FOOD_FL(c.x)-30, true);
-      spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL!','#38bdf8',1.5);
-    }
+  ctx.fillStyle = 'rgba(0,5,15,0.35)';
+  for(const f of fishList) {
+    const sS = TYPES[f.type].sz * f.scale * (f.genes.szMod||1) * 0.85;
+    ctx.beginPath(); ctx.ellipse(f.x, H-80, sS*1.2, sS*0.4, 0, 0, Math.PI*2); ctx.fill();
   }
+
+  for(const e of eggs) drawEgg(e);
+  for(const s of snails){updateSnail(s);drawSnail(s);}
+  for(const c of clams) drawClam(c);
 
   for(let i=bubbles.length-1;i>=0;i--){
     const b=bubbles[i];b.y-=b.spd;b.x+=Math.sin(time*.004+b.ph)*.6;
     if(b.y<-10){bubbles.splice(i,1);continue;}
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
     let bcol = (curBubble === 'rainbow') 
-      ? `hsla(${(time*2 + b.x)%360}, 100%, 75%, ${b.life * 0.45})`
-      : BUBBLES[curBubble].col.replace('{a}', b.life * 0.45);
+      ? `hsla(${(time*2 + b.x)%360}, 100%, 75%, ${b.life * 0.4})`
+      : BUBBLES[curBubble].col.replace('{a}', b.life * 0.4);
     ctx.strokeStyle = bcol; ctx.stroke();
   }
   if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:2+Math.random()*5,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
@@ -2072,18 +1934,15 @@ try {
   for(let i=foodList.length-1;i>=0;i--){
     const fd=foodList[i];
     if(fd.eaten)fd.life-=.1;
-    else{
-      // methodic buoyancy: slow sink with gentle horizontal drift
+    else {
       fd.vy=Math.min(fd.vy+.002, 0.2);
       fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.015; 
       fd.x+=fd.vx; fd.y+=fd.vy;
-      if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
-      if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
-      if(fd.y>=FOOD_FL(fd.x)){fd.y=FOOD_FL(fd.x);fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
+      if(fd.y>=FOOD_FL(fd.x)){fd.y=FOOD_FL(fd.x);fd.vy=0;fd.vx=0;fd.life-=.002;}
     }
     if(fd.life<=0){foodList.splice(i,1);continue;}
     ctx.globalAlpha=Math.max(0,fd.life);
-    ctx.beginPath();ctx.ellipse(fd.x,fd.y,4.5,3.5,0,0,Math.PI*2);
+    ctx.beginPath();ctx.ellipse(fd.x,fd.y,4,3,0,0,Math.PI*2);
     ctx.fillStyle=UPGRADES.flakes.owned? ACCENTS[curAccent].hex :'#d4940a';ctx.fill();
     ctx.globalAlpha=1;
   }
@@ -2098,96 +1957,76 @@ try {
   for(const f of fishList){updateFish(f);drawFish(f);}
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
-  // Egg timers ABOVE flora
-  const now = Date.now();
-  for(const e of eggs){
-    if(e.hatchTime===undefined){e.hatchTime=now+(e.timer||0)*16.666;delete e.timer;}
-    const msLeft = Math.max(0, e.hatchTime - now);
-    const secs = Math.ceil(msLeft / 1000);
-    let str = '';
-    if(secs >= 3600) str = Math.floor(secs/3600) + 'h ' + Math.floor((secs%3600)/60) + 'm';
-    else if(secs >= 60) str = Math.floor(secs/60) + 'm ' + String(secs%60).padStart(2,'0') + 's';
-    else str = secs + 's';
-    ctx.font = 'bold 9px -apple-system, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(str, e.x, e.y - 14);
-    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(str, e.x, e.y - 15);
-  }
-
-  function drawSubstrate() {
-    const f = FLOORS[curFloor];
-    const by = H - 85; 
-    const getH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
-
-    ctx.fillStyle = f.c;
-    ctx.beginPath(); ctx.moveTo(-20, H + 5); ctx.lineTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.lineTo(W + 40, H + 5);
-    ctx.fill();
-
-    ctx.save();
-    ctx.clip();
-    
-    // Ambient depth shadow
-    const grad = ctx.createLinearGradient(0, by - 10, 0, H);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, by - 15, W, 150);
-
-    // Static pseudo-random texture (eliminates Math.random() flickering)
-    for(let i = 0; i < 400; i++) {
-       const r1 = (Math.sin(i * 12.9898) * 43758.5453) % 1;
-       const pr1 = r1 < 0 ? r1 + 1 : r1;
-       const r2 = (Math.cos(i * 78.233) * 43758.5453) % 1;
-       const pr2 = r2 < 0 ? r2 + 1 : r2;
-       
-       const gx = -20 + pr1 * (W + 40);
-       const gy = by + getH(gx) + pr2 * 110;
-
-       // Sand grains
-       ctx.fillStyle = `rgba(255,255,255,${0.02 + pr1 * 0.05})`;
-       ctx.fillRect(gx, gy, 1 + pr2 * 1.5, 1 + pr2 * 1.5);
-       
-       // Pebbles & Rocks
-       if(i % 12 === 0) {
-         ctx.fillStyle = pr2 > 0.5 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)';
-         ctx.beginPath(); ctx.arc(gx, gy, 2 + pr1 * 4, 0, Math.PI * 2); ctx.fill();
-         // Pebble highlight for 3D depth
-         ctx.fillStyle = 'rgba(255,255,255,0.12)';
-         ctx.beginPath(); ctx.arc(gx - 1, gy - 1, 1 + pr1, 0, Math.PI * 2); ctx.fill();
-       }
-    }
-    ctx.restore();
-
-    // Top rim highlight
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.stroke();
-    
-    // Bottom inset shadow for rim
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20) + 1.5);
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
-    ctx.stroke();
-  }
   drawSubstrate();
 
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
 
   requestAnimationFrame(loop);
-} catch(crashError) {
+} catch(err) {
   if(!window.crashedAlready) {
     window.crashedAlready=true;
-    const errBox = document.createElement('div');
-    errBox.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;background-clip:padding-box;';
-    errBox.innerHTML = '<h2>LOOP CRASH</h2>' + crashError.message + '<br><br>' + crashError.stack;
-    document.body.appendChild(errBox);
+    const eb = document.createElement('div');
+    eb.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
+    eb.innerHTML = '<h2>LOOP CRASH</h2>' + err.message + '<br><br>' + err.stack;
+    document.body.appendChild(eb);
   }
 }
+}
+
+function drawClam(c) {
+    c.timer++;ctx.save();ctx.translate(c.x, FOOD_FL(c.x) - 10);
+    const breath = Math.sin(c.timer*.02);
+    let oa = Math.max(0, breath) * 0.4; 
+    const ip = (c.timer%4800 > 4600);
+    if(ip) oa = 0.8; 
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,12,25,8,0,0,Math.PI*2);ctx.fill();
+    const sB = ctx.createLinearGradient(0,10, 0,-10);
+    sB.addColorStop(0, '#475569'); sB.addColorStop(1, '#94a3b8');
+    ctx.fillStyle = sB;
+    ctx.beginPath(); ctx.ellipse(0, 5, 20, 12, 0, 0, Math.PI*2); ctx.fill();
+    const mg = ctx.createRadialGradient(0,0,0, 0,0,20);
+    mg.addColorStop(0, '#38bdf8'); mg.addColorStop(1, '#8b5cf6');
+    ctx.fillStyle = mg;
+    ctx.beginPath(); ctx.ellipse(0, 0, 18, 8 + oa*20, 0, 0, Math.PI*2); ctx.fill();
+    if(ip){
+      ctx.beginPath();ctx.arc(5, -oa*10, 6, 0, Math.PI*2);
+      ctx.fillStyle='#ffffff';ctx.shadowBlur=12;ctx.shadowColor='#38bdf8';ctx.fill();ctx.shadowBlur=0;
+    }
+    ctx.save();
+    ctx.translate(-16, 5); ctx.rotate(-oa); ctx.translate(16, -5);
+    const sT = ctx.createLinearGradient(0,10, 0,-15);
+    sT.addColorStop(0, '#64748b'); sT.addColorStop(1, '#f1f5f9');
+    ctx.fillStyle = sT; ctx.beginPath(); ctx.ellipse(0, -2, 22, 14, 0, 0, Math.PI*2); ctx.fill();
+    ctx.restore(); ctx.restore();
+    if(c.timer%4800===0) { addCoins(45, c.x, FOOD_FL(c.x)-30, true); spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL!','#38bdf8',1.5); }
+}
+
+function drawEgg(e) {
+    const pulse = 1 + Math.sin(time * 0.08) * 0.12, glow = Math.abs(Math.sin(time * 0.05));
+    ctx.save(); ctx.translate(e.x, e.y);
+    ctx.globalAlpha = 0.15 + glow * 0.15;
+    ctx.beginPath(); ctx.ellipse(0, 0, 18, 22, 0, 0, Math.PI*2);
+    const ac = e.isRareMut ? '#c084fc' : e.genes.c1[0];
+    ctx.fillStyle = ac; ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.scale(pulse, pulse);
+    ctx.beginPath(); ctx.ellipse(0, 0, 9, 12, 0, 0, Math.PI*2);
+    const eg = ctx.createRadialGradient(-2, -4, 1, 0, 0, 12);
+    eg.addColorStop(0, '#fff9'); eg.addColorStop(0.4, e.isRareMut ? '#e9d5ff' : '#fbcfe8'); eg.addColorStop(1, e.genes.c1[0]);
+    ctx.fillStyle = eg; ctx.shadowBlur = 12; ctx.shadowColor = ac;
+    ctx.fill(); ctx.shadowBlur = 0;
+    ctx.restore();
+    
+    // Egg timer
+    const now = Date.now();
+    if(e.hatchTime===undefined){e.hatchTime=now+(e.timer||0)*16.666;delete e.timer;}
+    const msL = Math.max(0, e.hatchTime - now);
+    const sc = Math.ceil(msL / 1000);
+    let str = sc >= 3600 ? Math.floor(sc/3600) + 'h ' + Math.floor((sc%3600)/60) + 'm' : (sc >= 60 ? Math.floor(sc/60) + 'm ' + String(sc%60).padStart(2,'0') + 's' : sc + 's');
+    ctx.font = 'bold 9px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillText(str, e.x, e.y - 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(str, e.x, e.y - 15);
 }
 
 // INPUT & INTERACTION
@@ -2740,7 +2579,7 @@ function buildSocial(){
     <div class="ocard" style="border:2px solid rgba(239,68,68,0.25); background:rgba(239,68,68,0.05); margin-bottom:15px;">
       <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otier" style="background:rgba(239,68,68,0.2); color:#fca5a5;">SYSTEM</div>
-        <div class="otitle" style="font-size:13px;">Save Data (v2.1.13)</div>
+        <div class="otitle" style="font-size:13px;">Save Data (v2.1.14)</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
         <div style="font-size:10px; color:#94a3b8; line-height:1.4;">Progress is saved locally.<br>Take care of your fish!</div>
@@ -2804,6 +2643,14 @@ function buildSocial(){
           <input type="checkbox" id="cfg-tut" ${sm.hidePopups?'checked':''} onchange="sm.hidePopups=this.checked;saveGame();" style="width:16px;height:16px;accent-color:var(--ui-accent);">
           Hide Tutorial & Achievement Popups
         </label>
+        <div style="display:flex; align-items:center; justify-content:space-between; color:var(--text-main); font-size:12px; margin-top:5px;">
+           <span>Target Frame Rate</span>
+           <select id="fps-sel" onchange="targetFPS=parseInt(this.value);saveGame();" style="background:var(--dash-bg); border:1px solid var(--border); color:var(--text-main); border-radius:6px; padding:2px 8px; outline:none; font-size:11px;">
+             <option value="30" ${targetFPS===30?'selected':''}>30 FPS</option>
+             <option value="60" ${targetFPS===60?'selected':''}>60 FPS</option>
+             <option value="120" ${targetFPS===120?'selected':''}>120 FPS</option>
+           </select>
+        </div>
       </div>
       <div style="display:flex; gap:10px; margin-top:15px;">
         <button onclick="exportSave()" class="cbtn" style="flex:1; background:var(--dash-bg); border:1px solid var(--border); color:var(--text-main); font-weight:600;">Export Save</button>
