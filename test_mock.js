@@ -1717,7 +1717,7 @@ try {
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
       fd.vy=Math.min(fd.vy+.002, 0.2);
-      fd.vx=(fd.vx*0.95) + (Math.random()-0.5)*0.050; 
+      fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.050; 
       fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
       if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
@@ -1836,7 +1836,7 @@ try {
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
-    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*16,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*8,vx:(Math.random()-.5)*0.6,vy:0.4,life:1,eaten:false});
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*16,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*8,vx:(Math.random()-.5)*1.2,vy:0.4,life:1,eaten:false});
   }
 }
 
