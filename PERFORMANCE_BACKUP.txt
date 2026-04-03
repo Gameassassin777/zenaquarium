@@ -1,0 +1,43 @@
+// ZenAquarium v2.1.14 Performance Engine Backup
+// This file contains the optimized loop logic that was reverted for stability.
+
+/*
+let targetFPS = 120, lastFrameTime = 0, lastEcoTime = 0;
+let cachedTheme = null, cachedWaterGrad = null, lastGradAlgae = -1, lastGradTheme = '';
+
+function refreshThemeCache() {
+  const root = document.documentElement;
+  const top = getComputedStyle(root).getPropertyValue('--water-top').trim();
+  const bot = getComputedStyle(root).getPropertyValue('--water-bot').trim();
+  if(!cachedTheme || cachedTheme.top !== top || cachedTheme.bot !== bot) {
+    cachedTheme = { top, bot };
+    cachedWaterGrad = null; // Invalidate cache
+  }
+}
+
+function loop(timestamp){
+  if (!timestamp) timestamp = performance.now();
+  const msPerFrame = 1000 / targetFPS;
+  const elapsed = timestamp - lastFrameTime;
+  if(elapsed < msPerFrame) {
+    requestAnimationFrame(loop);
+    return;
+  }
+  lastFrameTime = timestamp - (elapsed % msPerFrame);
+  
+  if(timestamp - lastEcoTime >= 16.66) {
+    lastEcoTime = timestamp;
+    updateEco();
+  }
+
+  // Gradient Caching
+  if(!cachedWaterGrad || lastGradAlgae !== Math.round(algae) || lastGradTheme !== curTheme) {
+     // ... build gradient ...
+     cachedWaterGrad = g;
+  }
+  ctx.fillStyle = cachedWaterGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // ... rest of loop ...
+}
+*/

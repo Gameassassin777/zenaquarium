@@ -107,7 +107,7 @@ document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
-document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.14';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.15';
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 document.querySelectorAll('.xbtn').forEach(b => b.innerHTML = ICONS.close);
@@ -799,10 +799,10 @@ function triggerEat(f,fd,def){
   const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
   const total = Math.ceil(def.val * cm * cappedMult);
   if (total > 0) {
-    if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
+    if (isBredGold) (typeof spawnJuice === 'function') && spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
   }
-  else spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
+  else (typeof spawnJuice === 'function') && spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
 }
 
 function updateFish(f){
