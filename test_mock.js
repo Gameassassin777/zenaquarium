@@ -742,7 +742,7 @@ function updateEco(){
   if(time%15===0){
     const wq=Math.floor(100-algae);
     document.getElementById('wv').textContent=wq+'%';
-    document.getElementById('wvc').className='sval '+(wq<50?'vw':isHarmony?'vg':'');
+    document.getElementById('wvc').className='sval '+(wq<30?'v-warn':isHarmony?'v-harmony':'v-good');
     const d=document.getElementById('mdash');
     if(isHarmony)d.classList.add('harmony');else d.classList.remove('harmony');
   }
@@ -1716,9 +1716,11 @@ try {
     if(fd.eaten)fd.life-=.1;
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
-      fd.vy=Math.min(fd.vy+.006,0.5);
-      fd.vx=(Math.sin(time*0.03 + fd.y*0.1)*0.2) + (fd.vx*0.98); 
+      fd.vy=Math.min(fd.vy+.002, 0.2);
+      fd.vx=(fd.vx*0.95) + (Math.random()-0.5)*0.012; 
       fd.x+=fd.vx; fd.y+=fd.vy;
+      if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
+      if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
       if(fd.y>=FOOD_FL(fd.x)){fd.y=FOOD_FL(fd.x);fd.vy=0;fd.vx=0;fd.life-=.002;if(Math.random()<.05)algae=Math.min(100,algae+.1);}
     }
     if(fd.life<=0){foodList.splice(i,1);continue;}
@@ -1834,7 +1836,7 @@ try {
 function dropFood(x,y) {
   if(foodList.length<fishList.length*5+10){
     const n=UPGRADES.flakes.owned?2:1;
-    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*20,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*10,vx:(Math.random()-.5)*2,vy:-1,life:1,eaten:false});
+    for(let i=0;i<n;i++)foodList.push({x:x+(Math.random()-.5)*16,y:Math.max(40,Math.min(y,H-85))+(Math.random()-.5)*8,vx:(Math.random()-.5)*0.6,vy:0.4,life:1,eaten:false});
   }
 }
 
