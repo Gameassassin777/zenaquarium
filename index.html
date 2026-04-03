@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.11 - Premium Gold & Physics Tuning -->
+<!-- ZenAquarium v2.1.13 - Stability & Feature Fixes -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.11</title>
+<title>Zen Aquarium v2.1.13</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -108,9 +108,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   .hbtn { padding: 6px 10px; font-size: 11px; gap:3px; }
 }
 
-#combo-ui{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,0.6);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;background:none!important;backdrop-filter:none!important;border:none!important;}
+#combo-ui{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,0.4);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;background:none!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;}
 #combo-ui.on{transform:translateX(-50%) scale(1);opacity:1;}
-.cbar{width:100%;height:3px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:4px;}
+.cbar{width:100%;height:3px;background:rgba(255,255,255,0.06) !important;border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
 .xpb{width:100%;height:3px;background:rgba(0,0,0,0.12);border-radius:2px;margin-top:5px;overflow:hidden;position:absolute;bottom:0px;left:0;}
 .xpf{height:100%;background:var(--ui-accent);width:0%;transition:width 0.45s cubic-bezier(.4,1.8,.6,1);}
@@ -343,7 +343,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.13</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -522,6 +522,7 @@ const maxLevel=50;
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
+const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
@@ -867,10 +868,11 @@ function applyState(s){
 
 // Abbreviate large numbers for HUD display
 function formatCoins(n) {
-  if(n >= 1e9) return (n/1e9).toFixed(1) + 'B';
-  if(n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-  if(n >= 1e3) return (n/1e3).toFixed(1) + 'K';
-  return Math.floor(n);
+  if (n === undefined || isNaN(n)) return "0";
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+  return Math.floor(n).toLocaleString('en-US');
 }
 
 function updateHUD(){
@@ -917,8 +919,8 @@ function calcOffline(s){
 
 function showWelcome(r){
   document.getElementById('wtime').textContent=`Away for ${r.timeStr} — here's what you earned:`;
-  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${it.coins}</span></div>`).join('');
-  document.getElementById('wtotal').innerHTML= ICONS.coin + r.total;
+  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${formatCoins(it.coins)}</span></div>`).join('');
+  document.getElementById('wtotal').innerHTML= ICONS.coin + formatCoins(r.total);
   offlinePend=r;
   document.getElementById('wmodal').classList.add('show');
 }
@@ -938,7 +940,7 @@ function needsDaily(){
 function showDailyModal(){
   const idx=Math.min(dailyStreak,DR.length-1);
   document.getElementById('dday').textContent=dailyStreak+1;
-  document.getElementById('damt').textContent=DR[idx];
+  document.getElementById('damt').textContent=formatCoins(DR[idx]);
   document.getElementById('sdots').innerHTML=DR.map((_,i)=>`<div class="sd ${i<dailyStreak?'done':''} ${i===idx?'today':''}"></div>`).join('');
   document.getElementById('dmodal').classList.add('show');
 }
@@ -1024,7 +1026,7 @@ function buildMarket() {
         </div>
       </div>
       <div class="ofoot">
-        <span class="m-price">${ICONS.coin}${price}</span>
+        <span class="m-price">${ICONS.coin}${formatCoins(price)}</span>
         <button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b); min-width:80px;" onclick="sellFish(${f.id}, ${price})">Sell</button>
       </div></div>`;
   }).join('');
@@ -1054,7 +1056,8 @@ function sellFish(id, price) {
   fishList.splice(idx, 1);
   sm.marketSales = (sm.marketSales || 0) + 1;
   updateHUD();
-  buildMarket();
+  if(currentTab === 'market') buildMarket();
+  if(currentTab === 'finder') buildFishFinder();
   saveGame();
 }
 
@@ -1378,7 +1381,7 @@ function drawFish(f){
   const paddle = Math.sin(time*ts*3+f.id)*s*.15; 
   const br=1+Math.sin(time*.05+f.id)*.03;
   
-  const fs = f.scale * (f.genes.szMod||1);
+  const fs = f.scale * (f.genes.szMod||1) * getGlobalLevelScale();
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
   
   if(f.hunger<25){
@@ -1810,7 +1813,7 @@ try {
     ctx.fillRect(0, 0, W, H);
   }
   if(!W || !H) resize();
-  time++;updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
+  updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
   let theme = THEMES[curTheme] || THEMES['default'];
   if(curTheme === 'default') {
@@ -2059,7 +2062,10 @@ try {
     const b=bubbles[i];b.y-=b.spd;b.x+=Math.sin(time*.004+b.ph)*.6;
     if(b.y<-10){bubbles.splice(i,1);continue;}
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(255,255,255,${b.life*.45})`;ctx.stroke();
+    let bcol = (curBubble === 'rainbow') 
+      ? `hsla(${(time*2 + b.x)%360}, 100%, 75%, ${b.life * 0.45})`
+      : BUBBLES[curBubble].col.replace('{a}', b.life * 0.45);
+    ctx.strokeStyle = bcol; ctx.stroke();
   }
   if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:2+Math.random()*5,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
 
@@ -2069,7 +2075,7 @@ try {
     else{
       // methodic buoyancy: slow sink with gentle horizontal drift
       fd.vy=Math.min(fd.vy+.002, 0.2);
-      fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.050; 
+      fd.vx=(fd.vx*0.98) + (Math.random()-0.5)*0.015; 
       fd.x+=fd.vx; fd.y+=fd.vy;
       if(fd.x < 10){ fd.x = 10; fd.vx *= -0.5; }
       if(fd.x > W-10){ fd.x = W-10; fd.vx *= -0.5; }
@@ -2261,9 +2267,9 @@ function spawnJuice(x,y,html,color,scale=1){
 }
 function addCoins(amt,x,y,bonus=false){
   coins+=amt;totalCoins+=amt;
-  document.getElementById('cv').textContent=coins;
+  document.getElementById('cv').textContent=formatCoins(coins);
   checkLevel();
-  spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
+  spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const LEVEL_THRESHOLDS=[0,5000,15000,45000,120000,350000,1200000,4000000,15000000,50000000];
 function checkLevel(){
@@ -2385,7 +2391,7 @@ function buildFishFinder() {
 
     html += `
       <div class="f-row" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; gap:8px; justify-content:flex-end;">
-        <button class="cbtn2" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444; padding:6px 12px; font-size:11px;" onclick="sellFish(${f.id}, getPrice(f))">Sell</button>
+        <button class="cbtn2" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444; padding:6px 12px; font-size:11px;" onclick="sellFish(${f.id}, ${getPrice(f)})">Sell</button>
       </div>
     </div>`;
     return html;
@@ -2651,7 +2657,7 @@ function buildShop(){
     
     const c=document.createElement('div');
     c.className=`card${can?' buyable':''}${full?' full':''}`;
-    c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${Math.floor(u.val*marketRates[id])}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${price}</span><span class="cown">owned:${owned}</span>`;
+    c.innerHTML=`${surgingType===id?`<div style="position:absolute;top:0;right:0;background:var(--ui-accent);color:white;font:bold 9px sans-serif;padding:1px 4px;border-radius:0 8px 0 8px;z-index:2;box-shadow:0 0 10px rgba(var(--ui-accent-rgb),0.5)">SURGE!</div>`:''}<span class="ci" style="color:${u.c1}">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">Profit: ${ICONS.coin}${formatCoins(Math.floor(u.val*marketRates[id]))}</span><span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(price)}</span><span class="cown">owned:${owned}</span>`;
     if(can)c.onclick=()=>{
       coins-=price; sm.coinsSpent=(sm.coinsSpent||0)+price; boughtCounts[id]++; 
       document.getElementById('cv').textContent=formatCoins(coins);buySpawnBaby(id);
@@ -2664,10 +2670,10 @@ function buildShop(){
     const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
     const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
     c.setAttribute('data-req',u.req);
-    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${u.cost}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
+    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
     if(can)c.onclick=()=>{
       coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++; 
-      document.getElementById('cv').textContent=coins;
+      document.getElementById('cv').textContent=formatCoins(coins);
       if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
       if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
@@ -2722,9 +2728,9 @@ function redeemCode(raw){
     claimedCodes.add(code);codesRedeemed++;
     const r=100+Math.floor(Math.random()*101);
     addCoins(r,W/2,H/3,true);
-    toast(ICONS.social + ` Gift received! +${r}`,'#10b981');
+    toast(ICONS.social + ` Gift received! +${formatCoins(r)}`,'#10b981');
     document.getElementById('codein').value='';
-    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${r} coins`;
+    document.getElementById('soclog').innerHTML=`${ICONS.done} Redeemed ${code} for +${formatCoins(r)} coins`;
     saveGame();buildSocial();
   }else{toast('Invalid code format!','#ef4444');}
 }
@@ -2734,7 +2740,7 @@ function buildSocial(){
     <div class="ocard" style="border:2px solid rgba(239,68,68,0.25); background:rgba(239,68,68,0.05); margin-bottom:15px;">
       <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border)">
         <div class="otier" style="background:rgba(239,68,68,0.2); color:#fca5a5;">SYSTEM</div>
-        <div class="otitle" style="font-size:13px;">Save Data (v2.1.11)</div>
+        <div class="otitle" style="font-size:13px;">Save Data (v2.1.13)</div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
         <div style="font-size:10px; color:#94a3b8; line-height:1.4;">Progress is saved locally.<br>Take care of your fish!</div>
@@ -3131,7 +3137,7 @@ function buildOrders() {
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const rewHtml=o.ftyperew&&TYPES[o.ftyperew]
       ?`<span style="display:flex;align-items:center;gap:3px;color:var(--tier-legend); font-weight:bold;">${ICONS.egg} Unlocks ${TYPES[o.ftyperew].name} ${o.rewardIsRare?'(Rare) ':''}${o.reward>0?' + '+ICONS.coin+o.reward:''}</span>`
-      :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span>`;
+      :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${formatCoins(o.reward)}</span>`;
 
     const btnText = o.claimed 
       ? (ICONS.done + ' Done') 
