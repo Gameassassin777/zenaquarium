@@ -421,7 +421,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.36';
+const CUR_VER = '2.1.37';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -584,6 +584,7 @@ function setAccent(idx) {
 
 function initSwatches() {
   const c = document.getElementById('swatches');
+  if(!c) return;
   c.innerHTML = ACCENTS.map((a, i) => `<div class="swatch ${i==curAccent?'active':''}" style="background:${a.hex}; color:${a.hex}" onclick="setAccent(${i})"></div>`).join('');
   setAccent(curAccent);
 }
@@ -1953,7 +1954,10 @@ try {
   const ticks = Math.floor(_dtAcc / 16.666); // 60fps = 16.666ms per tick
   _dtAcc -= ticks * 16.666;
   
-  if(!W || !H) resize();
+  if(!W || !H) {
+  resize();
+  if(!W || !H) { requestAnimationFrame(loop); return; }
+}
 
   for(let i=0; i<ticks; i++){
     time++;
@@ -3699,17 +3703,14 @@ function setupDrag(id) {
 
 function BOOT_APP() {
   if(_stopBoot) return;
-  try {
-    initSwatches();
-    resize();
-    initDecor();
-    const s = loadSave();
-    if(s) applyState(s);
-    buildOrders();
-    updateHUD();
-    ['mpanel','dpanel','spanel','opanel','socpanel','fpanel'].forEach(setupDrag);
-    requestAnimationFrame(loop);
-  } catch(e) { console.error("BOOT_APP failed:", e); }
+  requestAnimationFrame(loop);
+  try { initSwatches(); } catch(e) { console.error("BOOT: initSwatches failed:", e); }
+  try { resize(); } catch(e) { console.error("BOOT: resize failed:", e); }
+  try { initDecor(); } catch(e) { console.error("BOOT: initDecor failed:", e); }
+  try { const s = loadSave(); if(s) applyState(s); } catch(e) { console.error("BOOT: loadSave/applyState failed:", e); }
+  try { buildOrders(); } catch(e) { console.error("BOOT: buildOrders failed:", e); }
+  try { updateHUD(); } catch(e) { console.error("BOOT: updateHUD failed:", e); }
+  try { ['mpanel','dpanel','spanel','opanel','socpanel','fpanel'].forEach(setupDrag); } catch(e) { console.error("BOOT: setupDrag failed:", e); }
 }
 BOOT_APP();
 </script>
