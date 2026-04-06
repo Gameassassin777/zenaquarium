@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.30 - Remote Update Sync -->
+<!-- ZenAquarium v2.1.31 - Stability & Physics Fix -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.30 | Update Sync</title>
+<title>Zen Aquarium v2.1.31 | Stability Fix</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -72,7 +72,7 @@
   #nav { background: #000 !important; }
 }
 
-html, body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#001428;font-family:'Outfit','Inter',sans-serif;user-select:none;-webkit-tap-highlight-color:transparent;}
 canvas{position:absolute;inset:0;width:100%;height:100%;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
@@ -142,11 +142,30 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nebula-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.1), transparent 70%);pointer-events:none;animation:nebulaPulse 4s infinite alternate;}
 @keyframes nebulaPulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.6; transform: scale(1.1); } }
 
-.panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-top:1px solid var(--border);border-radius:32px 32px 0 0;padding:24px 20px 0;z-index:21;transform:translateY(102%);transition:transform .55s cubic-bezier(.34, 1.56, .64, 1), height .55s cubic-bezier(.34, 1.56, .64, 1);height:54dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -10px 50px rgba(0,0,0,0.3);will-change:transform;}
+.panel {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--panel-bg); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
+  border-top:1px solid var(--border); border-radius:32px 32px 0 0;
+  padding:24px 20px 0; z-index:21;
+  transform:translateY(100%) translateZ(0); /* Optimized initial position */
+  opacity: 0; filter: blur(4px); /* Smoothed entrance */
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, height 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  height:75dvh; display:flex; flex-direction:column; pointer-events:none;
+  box-shadow:0 -10px 50px rgba(0,0,0,0.3);
+  will-change:transform, opacity, height;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.panel.open { 
+  transform:translateY(0) translateZ(0); 
+  pointer-events:auto; height:82dvh; opacity:1; filter: none;
+}
+.panel.full { 
+  transform:translateY(0) translateZ(0);
+  pointer-events:auto; height:94dvh; opacity:1; filter:none; 
+  background:rgba(10,18,32,0.9);
+}
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
-.panel.open{transform:translateY(0);pointer-events:auto;height:82dvh;opacity:1;filter:none;}
-.panel.full{transform:translateY(0);pointer-events:auto;height:94dvh;opacity:1;filter:none;background:rgba(10,18,32,0.9);}
 .panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
 .pt{color:var(--text-main);font-size:22px;font-weight:900; display:flex; align-items:center; gap:8px; text-shadow:0 0 16px rgba(var(--ui-accent-rgb),.3);}
@@ -370,7 +389,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.30</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.31</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -403,8 +422,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.30';
+const CUR_VER = '2.1.31';
 function setupPWA(){
+  const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
@@ -412,16 +432,15 @@ function setupPWA(){
   const last_v = localStorage.getItem('zen_v');
   
   // ── REMOTE VERSION SYNC (Look-ahead) ──
-  // This background check ensures that even aggressively-cached PWAs see new updates
-  if(navigator.onLine && Math.random() < 0.3) {
+  if(isRemote && navigator.onLine && Math.random() < 0.25) {
     fetch(location.href + '?sync=' + Date.now(), { cache:'no-store' })
       .then(r => r.text())
       .then(txt => {
         const match = txt.match(/const CUR_VER = ['"](.*?)['"]/);
         if(match && match[1] && match[1] !== CUR_VER) {
-           console.warn(`[Sync] Remote version newer: ${match[1]}. Triggering sync...`);
-           localStorage.setItem('zen_v', CUR_VER); // Prepare local for the transition
-           setTimeout(() => location.reload(true), 2000); // Delayed reload to show final UI
+           console.warn(`[ZenUpdate] Remote version newer: ${match[1]}. Syncing...`);
+           localStorage.setItem('zen_v', CUR_VER); 
+           setTimeout(() => location.reload(true), 1500); 
         }
       }).catch(()=>{});
   }
@@ -431,9 +450,7 @@ function setupPWA(){
     console.warn(`[ZenUpdate] Version mismatch: ${last_v} -> ${CUR_VER}. Forcing refresh...`);
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(rs => {
-        Promise.all(rs.map(r => r.unregister())).then(() => {
-          setTimeout(() => location.reload(true), 250);
-        });
+        Promise.all(rs.map(r => r.unregister())).then(() => location.reload(true));
       }).catch(() => location.reload(true));
     } else {
       location.reload(true);
@@ -444,7 +461,11 @@ function setupPWA(){
   return false;
 }
 const _stopBoot = setupPWA();
-if (_stopBoot) throw "[ZenUpdate] Reloading app...";
+if (_stopBoot) {
+  document.body.style.background = '#001428';
+  console.log("[ZenUpdate] Reloading app for version v"+CUR_VER);
+}
+// Note: Boot side-effects are now wrapped in BOOT_APP() at the bottom.
 
 // SVG ICON LIBRARY (full)
 const svg = (path, v='0 0 24 24') => `<svg viewBox="${v}" fill="currentColor">${path}</svg>`;
@@ -554,7 +575,7 @@ function initSwatches() {
   c.innerHTML = ACCENTS.map((a, i) => `<div class="swatch ${i==curAccent?'active':''}" style="background:${a.hex}; color:${a.hex}" onclick="setAccent(${i})"></div>`).join('');
   setAccent(curAccent);
 }
-initSwatches();
+// initSwatches moved to BOOT_APP
 
 // CANVAS & GLOBALS
 // CANVAS & GLOBALS
@@ -591,7 +612,7 @@ function resize(){
   // ── PERF: Invalidate caches on resize ──
   _substrateDirty=true; _waterGrad=null; _rayGrads=null;
 }
-resize();
+// resize and initDecor moved to BOOT_APP
 window.addEventListener('resize',()=>{resize();initDecor();});
 window.addEventListener('orientationchange',()=>{ setTimeout(()=>{ resize(); initDecor(); }, 200); });
 
@@ -1264,9 +1285,8 @@ function updateFish(f){
   const def=TYPES[f.type];
   const trait = f.genes.trait[0];
   
-  // ── PERF: Accumulated phase for smoother, grounded animations ──
-  // Base speeds are now slower for a more zen experience
-  const ts = (f.hunger < 30 ? 0.15 : 0.08) + (f.eat > 0 ? 0.15 : 0) + Math.abs(f.vx) * 0.04;
+  // ── PERF: Grounded Fin Phase: baseline oscillation + damped velocity factor
+  const ts = (f.hunger < 30 ? 0.12 : 0.08) + (f.eat > 0 ? 0.12 : 0) + Math.min(0.20, Math.abs(f.vx) * 0.03);
   f.phase += ts;
   f.timer++;
   if(f.eat>0)f.eat--;
@@ -3628,10 +3648,23 @@ function resetSave(){
      questStreak=0; currentOrders=[]; completedOrders=0; codesRedeemed=0;
      Object.values(UPGRADES).forEach(u=>u.owned=0);
      saveGame();
-     location.reload(true);
+     location.reload();
   }
 }
 
+// ── BOOT ENTRY POINT ──
+function BOOT_APP() {
+  if(_stopBoot) return;
+  try {
+    initSwatches();
+    resize();
+    initDecor();
+    // ... any other initialization calls ...
+    loadGame();
+    requestAnimationFrame(loop);
+  } catch(e) { console.error("BOOT_APP failed:", e); }
+}
+BOOT_APP();
 </script>
 </body>
 </html>
