@@ -1,13 +1,16 @@
-<!-- ZenAquarium v2.1.13 - Stability & Feature Fixes -->
+<!-- ZenAquarium v2.1.17 - Performance Optimized -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.13</title>
+<title>Zen Aquarium v2.1.17 | Performance Optimized</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -343,7 +346,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.13</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.17</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -376,19 +379,33 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
+const CUR_VER = '2.1.17';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
+  // Force Update Logic
+  const last_v = localStorage.getItem('zen_v');
+  if(last_v && last_v !== CUR_VER) {
+    localStorage.setItem('zen_v', CUR_VER);
+    // Unregister everything and reload
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        for(let r of rs) r.unregister();
+        location.reload(true);
+      });
+    } else {
+      location.reload(true);
+    }
+    return;
+  }
+  localStorage.setItem('zen_v', CUR_VER);
+
   // Unregister old problematic service workers to fix caching issues
   if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        registration.unregister();
-      }
-    }).catch(function(err) {
-      console.log('SW Unregistration failed: ', err);
+      for(let registration of registrations) registration.unregister();
     });
   }
 }
@@ -513,6 +530,8 @@ function resize(){
   const d=window.devicePixelRatio||1;
   cv.width=W*d;cv.height=H*d;
   ctx.scale(d,d);
+  // ── PERF: Invalidate caches on resize ──
+  _substrateDirty=true; _waterGrad=null; _rayGrads=null;
 }
 resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
@@ -528,6 +547,13 @@ let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
 for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200,s:0.5+Math.random()*1.8,o:0.15+Math.random()*0.4,v:0.15+Math.random()*0.3});
 let time=0,fid=0,algae=0,baseMaxFish=8;
+// ── PERF: Delta-time for framerate-independent animation ──
+let _lastFrame=0, _dtAcc=0;
+// ── PERF: Offscreen caches ──
+let _substrateCanvas=null, _substrateDirty=true;
+let _waterGrad=null, _waterGradAlgae=-1, _waterGradTheme='';
+let _rayGrads=null, _rayW=0, _rayH=0;
+let _loopRunning=true;
 let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
@@ -1140,15 +1166,21 @@ function triggerEat(f,fd,def){
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.15 : 1;
   const flakesMult = UPGRADES.flakes.owned > 0 ? 1.5 : 1;
   const harmonyMult= isHarmony ? 1.3 : 1;
-  const goldMult   = isGold ? 1.3 : 1;
+  let goldMult   = isGold ? 1.3 : 1;
+  const isBredGold = isGold && f.isRare;
+  if (isBredGold) goldMult = 20;
   
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
   const algaePen   = Math.max(0, (90 - algae) / 90);
   
   const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen;
-  const cappedMult = Math.min(rawMult, 2.5); // cap total multiplier at 2.5x
+  // If it's a Legendary (Bred Gold), we bypass the 2.5x cap to allow the full 20x+ bonus
+  const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
   const total = Math.ceil(def.val * cm * cappedMult);
-  if (total > 0) addCoins(total,f.x,f.y,isHarmony || f.bonded>0 || isGold);
+  if (total > 0) {
+    if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
+    addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
+  }
   else spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
 }
 
@@ -1796,59 +1828,58 @@ window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', re
 refreshThemeCache();
 
 // GAME LOOP
-function loop(){
+function loop(frameTs){
 try {
-  time++;
-  
-  // Theme-aware Water Background (Performance Optimized)
-  if(!cachedTheme) refreshThemeCache();
-  const wGrad = ctx.createLinearGradient(0, 0, 0, H);
-  wGrad.addColorStop(0, cachedTheme.top); wGrad.addColorStop(1, cachedTheme.bot);
-  ctx.fillStyle = wGrad; ctx.fillRect(0, 0, W, H);
+  if(!_loopRunning){requestAnimationFrame(loop);return;}
+  // ── PERF: Delta-time ── advance `time` at a consistent 60fps-equivalent rate
+  if(!frameTs) frameTs = performance.now();
+  if(!_lastFrame) _lastFrame = frameTs;
+  const dtMs = Math.min(frameTs - _lastFrame, 50); // cap at 50ms to avoid spiral
+  _lastFrame = frameTs;
+  _dtAcc += dtMs;
+  const ticks = Math.floor(_dtAcc / 16.666); // 60fps = 16.666ms per tick
+  _dtAcc -= ticks * 16.666;
+  time += ticks || 1; // always advance at least 1 to avoid freezes
 
-  // Distant murkiness overlay
-  if(algae > 10) {
-    const darkness = Math.min(0.2, (algae - 10) * 0.002);
-    ctx.fillStyle = `rgba(34,139,34,${darkness})`;
-    ctx.fillRect(0, 0, W, H);
-  }
   if(!W || !H) resize();
   updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
-  let theme = THEMES[curTheme] || THEMES['default'];
-  if(curTheme === 'default') {
-    const hr = new Date().getHours();
-    const isDay = hr >= 7 && hr < 19;
-    if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
+  // ── PERF: Cached water gradient (only rebuild when algae or theme changes) ──
+  const algaeInt = Math.floor(algae);
+  if(!_waterGrad || algaeInt !== _waterGradAlgae || curTheme !== _waterGradTheme) {
+    _waterGradAlgae = algaeInt;
+    _waterGradTheme = curTheme;
+    _waterGrad = ctx.createLinearGradient(0,0,0,H);
+    let theme = THEMES[curTheme] || THEMES['default'];
+    if(curTheme === 'default') {
+      const hr = new Date().getHours();
+      const isDay = hr >= 7 && hr < 19;
+      if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
+    }
+    const dirtyPct = Math.min(1, algae / 100);
+    const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
+    if(curTheme === 'default') {
+      const phase2 = Math.min(1, dirtyPct * 2);
+      const phase1 = Math.min(1, dirtyPct * 1.5);
+      const r1 = lerpC(2,  dirtyPct<0.5?26:60,  phase1);
+      const g1 = lerpC(132,dirtyPct<0.5?74:30,  phase1);
+      const b1 = lerpC(199,dirtyPct<0.5?26:5,   phase1);
+      const r2 = lerpC(3,  dirtyPct<0.5?58:100, phase2);
+      const g2 = lerpC(105,dirtyPct<0.5?57:45,  phase2);
+      const b2 = lerpC(161,dirtyPct<0.5?20:5,   phase2);
+      const r3 = lerpC(8,  dirtyPct<0.5?30:70,  phase2);
+      const g3 = lerpC(47, dirtyPct<0.5?20:10,  phase2);
+      const b3 = lerpC(73, dirtyPct<0.5?5:0,    phase2);
+      _waterGrad.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
+      _waterGrad.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
+      _waterGrad.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
+    } else {
+      _waterGrad.addColorStop(0, theme.c1);
+      _waterGrad.addColorStop(.5, theme.c2);
+      _waterGrad.addColorStop(1, theme.c3);
+    }
   }
-  const g=ctx.createLinearGradient(0,0,0,H);
-
-  // Dynamic water quality color: clean=blue, dirty=green, putrid=brown
-  const dirtyPct = Math.min(1, algae / 100);
-  // lerp helper
-  const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
-  if(curTheme === 'default') {
-    // clean: [2,132,199] dirty midpoint: [26,74,26] putrid: [60,30,5]
-    const phase2 = Math.min(1, dirtyPct * 2);
-    const phase1 = Math.min(1, dirtyPct * 1.5);
-    const r1 = lerpC(2,  dirtyPct<0.5?26:60,  phase1);
-    const g1 = lerpC(132,dirtyPct<0.5?74:30,  phase1);
-    const b1 = lerpC(199,dirtyPct<0.5?26:5,   phase1);
-    const r2 = lerpC(3,  dirtyPct<0.5?58:100, phase2);
-    const g2 = lerpC(105,dirtyPct<0.5?57:45,  phase2);
-    const b2 = lerpC(161,dirtyPct<0.5?20:5,   phase2);
-    const r3 = lerpC(8,  dirtyPct<0.5?30:70,  phase2);
-    const g3 = lerpC(47, dirtyPct<0.5?20:10,  phase2);
-    const b3 = lerpC(73, dirtyPct<0.5?5:0,    phase2);
-    g.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
-    g.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
-    g.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
-  } else {
-    g.addColorStop(0, theme.c1);
-    g.addColorStop(.5, theme.c2);
-    g.addColorStop(1, theme.c3);
-  }
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=_waterGrad;ctx.fillRect(0,0,W,H);
 
   // Putrid water murk overlay (appears below 30% cleanliness)
   if(algae > 70) {
@@ -1873,13 +1904,21 @@ try {
   }
   ctx.globalAlpha = 1;
 
+  // ── PERF: Cached light ray gradients (rebuild on resize only) ──
+  if(!_rayGrads || _rayW !== W || _rayH !== H) {
+    _rayW = W; _rayH = H;
+    _rayGrads = [];
+    for(let i=0;i<4;i++){
+      const rg=ctx.createLinearGradient(0,0,0,H);
+      rg.addColorStop(0,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
+      _rayGrads.push(rg);
+    }
+  }
   ctx.globalCompositeOperation='screen';
   for(let i=0;i<4;i++){
     ctx.beginPath();const rx=(W/4)*i+Math.sin(time*.005+i)*60;
     ctx.moveTo(rx,0);ctx.lineTo(rx-120,H);ctx.lineTo(rx+180,H);
-    const rg=ctx.createLinearGradient(0,0,0,H);
-    rg.addColorStop(0,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=rg;ctx.fill();
+    ctx.fillStyle=_rayGrads[i];ctx.fill();
   }
   ctx.globalCompositeOperation='source-over';
 
@@ -2094,7 +2133,8 @@ try {
     ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
   }ctx.globalAlpha=1;
 
-  fishList.sort((a,b)=>a.scale-b.scale);
+  // ── PERF: Sort fish by scale only every 30 frames (scale changes slowly) ──
+  if(time%30===0) fishList.sort((a,b)=>a.scale-b.scale);
   for(const f of fishList){updateFish(f);drawFish(f);}
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
@@ -2113,67 +2153,50 @@ try {
     ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(str, e.x, e.y - 15);
   }
 
-  function drawSubstrate() {
+  // ── PERF: Offscreen-cached substrate ──
+  if(_substrateDirty || !_substrateCanvas || _substrateCanvas.width!==W || _substrateCanvas.height!==H) {
+    _substrateDirty = false;
+    _substrateCanvas = document.createElement('canvas');
+    _substrateCanvas.width = W; _substrateCanvas.height = H;
+    const sc = _substrateCanvas.getContext('2d');
     const f = FLOORS[curFloor];
-    const by = H - 85; 
+    const by = H - 85;
     const getH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
-
-    ctx.fillStyle = f.c;
-    ctx.beginPath(); ctx.moveTo(-20, H + 5); ctx.lineTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.lineTo(W + 40, H + 5);
-    ctx.fill();
-
-    ctx.save();
-    ctx.clip();
-    
-    // Ambient depth shadow
-    const grad = ctx.createLinearGradient(0, by - 10, 0, H);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, by - 15, W, 150);
-
-    // Static pseudo-random texture (eliminates Math.random() flickering)
+    sc.fillStyle = f.c;
+    sc.beginPath(); sc.moveTo(-20, H + 5); sc.lineTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i));
+    sc.lineTo(W + 40, H + 5); sc.fill();
+    sc.save(); sc.clip();
+    const grad = sc.createLinearGradient(0, by - 10, 0, H);
+    grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+    sc.fillStyle = grad; sc.fillRect(0, by - 15, W, 150);
     for(let i = 0; i < 400; i++) {
        const r1 = (Math.sin(i * 12.9898) * 43758.5453) % 1;
        const pr1 = r1 < 0 ? r1 + 1 : r1;
        const r2 = (Math.cos(i * 78.233) * 43758.5453) % 1;
        const pr2 = r2 < 0 ? r2 + 1 : r2;
-       
        const gx = -20 + pr1 * (W + 40);
        const gy = by + getH(gx) + pr2 * 110;
-
-       // Sand grains
-       ctx.fillStyle = `rgba(255,255,255,${0.02 + pr1 * 0.05})`;
-       ctx.fillRect(gx, gy, 1 + pr2 * 1.5, 1 + pr2 * 1.5);
-       
-       // Pebbles & Rocks
+       sc.fillStyle = `rgba(255,255,255,${0.02 + pr1 * 0.05})`;
+       sc.fillRect(gx, gy, 1 + pr2 * 1.5, 1 + pr2 * 1.5);
        if(i % 12 === 0) {
-         ctx.fillStyle = pr2 > 0.5 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)';
-         ctx.beginPath(); ctx.arc(gx, gy, 2 + pr1 * 4, 0, Math.PI * 2); ctx.fill();
-         // Pebble highlight for 3D depth
-         ctx.fillStyle = 'rgba(255,255,255,0.12)';
-         ctx.beginPath(); ctx.arc(gx - 1, gy - 1, 1 + pr1, 0, Math.PI * 2); ctx.fill();
+         sc.fillStyle = pr2 > 0.5 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)';
+         sc.beginPath(); sc.arc(gx, gy, 2 + pr1 * 4, 0, Math.PI * 2); sc.fill();
+         sc.fillStyle = 'rgba(255,255,255,0.12)';
+         sc.beginPath(); sc.arc(gx - 1, gy - 1, 1 + pr1, 0, Math.PI * 2); sc.fill();
        }
     }
-    ctx.restore();
-
-    // Top rim highlight
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.stroke();
-    
-    // Bottom inset shadow for rim
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20) + 1.5);
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
-    ctx.stroke();
+    sc.restore();
+    sc.strokeStyle = 'rgba(255,255,255,0.15)'; sc.lineWidth = 1.5;
+    sc.beginPath(); sc.moveTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i));
+    sc.stroke();
+    sc.strokeStyle = 'rgba(0,0,0,0.15)'; sc.lineWidth = 1;
+    sc.beginPath(); sc.moveTo(-20, by + getH(-20) + 1.5);
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i) + 1.5);
+    sc.stroke();
   }
-  drawSubstrate();
+  ctx.drawImage(_substrateCanvas, 0, 0);
 
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
@@ -2189,6 +2212,16 @@ try {
   }
 }
 }
+
+// ── PERF: Pause loop when tab/app is hidden to save battery ──
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) {
+    _loopRunning = false;
+  } else {
+    _loopRunning = true;
+    _lastFrame = 0; // reset so delta-time doesn't spike on resume
+  }
+});
 
 // INPUT & INTERACTION
 function dropFood(x,y) {
@@ -2573,7 +2606,7 @@ function buildDecor() {
   cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates');
   if(cardEl) for(const [id,def] of Object.entries(FLOORS))
     cardEl.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
-      ()=>{ ownedFloors.push(id); curFloor=id; }, ()=>{ curFloor=id; }));
+      ()=>{ ownedFloors.push(id); curFloor=id; _substrateDirty=true; }, ()=>{ curFloor=id; _substrateDirty=true; }));
 
   cardEl = makeAccordion('acc-bubbles','Bubble Styles', BUBBLES[curBubble].name, null, 'bubbles');
   if(cardEl) for(const [id,def] of Object.entries(BUBBLES))
@@ -3181,7 +3214,7 @@ function resetSave(){
      fishList=[];eggs=[];foodList=[];bubbles=[];
      particles=[];isHarmony=false;combo=0;
      clams=[];snails=[];seaweeds=[];
-     curFloor='default';curTheme='default';curBorder='none';curBubble='default';
+     curFloor='default';curTheme='default';curBorder='none';curBubble='default';_substrateDirty=true;_waterGrad=null;
      ownedThemes=['default'];ownedFloors=['default'];ownedBorders=['none'];
      ownedBubbles=['default'];ownedFlora=['seaweed','grass'];
      boughtCounts={};for(let k in TYPES)boughtCounts[k]=0;

@@ -107,7 +107,7 @@ document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
-document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.15';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.16';
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 document.querySelectorAll('.xbtn').forEach(b => b.innerHTML = ICONS.close);
