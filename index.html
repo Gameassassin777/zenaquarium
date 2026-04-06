@@ -654,11 +654,32 @@ let surgingType = 'guppy';
 let surgeTimer = 0; 
 for(let k in TYPES) marketRates[k] = 1.0;
 
+// ── Color variant helper: shifts a hex color's hue/sat/lit randomly ──
+function _shiftColor(hex, hueRange, satRange, litRange) {
+  let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+  let h=0, s=0, l=(max+min)/2;
+  if(d>0){ s=l>0.5?d/(2-max-min):d/(max+min); h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4; h/=6; }
+  h = (h + (Math.random()-0.5)*hueRange/360 + 1) % 1;
+  s = Math.max(0, Math.min(1, s + (Math.random()-0.5)*satRange));
+  l = Math.max(0.05, Math.min(0.95, l + (Math.random()-0.5)*litRange));
+  const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+  const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+  const ro=Math.round(hue2rgb(p,q,h+1/3)*255), go=Math.round(hue2rgb(p,q,h)*255), bo=Math.round(hue2rgb(p,q,h-1/3)*255);
+  return '#'+[ro,go,bo].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
 function generateRandomGenes(type) {
   const def = TYPES[type];
   const t1 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
   const t2 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
-  return { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: [t1, t2], szMod: 0.8 + Math.random()*0.45 };
+  // Each allele is a slightly shifted variant of the species base color
+  const c1a = _shiftColor(def.c1, 30, 0.15, 0.12);
+  const c1b = _shiftColor(def.c1, 30, 0.15, 0.12);
+  const c2a = _shiftColor(def.c2, 25, 0.12, 0.10);
+  const c2b = _shiftColor(def.c2, 25, 0.12, 0.10);
+  return { c1: [c1a, c1b], c2: [c2a, c2b], trait: [t1, t2], szMod: 0.8 + Math.random()*0.45 };
 }
 
 function mendelianCross(momGenes, dadGenes, typeDef) {
@@ -672,11 +693,30 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
   let c1 = inherit(momGenes.c1, dadGenes.c1);
   let c2 = inherit(momGenes.c2, dadGenes.c2);
   let trait = inherit(momGenes.trait, dadGenes.trait);
+  
+  // ── Breeding color drift: each allele shifts slightly from parent ──
+  // Small drift on every offspring (natural variation)
+  c1[0] = _shiftColor(c1[0], 15, 0.08, 0.06);
+  c1[1] = _shiftColor(c1[1], 15, 0.08, 0.06);
+  c2[0] = _shiftColor(c2[0], 12, 0.06, 0.05);
+  c2[1] = _shiftColor(c2[1], 12, 0.06, 0.05);
+  // 20% chance of a larger "wild drift" on one color for more dramatic variation
+  if(Math.random() < 0.20) {
+    const pick = Math.floor(Math.random()*4);
+    if(pick===0) c1[0] = _shiftColor(c1[0], 45, 0.2, 0.15);
+    else if(pick===1) c1[1] = _shiftColor(c1[1], 45, 0.2, 0.15);
+    else if(pick===2) c2[0] = _shiftColor(c2[0], 40, 0.18, 0.12);
+    else c2[1] = _shiftColor(c2[1], 40, 0.18, 0.12);
+  }
+  
   if(isRareMut) {
     if(Math.random() < 0.5) c1[0] = typeDef.rare.c1;
     else c2[0] = typeDef.rare.c2;
   }
-  return { c1, c2, trait, isRareMut };
+  // Inherit size variation from parents with slight drift
+  const momSz = momGenes.szMod || 1, dadSz = dadGenes.szMod || 1;
+  const szMod = Math.max(0.6, Math.min(1.4, (momSz + dadSz) / 2 + (Math.random()-0.5)*0.15));
+  return { c1, c2, trait, isRareMut, szMod };
 }
 
 // ── TIER METADATA ──
@@ -1844,7 +1884,8 @@ try {
   if(!W || !H) resize();
   updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
-  // ── PERF: Cached water gradient (only rebuild when algae or theme changes) ──
+  // ── PERF: Cached water gradient (rebuild when algae or theme changes) ──
+  // ── Dirty water now works on ALL themes, not just default ──
   const algaeInt = Math.floor(algae);
   if(!_waterGrad || algaeInt !== _waterGradAlgae || curTheme !== _waterGradTheme) {
     _waterGradAlgae = algaeInt;
@@ -1858,26 +1899,27 @@ try {
     }
     const dirtyPct = Math.min(1, algae / 100);
     const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
-    if(curTheme === 'default') {
-      const phase2 = Math.min(1, dirtyPct * 2);
-      const phase1 = Math.min(1, dirtyPct * 1.5);
-      const r1 = lerpC(2,  dirtyPct<0.5?26:60,  phase1);
-      const g1 = lerpC(132,dirtyPct<0.5?74:30,  phase1);
-      const b1 = lerpC(199,dirtyPct<0.5?26:5,   phase1);
-      const r2 = lerpC(3,  dirtyPct<0.5?58:100, phase2);
-      const g2 = lerpC(105,dirtyPct<0.5?57:45,  phase2);
-      const b2 = lerpC(161,dirtyPct<0.5?20:5,   phase2);
-      const r3 = lerpC(8,  dirtyPct<0.5?30:70,  phase2);
-      const g3 = lerpC(47, dirtyPct<0.5?20:10,  phase2);
-      const b3 = lerpC(73, dirtyPct<0.5?5:0,    phase2);
-      _waterGrad.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
-      _waterGrad.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
-      _waterGrad.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
-    } else {
-      _waterGrad.addColorStop(0, theme.c1);
-      _waterGrad.addColorStop(.5, theme.c2);
-      _waterGrad.addColorStop(1, theme.c3);
-    }
+    const parseHex = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+    // Dirty targets: murky green -> putrid brown
+    const dirtyMid = [40, 60, 20];
+    const dirtyEnd = [55, 30, 8];
+    const [tr1,tg1,tb1] = parseHex(theme.c1);
+    const [tr2,tg2,tb2] = parseHex(theme.c2);
+    const [tr3,tg3,tb3] = parseHex(theme.c3);
+    const phase = Math.min(1, dirtyPct * 1.5);
+    const r1 = lerpC(tr1, dirtyPct<0.5?dirtyMid[0]:dirtyEnd[0], phase);
+    const g1 = lerpC(tg1, dirtyPct<0.5?dirtyMid[1]:dirtyEnd[1], phase);
+    const b1 = lerpC(tb1, dirtyPct<0.5?dirtyMid[2]:dirtyEnd[2], phase);
+    const phase2 = Math.min(1, dirtyPct * 2);
+    const r2 = lerpC(tr2, dirtyPct<0.5?dirtyMid[0]+10:dirtyEnd[0]+20, phase2);
+    const g2 = lerpC(tg2, dirtyPct<0.5?dirtyMid[1]-10:dirtyEnd[1]+5,  phase2);
+    const b2 = lerpC(tb2, dirtyPct<0.5?dirtyMid[2]:dirtyEnd[2],       phase2);
+    const r3 = lerpC(tr3, dirtyPct<0.5?25:50, phase2);
+    const g3 = lerpC(tg3, dirtyPct<0.5?15:10, phase2);
+    const b3 = lerpC(tb3, dirtyPct<0.5?5:0,   phase2);
+    _waterGrad.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
+    _waterGrad.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
+    _waterGrad.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
   }
   ctx.fillStyle=_waterGrad;ctx.fillRect(0,0,W,H);
 
@@ -2601,7 +2643,7 @@ function buildDecor() {
   cardEl = makeAccordion('acc-themes','Water Themes', THEMES[curTheme].name, null, 'themes');
   if(cardEl) for(const [id,def] of Object.entries(THEMES))
     cardEl.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
-      ()=>{ ownedThemes.push(id); curTheme=id; }, ()=>{ curTheme=id; }));
+      ()=>{ ownedThemes.push(id); curTheme=id; _waterGrad=null; }, ()=>{ curTheme=id; _waterGrad=null; }));
 
   cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates');
   if(cardEl) for(const [id,def] of Object.entries(FLOORS))
