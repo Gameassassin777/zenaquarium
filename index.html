@@ -388,7 +388,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.1.35</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.1.36</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -421,7 +421,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.35';
+const CUR_VER = '2.1.36';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -431,7 +431,7 @@ function setupPWA(){
   const last_v = localStorage.getItem('zen_v');
   
   // ── REMOTE VERSION SYNC (Look-ahead) ──
-  if(isRemote && navigator.onLine && Math.random() < 0.25) {
+  if(isRemote && navigator.onLine && Math.random() < 0.2) {
     fetch(location.href + '?sync=' + Date.now(), { cache:'no-store' })
       .then(r => r.text())
       .then(txt => {
@@ -609,15 +609,15 @@ let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
 let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0};
-let questStreak=0;
+let questStreak=0, _openQuests=new Set();
 let claimedCodes=new Set();
 let offlinePend=null,pendingDaily=false;
 let curTheme='default', curFloor='default', curBubble='default', curBorder='none';
 let ownedThemes=['default'], ownedFloors=['default'], ownedBubbles=['default'], ownedBorders=['none'];
 
 function resize(){
-  W = cv.clientWidth || window.innerWidth;
-  H = cv.clientHeight || window.innerHeight;
+  W = cv.clientWidth || window.innerWidth || 360;
+  H = cv.clientHeight || window.innerHeight || 640;
   const d=window.devicePixelRatio||1;
   cv.width=W*d;cv.height=H*d;
   ctx.scale(d,d);
@@ -793,10 +793,10 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
 
 // ── TIER METADATA ──
 const TIER_META={
-  easy:  {label:'EASY',      badge:'tbg-easy',   glow:'rgba(16,185,129,.3)',  strip:'var(--tier-easy)'},
-  med:   {label:'MEDIUM',    badge:'tbg-med',    glow:'rgba(251,191,36,.3)',  strip:'var(--tier-med)'},
-  hard:  {label:'HARD',      badge:'tbg-hard',   glow:'rgba(239,68,68,.3)',   strip:'var(--tier-hard)'},
-  legend:{label:'LEGENDARY', badge:'tbg-legend', glow:'rgba(168,85,247,.4)', strip:'var(--tier-legend)'}
+  easy:   { name:'Common', c:'#94a3b8', strip:'#475569' },
+  medium: { name:'Rare',   c:'#38bdf8', strip:'#0284c7' },
+  hard:   { name:'Epic',   c:'#a855f7', strip:'#7e22ce' },
+  legend: { name:'Legend', c:'#fbbf24', strip:'#b45309' }
 };
 
 // ── QUEST POOL (Elite Audit) ──
@@ -904,7 +904,7 @@ const LEGACY_KEYS = [
 let saveTimer=0, lastEliteTs=0;
 
 function buildSave(){
-  const sQuests = Array.from(_openQuests);
+  const sQuests = _openQuests ? Array.from(_openQuests) : [];
   return {
     totalCoins, playerLevel, coins, algae, time, fid, baseMaxFish, lastEliteTs,
     fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name})),
@@ -3664,18 +3664,50 @@ function resetSave(){
   }
 }
 
-// ── BOOT ENTRY POINT ──
+// PANEL DRAGGING (Restored v2.1.36)
+function setupDrag(id) {
+  const p = document.getElementById(id); if(!p) return;
+  const h = p.querySelector('.ph'); if(!h) return;
+  let isD = false, sy = 0, sh = 0, vy = 0;
+  const start = (e) => {
+    isD = true; p.classList.add('dragging');
+    sy = (e.touches ? e.touches[0].clientY : e.clientY);
+    sh = p.offsetHeight;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, { passive:false });
+    document.addEventListener('touchend', end);
+  };
+  const move = (e) => {
+    if(!isD) return;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY);
+    const dy = sy - cy;
+    const nh = Math.max(200, Math.min(window.innerHeight * 0.95, sh + dy));
+    p.style.height = nh + 'px';
+    if(e.cancelable) e.preventDefault();
+  };
+  const end = () => {
+    isD = false; p.classList.remove('dragging');
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+  };
+  h.addEventListener('mousedown', start);
+  h.addEventListener('touchstart', start, { passive:true });
+}
+
 function BOOT_APP() {
   if(_stopBoot) return;
   try {
     initSwatches();
     resize();
     initDecor();
-    // ... any other initialization calls ...
     const s = loadSave();
     if(s) applyState(s);
     buildOrders();
     updateHUD();
+    ['mpanel','dpanel','spanel','opanel','socpanel','fpanel'].forEach(setupDrag);
     requestAnimationFrame(loop);
   } catch(e) { console.error("BOOT_APP failed:", e); }
 }
