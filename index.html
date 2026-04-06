@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.28 - Visual Polishing & Fixes -->
+<!-- ZenAquarium v2.1.29 - Update System Fix -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.28 | Visual Polishing</title>
+<title>Zen Aquarium v2.1.29 | Update Fix</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -370,7 +370,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.28</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.29</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -403,32 +403,32 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.28';
+const CUR_VER = '2.1.29';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
-  // Force Update Logic
   const last_v = localStorage.getItem('zen_v');
   if(last_v && last_v !== CUR_VER) {
     localStorage.setItem('zen_v', CUR_VER);
-    console.log(`Version mismatch: ${last_v} -> ${CUR_VER}. Reloading...`);
-    // Unregister everything and reload
+    console.warn(`[ZenUpdate] Version mismatch: ${last_v} -> ${CUR_VER}. Forcing refresh...`);
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(rs => {
-        for(let r of rs) r.unregister();
-        location.reload();
-      }).catch(() => location.reload());
+        Promise.all(rs.map(r => r.unregister())).then(() => {
+          setTimeout(() => location.reload(true), 250);
+        });
+      }).catch(() => location.reload(true));
     } else {
-      location.reload();
+      location.reload(true);
     }
-    return true; // SIGNAL: Should stop boot
+    return true; 
   }
   localStorage.setItem('zen_v', CUR_VER);
   return false;
 }
-const _shouldStopBoot = setupPWA();
+const _stopBoot = setupPWA();
+if (_stopBoot) throw "[ZenUpdate] Reloading app...";
 
 // SVG ICON LIBRARY (full)
 const svg = (path, v='0 0 24 24') => `<svg viewBox="${v}" fill="currentColor">${path}</svg>`;
