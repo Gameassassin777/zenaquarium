@@ -24,19 +24,33 @@ var console = { log: print, error: print };
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
+const CUR_VER = '2.1.19';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
+  // Force Update Logic
+  const last_v = localStorage.getItem('zen_v');
+  if(last_v && last_v !== CUR_VER) {
+    localStorage.setItem('zen_v', CUR_VER);
+    // Unregister everything and reload
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        for(let r of rs) r.unregister();
+        location.reload(true);
+      });
+    } else {
+      location.reload(true);
+    }
+    return;
+  }
+  localStorage.setItem('zen_v', CUR_VER);
+
   // Unregister old problematic service workers to fix caching issues
   if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        registration.unregister();
-      }
-    }).catch(function(err) {
-      console.log('SW Unregistration failed: ', err);
+      for(let registration of registrations) registration.unregister();
     });
   }
 }
@@ -107,7 +121,7 @@ document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-shop').innerHTML = ICONS.shop + ' Shop';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
-document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v2.1.16';
+document.getElementById('ph-social').innerHTML = ICONS.social + ' Social';
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
 document.getElementById('wtotal').innerHTML = ICONS.coin + ' 0';
 document.querySelectorAll('.xbtn').forEach(b => b.innerHTML = ICONS.close);
@@ -161,6 +175,8 @@ function resize(){
   const d=window.devicePixelRatio||1;
   cv.width=W*d;cv.height=H*d;
   ctx.scale(d,d);
+  // ── PERF: Invalidate caches on resize ──
+  _substrateDirty=true; _waterGrad=null; _rayGrads=null;
 }
 resize();
 window.addEventListener('resize',()=>{resize();initDecor();});
@@ -176,6 +192,13 @@ let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
 for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200,s:0.5+Math.random()*1.8,o:0.15+Math.random()*0.4,v:0.15+Math.random()*0.3});
 let time=0,fid=0,algae=0,baseMaxFish=8;
+// ── PERF: Delta-time for framerate-independent animation ──
+let _lastFrame=0, _dtAcc=0;
+// ── PERF: Offscreen caches ──
+let _substrateCanvas=null, _substrateDirty=true;
+let _waterGrad=null, _waterGradAlgae=-1, _waterGradTheme='';
+let _rayGrads=null, _rayW=0, _rayH=0;
+let _loopRunning=true;
 let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
@@ -205,6 +228,7 @@ const TYPES = {
 };
 
 let ownedFlora = ['seaweed', 'grass'];
+let activeFlora = ['seaweed', 'grass']; // subset of ownedFlora currently shown
 let boughtCounts={}; 
 for(let k in TYPES) boughtCounts[k]=0;
 
@@ -230,41 +254,42 @@ const UPGRADES={
 };
 
 const THEMES={
-  default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,     c1:'#001428', c2:'#001830', c3:'#000810', req:1},
-  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#0284c7', c2:'#0369a1', c3:'#082f49', req:3},
-  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#be185d', c2:'#831843', c3:'#4c0519', req:5},
+  default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,     c1:'#0369a1', c2:'#1d4ed8', c3:'#001428', req:1},
+  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#06b6d4', c2:'#0891b2', c3:'#0c4a6e', req:3},
+  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#c2410c', c2:'#9f1239', c3:'#500722', req:5},
   abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
-  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000, c1:'#065f46', c2:'#1e3a5f', c3:'#0f172a', req:4},
-  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000, c1:'#7c2d12', c2:'#450a0a', c3:'#1c0202', req:5},
-  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000, c1:'#0c0a1e', c2:'#0a1628', c3:'#050310', req:6},
-  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000, c1:'#4a1942', c2:'#2d0f2b', c3:'#150810', req:6}
+  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000, c1:'#047857', c2:'#1e40af', c3:'#064e3b', req:4},
+  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000, c1:'#b45309', c2:'#7c2d12', c3:'#3b0a00', req:5},
+  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000, c1:'#134e4a', c2:'#0c0a1e', c3:'#040215', req:6},
+  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000, c1:'#9d174d', c2:'#86198f', c3:'#4a044e', req:6}
 };
 
 const FLOORS={
-  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'rgba(0,0,0,0.4)', req:1},
-  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'rgba(254,240,138,0.4)', req:3},
-  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'rgba(63,63,70,0.6)', req:4},
-  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'rgba(126,34,206,0.5)', req:6},
-  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'rgba(249,115,22,0.4)', req:3},
-  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'rgba(28,25,23,0.7)', req:5},
-  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'rgba(251,191,36,0.35)', req:6},
-  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'rgba(191,219,254,0.3)', req:4}
+  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'rgba(15,20,40,0.88)',   grain:'#1e293b', req:1},
+  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'rgba(217,185,80,0.85)', grain:'#fef08a', req:3},
+  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'rgba(40,35,35,0.92)',   grain:'#6b7280', req:4},
+  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'rgba(88,28,135,0.88)',  grain:'#d8b4fe', req:6},
+  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'rgba(194,65,12,0.82)',  grain:'#fb923c', req:3},
+  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'rgba(5,5,8,0.96)',      grain:'#374151', req:5},
+  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'rgba(161,120,0,0.88)',  grain:'#fbbf24', req:6},
+  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'rgba(147,197,253,0.75)',grain:'#e0f2fe', req:4}
 };
 
 const BUBBLES={
-  default:  {name:'Classic',    icon:ICONS.drop,   cost:0,     col:'rgba(255,255,255,{a})', req:1},
-  gold:     {name:'Golden',     icon:ICONS.coin,   cost:5000,  col:'rgba(251,191,36,{a})',  req:3},
-  pink:     {name:'Rose',       icon:ICONS.social, cost:8000,  col:'rgba(244,114,182,{a})', req:4},
-  green:    {name:'Emerald',    icon:ICONS.reef,   cost:10000, col:'rgba(52,211,153,{a})',  req:4},
-  rainbow:  {name:'Rainbow',    icon:ICONS.star,   cost:25000, col:'rainbow',               req:6}
+  default:  {name:'Classic',    icon:ICONS.drop,   cost:0,     col:'rgba(255,255,255,{a})', fill:'rgba(200,235,255,{fa})', req:1},
+  gold:     {name:'Golden',     icon:ICONS.coin,   cost:5000,  col:'rgba(251,191,36,{a})',  fill:'rgba(253,230,100,{fa})', req:3},
+  pink:     {name:'Rose',       icon:ICONS.social, cost:8000,  col:'rgba(244,114,182,{a})', fill:'rgba(255,180,210,{fa})', req:4},
+  green:    {name:'Emerald',    icon:ICONS.reef,   cost:10000, col:'rgba(52,211,153,{a})',  fill:'rgba(110,240,190,{fa})', req:4},
+  rainbow:  {name:'Rainbow',    icon:ICONS.star,   cost:25000, col:'rainbow',               fill:'rainbow', req:6}
 };
 
 const BORDERS={
-  none:     {name:'None',       icon:ICONS.abyss,   cost:0,     style:'none',         req:1},
-  glow:     {name:'Neon Glow',  icon:ICONS.star,    cost:6000,  style:'glow',         req:3},
-  coral:    {name:'Coral Reef', icon:ICONS.reef,    cost:12000, style:'coral',        req:4},
-  gold:     {name:'Gold Frame', icon:ICONS.coin,    cost:20000, style:'gold',         req:5},
-  pulse:    {name:'Pulse',      icon:ICONS.active,  cost:30000, style:'pulse',        req:6}
+  none:     {name:'None',           icon:ICONS.abyss,   cost:0,     style:'none',  r:0,       g:103,  gb:249, req:1},
+  glow:     {name:'Neon Glow',      icon:ICONS.star,    cost:6000,  style:'glow',  r:103,    g:232,  gb:249, req:3},
+  coral:    {name:'Coral Reef',     icon:ICONS.reef,    cost:12000, style:'coral', r:249,    g:115,  gb:22,  req:4},
+  gold:     {name:'Gold Frame',     icon:ICONS.coin,    cost:20000, style:'gold',  r:251,    g:191,  gb:36,  req:5},
+  pulse:    {name:'Pulse',          icon:ICONS.active,  cost:30000, style:'pulse', r:168,    g:85,   gb:247, req:6},
+  electric: {name:'Electric Blue',  icon:ICONS.drop,    cost:45000, style:'electric', r:56, g:189,  gb:248, req:7}
 };
 
 const TRAITS = ['greedy', 'shy', 'lazy', 'active'];
@@ -276,11 +301,32 @@ let surgingType = 'guppy';
 let surgeTimer = 0; 
 for(let k in TYPES) marketRates[k] = 1.0;
 
+// ── Color variant helper: shifts a hex color's hue/sat/lit randomly ──
+function _shiftColor(hex, hueRange, satRange, litRange) {
+  let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+  let h=0, s=0, l=(max+min)/2;
+  if(d>0){ s=l>0.5?d/(2-max-min):d/(max+min); h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4; h/=6; }
+  h = (h + (Math.random()-0.5)*hueRange/360 + 1) % 1;
+  s = Math.max(0, Math.min(1, s + (Math.random()-0.5)*satRange));
+  l = Math.max(0.05, Math.min(0.95, l + (Math.random()-0.5)*litRange));
+  const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+  const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+  const ro=Math.round(hue2rgb(p,q,h+1/3)*255), go=Math.round(hue2rgb(p,q,h)*255), bo=Math.round(hue2rgb(p,q,h-1/3)*255);
+  return '#'+[ro,go,bo].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
 function generateRandomGenes(type) {
   const def = TYPES[type];
   const t1 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
   const t2 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
-  return { c1: [def.c1, def.c1], c2: [def.c2, def.c2], trait: [t1, t2], szMod: 0.8 + Math.random()*0.45 };
+  // Each allele is a slightly shifted variant of the species base color
+  const c1a = _shiftColor(def.c1, 30, 0.15, 0.12);
+  const c1b = _shiftColor(def.c1, 30, 0.15, 0.12);
+  const c2a = _shiftColor(def.c2, 25, 0.12, 0.10);
+  const c2b = _shiftColor(def.c2, 25, 0.12, 0.10);
+  return { c1: [c1a, c1b], c2: [c2a, c2b], trait: [t1, t2], szMod: 0.8 + Math.random()*0.45 };
 }
 
 function mendelianCross(momGenes, dadGenes, typeDef) {
@@ -294,11 +340,30 @@ function mendelianCross(momGenes, dadGenes, typeDef) {
   let c1 = inherit(momGenes.c1, dadGenes.c1);
   let c2 = inherit(momGenes.c2, dadGenes.c2);
   let trait = inherit(momGenes.trait, dadGenes.trait);
+  
+  // ── Breeding color drift: each allele shifts slightly from parent ──
+  // Small drift on every offspring (natural variation)
+  c1[0] = _shiftColor(c1[0], 15, 0.08, 0.06);
+  c1[1] = _shiftColor(c1[1], 15, 0.08, 0.06);
+  c2[0] = _shiftColor(c2[0], 12, 0.06, 0.05);
+  c2[1] = _shiftColor(c2[1], 12, 0.06, 0.05);
+  // 20% chance of a larger "wild drift" on one color for more dramatic variation
+  if(Math.random() < 0.20) {
+    const pick = Math.floor(Math.random()*4);
+    if(pick===0) c1[0] = _shiftColor(c1[0], 45, 0.2, 0.15);
+    else if(pick===1) c1[1] = _shiftColor(c1[1], 45, 0.2, 0.15);
+    else if(pick===2) c2[0] = _shiftColor(c2[0], 40, 0.18, 0.12);
+    else c2[1] = _shiftColor(c2[1], 40, 0.18, 0.12);
+  }
+  
   if(isRareMut) {
     if(Math.random() < 0.5) c1[0] = typeDef.rare.c1;
     else c2[0] = typeDef.rare.c2;
   }
-  return { c1, c2, trait, isRareMut };
+  // Inherit size variation from parents with slight drift
+  const momSz = momGenes.szMod || 1, dadSz = dadGenes.szMod || 1;
+  const szMod = Math.max(0.6, Math.min(1.4, (momSz + dadSz) / 2 + (Math.random()-0.5)*0.15));
+  return { c1, c2, trait, isRareMut, szMod };
 }
 
 // ── TIER METADATA ──
@@ -434,7 +499,7 @@ function buildSave(){
     clams:clams.length,currentOrders,sm,
     claimedCodes:[...claimedCodes], marketRates,
     curTheme, curFloor, curBubble, curBorder,
-    ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, boughtCounts
+    ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, activeFlora, boughtCounts
   };
 }
 
@@ -461,6 +526,7 @@ function applyState(s){
   dailyStreak=(s.dailyStreak!==undefined?s.dailyStreak:0);lastDailyTs=(s.lastDailyTs!==undefined?s.lastDailyTs:0);completedOrders=(s.completedOrders!==undefined?s.completedOrders:0);codesRedeemed=(s.codesRedeemed!==undefined?s.codesRedeemed:0);
   claimedCodes=new Set(s.claimedCodes || []);
   ownedFlora = s.ownedFlora || ['seaweed','grass'];
+  activeFlora = s.activeFlora || [...ownedFlora];
   boughtCounts = s.boughtCounts || {};
   for(let k in TYPES) if(boughtCounts[k]===undefined) boughtCounts[k]=0;
   
@@ -567,8 +633,8 @@ function calcOffline(s){
 
 function showWelcome(r){
   document.getElementById('wtime').textContent=`Away for ${r.timeStr} — here's what you earned:`;
-  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${it.coins}</span></div>`).join('');
-  document.getElementById('wtotal').innerHTML= ICONS.coin + r.total;
+  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${formatCoins(it.coins)}</span></div>`).join('');
+  document.getElementById('wtotal').innerHTML= ICONS.coin + formatCoins(r.total);
   offlinePend=r;
   document.getElementById('wmodal').classList.add('show');
 }
@@ -588,7 +654,7 @@ function needsDaily(){
 function showDailyModal(){
   const idx=Math.min(dailyStreak,DR.length-1);
   document.getElementById('dday').textContent=dailyStreak+1;
-  document.getElementById('damt').textContent=DR[idx];
+  document.getElementById('damt').textContent=formatCoins(DR[idx]);
   document.getElementById('sdots').innerHTML=DR.map((_,i)=>`<div class="sd ${i<dailyStreak?'done':''} ${i===idx?'today':''}"></div>`).join('');
   document.getElementById('dmodal').classList.add('show');
 }
@@ -674,7 +740,7 @@ function buildMarket() {
         </div>
       </div>
       <div class="ofoot">
-        <span class="m-price">${ICONS.coin}${price}</span>
+        <span class="m-price">${ICONS.coin}${formatCoins(price)}</span>
         <button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b); min-width:80px;" onclick="sellFish(${f.id}, ${price})">Sell</button>
       </div></div>`;
   }).join('');
@@ -704,7 +770,8 @@ function sellFish(id, price) {
   fishList.splice(idx, 1);
   sm.marketSales = (sm.marketSales || 0) + 1;
   updateHUD();
-  buildMarket();
+  if(currentTab === 'market') buildMarket();
+  if(currentTab === 'finder') buildFishFinder();
   saveGame();
 }
 
@@ -799,10 +866,10 @@ function triggerEat(f,fd,def){
   const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
   const total = Math.ceil(def.val * cm * cappedMult);
   if (total > 0) {
-    if (isBredGold) (typeof spawnJuice === 'function') && spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
+    if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
   }
-  else (typeof spawnJuice === 'function') && spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
+  else spawnJuice(f.x, f.y, "Dirty Tank (0x)", "#ef4444", 0.8);
 }
 
 function updateFish(f){
@@ -907,7 +974,9 @@ function initDecor(){
   seaweeds=[];
   const n = Math.max(15, Math.floor(W/25));
   for(let i=0; i<n; i++) {
-    const type = ownedFlora[Math.floor(Math.random() * ownedFlora.length)];
+    const type = activeFlora.length > 0
+      ? activeFlora[Math.floor(Math.random() * activeFlora.length)]
+      : ownedFlora[Math.floor(Math.random() * ownedFlora.length)];
     let h = 40 + Math.random()*110;
     let hue = 130 + Math.random()*30;
     let sat = 40 + Math.random()*30;
@@ -1034,7 +1103,7 @@ function drawFish(f){
   const paddle = Math.sin(time*ts*3+f.id)*s*.15; 
   const br=1+Math.sin(time*.05+f.id)*.03;
   
-  const fs = f.scale * (f.genes.szMod||1);
+  const fs = f.scale * (f.genes.szMod||1) * getGlobalLevelScale();
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
   
   if(f.hunger<25){
@@ -1372,7 +1441,7 @@ function drawFish(f){
     ctx.fillStyle=bg;
     ctx.beginPath();ctx.ellipse(0,0,s*2,s*.8,0,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff3';
-    for(let i=0;i<12;i++) ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<12;i++){ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();}
     ctx.fillStyle=bg;
     ctx.beginPath();ctx.moveTo(-s*1.5, 0); ctx.lineTo(-s*2.2, -s*.6+wag); ctx.lineTo(-s*2.2, s*.6+wag); ctx.closePath(); ctx.fill();
     drawEye(ctx, s*1.8, -s*.2, s*.05);
@@ -1449,59 +1518,60 @@ window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', re
 refreshThemeCache();
 
 // GAME LOOP
-function loop(){
+function loop(frameTs){
 try {
-  time++;
-  
-  // Theme-aware Water Background (Performance Optimized)
-  if(!cachedTheme) refreshThemeCache();
-  const wGrad = ctx.createLinearGradient(0, 0, 0, H);
-  wGrad.addColorStop(0, cachedTheme.top); wGrad.addColorStop(1, cachedTheme.bot);
-  ctx.fillStyle = wGrad; ctx.fillRect(0, 0, W, H);
+  if(!_loopRunning){requestAnimationFrame(loop);return;}
+  // ── PERF: Delta-time ── advance `time` at a consistent 60fps-equivalent rate
+  if(!frameTs) frameTs = performance.now();
+  if(!_lastFrame) _lastFrame = frameTs;
+  const dtMs = Math.min(frameTs - _lastFrame, 50); // cap at 50ms to avoid spiral
+  _lastFrame = frameTs;
+  _dtAcc += dtMs;
+  const ticks = Math.floor(_dtAcc / 16.666); // 60fps = 16.666ms per tick
+  _dtAcc -= ticks * 16.666;
+  time += ticks || 1; // always advance at least 1 to avoid freezes
 
-  // Distant murkiness overlay
-  if(algae > 10) {
-    const darkness = Math.min(0.2, (algae - 10) * 0.002);
-    ctx.fillStyle = `rgba(34,139,34,${darkness})`;
-    ctx.fillRect(0, 0, W, H);
-  }
   if(!W || !H) resize();
   updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
 
-  let theme = THEMES[curTheme] || THEMES['default'];
-  if(curTheme === 'default') {
-    const hr = new Date().getHours();
-    const isDay = hr >= 7 && hr < 19;
-    if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
-  }
-  const g=ctx.createLinearGradient(0,0,0,H);
-
-  // Dynamic water quality color: clean=blue, dirty=green, putrid=brown
-  const dirtyPct = Math.min(1, algae / 100);
-  // lerp helper
-  const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
-  if(curTheme === 'default') {
-    // clean: [2,132,199] dirty midpoint: [26,74,26] putrid: [60,30,5]
+  // ── PERF: Cached water gradient (rebuild when algae or theme changes) ──
+  // ── Dirty water now works on ALL themes, not just default ──
+  const algaeInt = Math.floor(algae);
+  if(!_waterGrad || algaeInt !== _waterGradAlgae || curTheme !== _waterGradTheme) {
+    _waterGradAlgae = algaeInt;
+    _waterGradTheme = curTheme;
+    _waterGrad = ctx.createLinearGradient(0,0,0,H);
+    let theme = THEMES[curTheme] || THEMES['default'];
+    if(curTheme === 'default') {
+      const hr = new Date().getHours();
+      const isDay = hr >= 7 && hr < 19;
+      if(isDay) theme = {c1:'#0284c7', c2:'#0369a1', c3:'#082f49'};
+    }
+    const dirtyPct = Math.min(1, algae / 100);
+    const lerpC = (a,b,t) => Math.round(a + (b-a)*t);
+    const parseHex = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+    // Dirty targets: murky green -> putrid brown
+    const dirtyMid = [40, 60, 20];
+    const dirtyEnd = [55, 30, 8];
+    const [tr1,tg1,tb1] = parseHex(theme.c1);
+    const [tr2,tg2,tb2] = parseHex(theme.c2);
+    const [tr3,tg3,tb3] = parseHex(theme.c3);
+    const phase = Math.min(1, dirtyPct * 1.5);
+    const r1 = lerpC(tr1, dirtyPct<0.5?dirtyMid[0]:dirtyEnd[0], phase);
+    const g1 = lerpC(tg1, dirtyPct<0.5?dirtyMid[1]:dirtyEnd[1], phase);
+    const b1 = lerpC(tb1, dirtyPct<0.5?dirtyMid[2]:dirtyEnd[2], phase);
     const phase2 = Math.min(1, dirtyPct * 2);
-    const phase1 = Math.min(1, dirtyPct * 1.5);
-    const r1 = lerpC(2,  dirtyPct<0.5?26:60,  phase1);
-    const g1 = lerpC(132,dirtyPct<0.5?74:30,  phase1);
-    const b1 = lerpC(199,dirtyPct<0.5?26:5,   phase1);
-    const r2 = lerpC(3,  dirtyPct<0.5?58:100, phase2);
-    const g2 = lerpC(105,dirtyPct<0.5?57:45,  phase2);
-    const b2 = lerpC(161,dirtyPct<0.5?20:5,   phase2);
-    const r3 = lerpC(8,  dirtyPct<0.5?30:70,  phase2);
-    const g3 = lerpC(47, dirtyPct<0.5?20:10,  phase2);
-    const b3 = lerpC(73, dirtyPct<0.5?5:0,    phase2);
-    g.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
-    g.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
-    g.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
-  } else {
-    g.addColorStop(0, theme.c1);
-    g.addColorStop(.5, theme.c2);
-    g.addColorStop(1, theme.c3);
+    const r2 = lerpC(tr2, dirtyPct<0.5?dirtyMid[0]+10:dirtyEnd[0]+20, phase2);
+    const g2 = lerpC(tg2, dirtyPct<0.5?dirtyMid[1]-10:dirtyEnd[1]+5,  phase2);
+    const b2 = lerpC(tb2, dirtyPct<0.5?dirtyMid[2]:dirtyEnd[2],       phase2);
+    const r3 = lerpC(tr3, dirtyPct<0.5?25:50, phase2);
+    const g3 = lerpC(tg3, dirtyPct<0.5?15:10, phase2);
+    const b3 = lerpC(tb3, dirtyPct<0.5?5:0,   phase2);
+    _waterGrad.addColorStop(0,   `rgb(${r1},${g1},${b1})`);
+    _waterGrad.addColorStop(0.5, `rgb(${r2},${g2},${b2})`);
+    _waterGrad.addColorStop(1,   `rgb(${r3},${g3},${b3})`);
   }
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=_waterGrad;ctx.fillRect(0,0,W,H);
 
   // Putrid water murk overlay (appears below 30% cleanliness)
   if(algae > 70) {
@@ -1526,18 +1596,134 @@ try {
   }
   ctx.globalAlpha = 1;
 
-  ctx.globalCompositeOperation='screen';
-  for(let i=0;i<4;i++){
-    ctx.beginPath();const rx=(W/4)*i+Math.sin(time*.005+i)*60;
-    ctx.moveTo(rx,0);ctx.lineTo(rx-120,H);ctx.lineTo(rx+180,H);
-    const rg=ctx.createLinearGradient(0,0,0,H);
-    rg.addColorStop(0,'rgba(255,255,255,.06)');rg.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=rg;ctx.fill();
+  // ── PERF: Cached light ray gradients — tinted per theme (rebuild on resize/theme change) ──
+  const themeRayColor = {
+    default:'rgba(255,255,255,.08)', reef:'rgba(100,230,255,.12)', sunset:'rgba(255,180,80,.10)',
+    abyss:'rgba(0,0,0,0)', aurora:'rgba(80,255,180,.10)', lava:'rgba(255,100,30,.10)',
+    biolume:'rgba(0,255,220,.08)', sakura:'rgba(255,160,200,.10)'
+  }[curTheme] || 'rgba(255,255,255,.06)';
+  const themeRayFade = curTheme === 'abyss' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0)';
+  if(!_rayGrads || _rayW !== W || _rayH !== H || _waterGradTheme !== curTheme) {
+    _rayW = W; _rayH = H;
+    _rayGrads = [];
+    for(let i=0;i<4;i++){
+      const rg=ctx.createLinearGradient(0,0,0,H);
+      rg.addColorStop(0,themeRayColor);rg.addColorStop(1,themeRayFade);
+      _rayGrads.push(rg);
+    }
   }
-  ctx.globalCompositeOperation='source-over';
+  // Abyss has no rays — dark deep sea
+  if(curTheme !== 'abyss') {
+    ctx.globalCompositeOperation='screen';
+    for(let i=0;i<4;i++){
+      ctx.beginPath();const rx=(W/4)*i+Math.sin(time*.005+i)*60;
+      ctx.moveTo(rx,0);ctx.lineTo(rx-120,H);ctx.lineTo(rx+180,H);
+      ctx.fillStyle=_rayGrads[i];ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
 
   if(algae>0){ctx.fillStyle=`rgba(34,139,34,${algae*.003})`;ctx.fillRect(0,0,W,H);}
   if(isHarmony){ctx.fillStyle='rgba(251,191,36,.055)';ctx.fillRect(0,0,W,H);}
+
+  // ── THEME AMBIENT EFFECTS ──
+  if(curTheme === 'lava') {
+    // Orange/red glow rising from floor
+    const lavG = ctx.createLinearGradient(0, H-120, 0, H);
+    lavG.addColorStop(0,'rgba(255,80,10,0)'); lavG.addColorStop(1,'rgba(200,30,0,0.45)');
+    ctx.fillStyle = lavG; ctx.fillRect(0, H-120, W, 120);
+    // Ember particles spawn
+    if(time%3===0 && particles.length < 300)
+      particles.push({x:Math.random()*W, y:H-85, vx:(Math.random()-.5)*1.5, vy:-1.2-Math.random()*2, life:0.8+Math.random()*0.4, c:`hsla(${15+Math.random()*25},100%,${50+Math.random()*30}%,1)`});
+    // Crack glow lines at bottom
+    ctx.globalCompositeOperation='screen';
+    ctx.strokeStyle='rgba(255,100,20,0.12)'; ctx.lineWidth=2;
+    for(let i=0;i<5;i++){
+      const cx=W*0.1+W*0.8*(i/4), spread=30+Math.sin(time*0.03+i)*15;
+      ctx.beginPath(); ctx.moveTo(cx-spread,H-85); ctx.lineTo(cx,H-75); ctx.lineTo(cx+spread,H-85); ctx.stroke();
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+  else if(curTheme === 'aurora') {
+    // Sweeping vertical aurora beams
+    ctx.globalCompositeOperation='screen';
+    const aColors = ['rgba(0,255,150,.06)','rgba(0,180,255,.05)','rgba(150,0,255,.04)','rgba(0,255,100,.05)'];
+    for(let i=0;i<4;i++){
+      const bx = (W*0.15)*i + W*0.1 + Math.sin(time*0.003+i*1.3)*W*0.1;
+      const ag = ctx.createLinearGradient(bx, 0, bx, H*0.7);
+      ag.addColorStop(0, aColors[i]); ag.addColorStop(0.5, aColors[(i+1)%4]); ag.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = ag;
+      ctx.beginPath(); ctx.moveTo(bx-80,0); ctx.lineTo(bx+80,0); ctx.lineTo(bx+120,H*0.7); ctx.lineTo(bx-120,H*0.7); ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+    // Sparkling aurora stars
+    if(time%6===0 && particles.length < 200)
+      particles.push({x:Math.random()*W, y:Math.random()*H*0.5, vx:0, vy:0.1, life:1.5, decay:0.008, sz:2, c:`hsla(${140+Math.random()*80},100%,80%,1)`});
+  }
+  else if(curTheme === 'biolume') {
+    // Dark vignette — abyss feel
+    const vigG = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3, W/2,H/2,Math.max(W,H)*0.8);
+    vigG.addColorStop(0,'rgba(0,0,0,0)'); vigG.addColorStop(1,'rgba(0,0,30,0.5)');
+    ctx.fillStyle=vigG; ctx.fillRect(0,0,W,H);
+    // Bioluminescent orb glow — spawns glowing cyan/green particles
+    if(time%5===0 && particles.length < 250)
+      particles.push({x:Math.random()*W, y:80+Math.random()*(H-160), vx:(Math.random()-.5)*0.4, vy:(Math.random()-.5)*0.4, life:2+Math.random(), decay:0.006, sz:3+Math.random()*3, c:`hsla(${170+Math.random()*40},100%,65%,1)`});
+    // Pulsing orbs on canvas
+    ctx.globalCompositeOperation='screen';
+    for(let i=0;i<6;i++){
+      const ox=W*(0.15+0.14*i)+Math.sin(time*0.004+i)*30;
+      const oy=H*0.3+Math.sin(time*0.006+i*1.7)*H*0.2;
+      const pulse=0.08+Math.abs(Math.sin(time*0.03+i))*0.12;
+      const og=ctx.createRadialGradient(ox,oy,0,ox,oy,60);
+      og.addColorStop(0,`rgba(0,255,210,${pulse})`); og.addColorStop(1,'rgba(0,255,210,0)');
+      ctx.fillStyle=og; ctx.fillRect(ox-60,oy-60,120,120);
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+  else if(curTheme === 'sakura') {
+    // Soft pink blooming glow from top
+    const skG = ctx.createLinearGradient(0,0,0,H*0.4);
+    skG.addColorStop(0,'rgba(255,150,190,0.12)'); skG.addColorStop(1,'rgba(255,120,170,0)');
+    ctx.fillStyle=skG; ctx.fillRect(0,0,W,H*0.4);
+    // Falling petal particles
+    if(time%8===0 && particles.length < 200)
+      particles.push({x:Math.random()*W, y:-10, vx:(Math.random()-.5)*0.8, vy:0.6+Math.random()*0.8, life:1, decay:0.004, sz:4+Math.random()*3, petal:true, c:`hsla(${340+Math.random()*20},90%,${80+Math.random()*10}%,1)`});
+    // Gentle shimmer overlay
+    ctx.globalCompositeOperation='screen';
+    ctx.fillStyle=`rgba(255,180,210,${0.02+Math.sin(time*0.02)*0.01})`;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+  }
+  else if(curTheme === 'sunset') {
+    // Warm orange horizon glow
+    const sunG = ctx.createLinearGradient(0, H*0.35, 0, H*0.65);
+    sunG.addColorStop(0,'rgba(255,150,30,0)'); sunG.addColorStop(0.5,'rgba(255,90,0,0.18)'); sunG.addColorStop(1,'rgba(180,20,0,0)');
+    ctx.fillStyle=sunG; ctx.fillRect(0, H*0.35, W, H*0.3);
+    // Sun shimmer sparkles on water surface
+    if(time%10===0 && particles.length < 150)
+      particles.push({x:Math.random()*W, y:80+Math.random()*60, vx:(Math.random()-.5)*2, vy:-0.5-Math.random(), life:0.8, decay:0.025, sz:2, c:`rgba(255,200,80,1)`});
+  }
+  else if(curTheme === 'abyss') {
+    // Heavy vignette — crushing dark
+    const abG = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.15, W/2,H/2,Math.max(W,H));
+    abG.addColorStop(0,'rgba(0,0,0,0)'); abG.addColorStop(1,'rgba(0,0,5,0.75)');
+    ctx.fillStyle=abG; ctx.fillRect(0,0,W,H);
+    // Occasional deep-sea bioluminescent flash
+    if(time%120===0) particles.push({x:Math.random()*W, y:Math.random()*H, vx:0, vy:0, life:1.5, decay:0.005, sz:4, c:'rgba(100,200,255,1)'});
+  }
+  else if(curTheme === 'reef') {
+    // Bright caustic shimmer from top
+    ctx.globalCompositeOperation='screen';
+    for(let i=0;i<6;i++){
+      const cx = W*(0.1+0.16*i)+Math.sin(time*0.007+i)*25;
+      const cy = 40+Math.cos(time*0.009+i*1.3)*20;
+      const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,50);
+      cg.addColorStop(0,`rgba(100,240,255,${0.06+Math.abs(Math.sin(time*0.05+i))*0.06})`);
+      cg.addColorStop(1,'rgba(0,240,255,0)');
+      ctx.fillStyle=cg; ctx.fillRect(cx-50,cy-50,100,100);
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
 
   function drawFlora(sw) {
     // Slower, more subtle swaying for organic look
@@ -1715,10 +1901,37 @@ try {
     const b=bubbles[i];b.y-=b.spd;b.x+=Math.sin(time*.004+b.ph)*.6;
     if(b.y<-10){bubbles.splice(i,1);continue;}
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    const bcol = BUBBLES[curBubble].col.replace('{a}', b.life * 0.45);
-    ctx.strokeStyle = bcol; ctx.stroke();
+    const bDef = BUBBLES[curBubble];
+    const isRainbow = curBubble === 'rainbow';
+    const hue = (time*2 + b.x) % 360;
+    const strokeA = b.life * 0.85;
+    const fillA = b.life * 0.22;
+    let bcol, bfill;
+    if(isRainbow) {
+      bcol  = `hsla(${hue}, 100%, 80%, ${strokeA})`;
+      bfill = `hsla(${hue}, 100%, 70%, ${fillA})`;
+    } else {
+      bcol  = bDef.col.replace('{a}', strokeA);
+      bfill = bDef.fill.replace('{fa}', fillA);
+    }
+    // fill bubble body
+    ctx.fillStyle = bfill; ctx.fill();
+    // bright rim
+    ctx.strokeStyle = bcol; ctx.lineWidth = Math.max(1, b.r * 0.22); ctx.stroke();
+    // sheen highlight
+    ctx.beginPath(); ctx.arc(b.x - b.r*0.3, b.y - b.r*0.35, b.r*0.28, 0, Math.PI*2);
+    ctx.fillStyle = isRainbow ? `hsla(${hue},80%,95%,${b.life*0.55})` : `rgba(255,255,255,${b.life*0.55})`;
+    ctx.fill();
+    // glow for colored bubbles
+    if(!isRainbow && curBubble !== 'default') {
+      ctx.save(); ctx.globalAlpha = b.life * 0.18;
+      ctx.shadowBlur = b.r * 3; ctx.shadowColor = bDef.col.replace('{a}','1');
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
   }
-  if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:2+Math.random()*5,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
+  ctx.lineWidth = 1;
+  if(bubbles.length<20&&Math.random()<.05)bubbles.push({x:20+Math.random()*(W-40),y:H+10,r:3+Math.random()*6,spd:.8+Math.random()*1.2,ph:Math.random()*Math.PI*2,life:.6+Math.random()*.4});
 
   for(let i=foodList.length-1;i>=0;i--){
     const fd=foodList[i];
@@ -1740,12 +1953,23 @@ try {
   }
 
   for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=.03;
+    const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=(p.decay||0.03);
     if(p.life<=0){particles.splice(i,1);continue;}
-    ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+    const sz = p.sz || 3;
+    const alpha = Math.min(1, p.life);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.c;
+    ctx.beginPath();
+    if(p.petal) { // sakura petal — small rotated ellipse
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.x*0.01+p.life); ctx.ellipse(0,0,sz,sz*0.5,0,0,Math.PI*2); ctx.restore();
+    } else {
+      ctx.arc(p.x, p.y, sz, 0, Math.PI*2);
+    }
+    ctx.fill();
   }ctx.globalAlpha=1;
 
-  fishList.sort((a,b)=>a.scale-b.scale);
+  // ── PERF: Sort fish by scale only every 30 frames (scale changes slowly) ──
+  if(time%30===0) fishList.sort((a,b)=>a.scale-b.scale);
   for(const f of fishList){updateFish(f);drawFish(f);}
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
@@ -1764,67 +1988,142 @@ try {
     ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillText(str, e.x, e.y - 15);
   }
 
-  function drawSubstrate() {
-    const f = FLOORS[curFloor];
-    const by = H - 85; 
+  // ── PERF: Offscreen-cached substrate ──
+  if(_substrateDirty || !_substrateCanvas || _substrateCanvas.width!==W || _substrateCanvas.height!==H) {
+    _substrateDirty = false;
+    _substrateCanvas = document.createElement('canvas');
+    _substrateCanvas.width = W; _substrateCanvas.height = H;
+    const sc = _substrateCanvas.getContext('2d');
+    const fl = FLOORS[curFloor];
+    const by = H - 85;
     const getH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
-
-    ctx.fillStyle = f.c;
-    ctx.beginPath(); ctx.moveTo(-20, H + 5); ctx.lineTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.lineTo(W + 40, H + 5);
-    ctx.fill();
-
-    ctx.save();
-    ctx.clip();
-    
-    // Ambient depth shadow
-    const grad = ctx.createLinearGradient(0, by - 10, 0, H);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, by - 15, W, 150);
-
-    // Static pseudo-random texture (eliminates Math.random() flickering)
-    for(let i = 0; i < 400; i++) {
-       const r1 = (Math.sin(i * 12.9898) * 43758.5453) % 1;
-       const pr1 = r1 < 0 ? r1 + 1 : r1;
-       const r2 = (Math.cos(i * 78.233) * 43758.5453) % 1;
-       const pr2 = r2 < 0 ? r2 + 1 : r2;
-       
-       const gx = -20 + pr1 * (W + 40);
-       const gy = by + getH(gx) + pr2 * 110;
-
-       // Sand grains
-       ctx.fillStyle = `rgba(255,255,255,${0.02 + pr1 * 0.05})`;
-       ctx.fillRect(gx, gy, 1 + pr2 * 1.5, 1 + pr2 * 1.5);
-       
-       // Pebbles & Rocks
-       if(i % 12 === 0) {
-         ctx.fillStyle = pr2 > 0.5 ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.06)';
-         ctx.beginPath(); ctx.arc(gx, gy, 2 + pr1 * 4, 0, Math.PI * 2); ctx.fill();
-         // Pebble highlight for 3D depth
-         ctx.fillStyle = 'rgba(255,255,255,0.12)';
-         ctx.beginPath(); ctx.arc(gx - 1, gy - 1, 1 + pr1, 0, Math.PI * 2); ctx.fill();
+    // Base floor fill
+    sc.fillStyle = fl.c;
+    sc.beginPath(); sc.moveTo(-20, H + 5); sc.lineTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i));
+    sc.lineTo(W + 40, H + 5); sc.fill();
+    // Clip all substrate textures to floor area
+    sc.save();
+    sc.beginPath(); sc.moveTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i));
+    sc.lineTo(W + 40, H + 5); sc.lineTo(-20, H + 5); sc.closePath(); sc.clip();
+    // Depth shadow gradient
+    const grad = sc.createLinearGradient(0, by - 10, 0, H);
+    grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+    sc.fillStyle = grad; sc.fillRect(0, by - 15, W, 150);
+    // Per-floor grain/pebble texture
+    const grainCol = fl.grain || '#ffffff';
+    for(let i = 0; i < 600; i++) {
+       const r1 = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1);
+       const r2 = Math.abs((Math.cos(i * 78.233)  * 43758.5453) % 1);
+       const r3 = Math.abs((Math.sin(i * 37.719)  * 43758.5453) % 1);
+       const gx = -20 + r1 * (W + 40);
+       const gy = by + getH(gx) + r2 * 110;
+       // grain pebbles
+       const sz = 1.5 + r3 * 4.5;
+       const alpha = 0.08 + r3 * 0.28;
+       sc.fillStyle = grainCol;
+       sc.globalAlpha = alpha;
+       sc.beginPath(); sc.arc(gx, gy, sz, 0, Math.PI * 2); sc.fill();
+       // occasional brighter highlight
+       if(i % 10 === 0) {
+         sc.globalAlpha = alpha * 1.8;
+         sc.beginPath(); sc.arc(gx - sz * 0.35, gy - sz * 0.35, sz * 0.4, 0, Math.PI * 2); sc.fill();
        }
     }
-    ctx.restore();
-
-    // Top rim highlight
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20));
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i));
-    ctx.stroke();
-    
-    // Bottom inset shadow for rim
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-20, by + getH(-20) + 1.5);
-    for(let i = -20; i <= W + 40; i += 20) ctx.lineTo(i, by + getH(i) + 1.5);
-    ctx.stroke();
+    sc.globalAlpha = 1;
+    // Special textures per floor type
+    if(curFloor === 'crystal') {
+      // Amethyst sparkle shards
+      for(let i = 0; i < 60; i++) {
+        const r1 = Math.abs((Math.sin(i * 51.7) * 43758.5) % 1);
+        const r2 = Math.abs((Math.cos(i * 23.3) * 43758.5) % 1);
+        const r3 = Math.abs((Math.sin(i * 73.1) * 43758.5) % 1);
+        const cx = r1 * W; const cy = by + r2 * 80;
+        sc.save();
+        sc.translate(cx, cy); sc.rotate(r3 * Math.PI);
+        const sg = sc.createLinearGradient(-6, -12, 6, 12);
+        sg.addColorStop(0, 'rgba(216,180,254,0.9)'); sg.addColorStop(0.5, 'rgba(255,255,255,0.95)'); sg.addColorStop(1, 'rgba(139,92,246,0.7)');
+        sc.fillStyle = sg;
+        sc.beginPath(); sc.moveTo(0,-10); sc.lineTo(4,0); sc.lineTo(0,10); sc.lineTo(-4,0); sc.closePath(); sc.fill();
+        sc.restore();
+      }
+    } else if(curFloor === 'snow') {
+      // Ice crack lines
+      sc.strokeStyle = 'rgba(224,242,254,0.5)'; sc.lineWidth = 1;
+      for(let i = 0; i < 20; i++) {
+        const r1 = Math.abs((Math.sin(i * 41.7) * 43758.5) % 1);
+        const r2 = Math.abs((Math.cos(i * 29.3) * 43758.5) % 1);
+        const r3 = Math.abs((Math.sin(i * 67.1) * 43758.5) % 1);
+        sc.beginPath(); sc.moveTo(r1 * W, by + r2 * 60);
+        sc.lineTo(r1 * W + (r3 - 0.5) * 80, by + r2 * 60 + 30 + r3 * 40); sc.stroke();
+      }
+    } else if(curFloor === 'gold') {
+      // Gold glimmer sparkles
+      sc.fillStyle = 'rgba(255,255,180,0.9)';
+      for(let i = 0; i < 80; i++) {
+        const r1 = Math.abs((Math.sin(i * 53.9) * 43758.5) % 1);
+        const r2 = Math.abs((Math.cos(i * 31.7) * 43758.5) % 1);
+        sc.globalAlpha = 0.4 + r2 * 0.5;
+        sc.beginPath(); sc.arc(r1 * W, by + r2 * 90, 1 + r1 * 1.5, 0, Math.PI * 2); sc.fill();
+      }
+      sc.globalAlpha = 1;
+    } else if(curFloor === 'coral') {
+      // Coral branch stumps
+      for(let i = 0; i < 25; i++) {
+        const r1 = Math.abs((Math.sin(i * 47.2) * 43758.5) % 1);
+        const h = 12 + r1 * 20;
+        const cx = (i / 25) * W + (r1 - 0.5) * 20;
+        const cy = by + 2;
+        sc.strokeStyle = `rgba(251,146,60,${0.5 + r1 * 0.45})`; sc.lineWidth = 3 + r1 * 3; sc.lineCap = 'round';
+        sc.beginPath(); sc.moveTo(cx, cy + h); sc.lineTo(cx, cy);
+        sc.lineTo(cx - 5, cy - 6); sc.moveTo(cx, cy); sc.lineTo(cx + 5, cy - 5); sc.stroke();
+      }
+    }
+    sc.restore();
+    // surface edge highlight
+    sc.strokeStyle = 'rgba(255,255,255,0.2)'; sc.lineWidth = 2;
+    sc.beginPath(); sc.moveTo(-20, by + getH(-20));
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i));
+    sc.stroke();
+    sc.strokeStyle = 'rgba(0,0,0,0.25)'; sc.lineWidth = 1;
+    sc.beginPath(); sc.moveTo(-20, by + getH(-20) + 2);
+    for(let i = -20; i <= W + 40; i += 20) sc.lineTo(i, by + getH(i) + 2);
+    sc.stroke();
   }
-  drawSubstrate();
+  ctx.drawImage(_substrateCanvas, 0, 0);
+
+  // ── Border rendered on canvas (box-shadow is clipped by body overflow:hidden) ──
+  if(curBorder !== 'none') {
+    const bd = BORDERS[curBorder];
+    const thick = 14;
+    const pulse = curBorder === 'pulse' ? 0.55 + 0.45 * Math.abs(Math.sin(time * 0.04)) :
+                  curBorder === 'electric' ? 0.6 + 0.4 * Math.abs(Math.sin(time * 0.08)) : 0.85;
+    const alpha = pulse;
+    const gAlpha = pulse * 0.35;
+    ctx.save();
+    // outer glow
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = `rgba(${bd.r},${bd.g},${bd.gb},${gAlpha + 0.15})`;
+    ctx.strokeStyle = `rgba(${bd.r},${bd.g},${bd.gb},${alpha})`;
+    ctx.lineWidth = thick;
+    ctx.strokeRect(thick/2, thick/2, W - thick, H - thick);
+    // inner bright rim
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = `rgba(${Math.min(255,bd.r+80)},${Math.min(255,bd.g+80)},${Math.min(255,bd.gb+80)},${alpha * 0.5})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(thick + 2, thick + 2, W - thick * 2 - 4, H - thick * 2 - 4);
+    // corner decorations
+    const cr = 22;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = `rgba(${bd.r},${bd.g},${bd.gb},${alpha})`;
+    [[cr,cr],[W-cr,cr],[cr,H-cr],[W-cr,H-cr]].forEach(([cx2,cy2]) => {
+      ctx.beginPath();
+      ctx.arc(cx2, cy2, cr * 0.65, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
 
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
@@ -1834,12 +2133,22 @@ try {
   if(!window.crashedAlready) {
     window.crashedAlready=true;
     const errBox = document.createElement('div');
-    errBox.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
+    errBox.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;background-clip:padding-box;';
     errBox.innerHTML = '<h2>LOOP CRASH</h2>' + crashError.message + '<br><br>' + crashError.stack;
     document.body.appendChild(errBox);
   }
 }
 }
+
+// ── PERF: Pause loop when tab/app is hidden to save battery ──
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) {
+    _loopRunning = false;
+  } else {
+    _loopRunning = true;
+    _lastFrame = 0; // reset so delta-time doesn't spike on resume
+  }
+});
 
 // INPUT & INTERACTION
 function dropFood(x,y) {
@@ -1918,9 +2227,9 @@ function spawnJuice(x,y,html,color,scale=1){
 }
 function addCoins(amt,x,y,bonus=false){
   coins+=amt;totalCoins+=amt;
-  document.getElementById('cv').textContent=coins;
+  document.getElementById('cv').textContent=formatCoins(coins);
   checkLevel();
-  spawnJuice(x,y,`+${amt}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
+  spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const LEVEL_THRESHOLDS=[0,5000,15000,45000,120000,350000,1200000,4000000,15000000,50000000];
 function checkLevel(){
@@ -2042,7 +2351,7 @@ function buildFishFinder() {
 
     html += `
       <div class="f-row" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; gap:8px; justify-content:flex-end;">
-        <button class="cbtn2" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444; padding:6px 12px; font-size:11px;" onclick="sellFish(${f.id}, getPrice(f))">Sell</button>
+        <button class="cbtn2" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444; padding:6px 12px; font-size:11px;" onclick="sellFish(${f.id}, ${getPrice(f)})">Sell</button>
       </div>
     </div>`;
     return html;
@@ -2056,7 +2365,7 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
+  ['market','decor','orders','shop','social','finder'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
   currentTab='tank';
 }
 
@@ -2219,12 +2528,12 @@ function buildDecor() {
   cardEl = makeAccordion('acc-themes','Water Themes', THEMES[curTheme].name, null, 'themes');
   if(cardEl) for(const [id,def] of Object.entries(THEMES))
     cardEl.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
-      ()=>{ ownedThemes.push(id); curTheme=id; }, ()=>{ curTheme=id; }));
+      ()=>{ ownedThemes.push(id); curTheme=id; _waterGrad=null; _rayGrads=null; }, ()=>{ curTheme=id; _waterGrad=null; _rayGrads=null; }));
 
   cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates');
   if(cardEl) for(const [id,def] of Object.entries(FLOORS))
     cardEl.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
-      ()=>{ ownedFloors.push(id); curFloor=id; }, ()=>{ curFloor=id; }));
+      ()=>{ ownedFloors.push(id); curFloor=id; _substrateDirty=true; }, ()=>{ curFloor=id; _substrateDirty=true; }));
 
   cardEl = makeAccordion('acc-bubbles','Bubble Styles', BUBBLES[curBubble].name, null, 'bubbles');
   if(cardEl) for(const [id,def] of Object.entries(BUBBLES))
@@ -2236,27 +2545,39 @@ function buildDecor() {
     cardEl.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
       ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
       
-  cardEl = makeAccordion('acc-flora','Tank Flora', 'Active', null, 'flora');
+  const allFlora = [
+    {id:'seaweed', name:'Seaweed', icon:'🌿', req:1},
+    {id:'grass',   name:'Grass',   icon:'🌱', req:1},
+    {id:'kelp',    name:'Purple Kelp', icon:'🪸', req:3, upgrade:'kelp'},
+    {id:'coral',   name:'Fan Coral',   icon:'🌺', req:5, upgrade:'coral'}
+  ];
+  cardEl = makeAccordion('acc-flora','Tank Flora', activeFlora.join(', ') || 'None', null, 'flora');
   if(cardEl) {
-    const floraTypes = ['seaweed','grass','kelp','coral'];
-    floraTypes.forEach(f => {
-      const isOwned = ownedFlora.includes(f);
+    allFlora.forEach(f => {
+      const isOwned = ownedFlora.includes(f.id);
+      const isActive = activeFlora.includes(f.id);
       const c = document.createElement('div');
-      c.className = `card ${isOwned?'buyable':''}`;
-      c.innerHTML = `<span class="ci">${ICONS.decor}</span><span class="cn">${f.toUpperCase()}</span><span class="cpr">${isOwned?'OWNED':'LOCKED'}</span>`;
+      const locked = !isOwned;
+      c.className = `card ${isOwned ? 'buyable' : 'locked'} ${isActive ? 'equipped' : ''}`;
+      if(locked) c.setAttribute('data-req', f.req);
+      c.innerHTML = `<span class="ci">${f.icon}</span><span class="cn">${f.name}</span><span class="cpr" style="color:${isActive?'var(--ui-accent)':'#64748b'}">${locked?'LOCKED':isActive?'ON':'OFF'}</span>`;
+      if(isOwned) c.onclick = () => {
+        if(isActive) {
+          if(activeFlora.length > 1) { activeFlora = activeFlora.filter(x => x !== f.id); }
+        } else {
+          if(!activeFlora.includes(f.id)) activeFlora.push(f.id);
+        }
+        initDecor(); buildDecor(); saveGame();
+        spawnJuice(W/2, H/2, `${f.icon} ${isActive?'Hidden':'Showing'}!`, 'var(--ui-accent)', 1.2);
+      };
       cardEl.appendChild(c);
     });
   }
 }
 
 function applyBorder() {
-  const b = BORDERS[curBorder];
-  const cv = document.getElementById('c');
-  cv.style.boxShadow = 'none'; cv.style.outline = 'none';
-  if(b.style==='glow') cv.style.boxShadow = `inset 0 0 40px rgba(var(--ui-accent-rgb),0.25), inset 0 0 8px rgba(var(--ui-accent-rgb),0.15)`;
-  if(b.style==='coral') cv.style.boxShadow = 'inset 0 0 30px rgba(249,115,22,0.2), inset 0 0 6px rgba(249,115,22,0.1)';
-  if(b.style==='gold') cv.style.boxShadow = 'inset 0 0 40px rgba(251,191,36,0.22), inset 0 0 8px rgba(251,191,36,0.12)';
-  if(b.style==='pulse') { cv.style.animation = 'none'; cv.style.boxShadow = 'inset 0 0 60px rgba(var(--ui-accent-rgb),0.18)'; }
+  // Borders are now drawn directly on the canvas each frame — no CSS needed.
+  // This function is kept for compatibility (called at boot and on reset).
 }
 
 function switchShop(tab) {
@@ -2363,7 +2684,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:fData.type,hatchTime:getEggHatchTime(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -2531,6 +2852,15 @@ function importSaveClick() {
   }
 }
 
+// Combination Quests: Requires sacrificing specific livestock (or rare/adult variants) AND coins
+const COMBINATION_POOL = [
+  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c',   metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
+  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
+  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
+  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
+  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
+];
+
 // BOOT
 try {
   initDecor();
@@ -2567,15 +2897,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();
 // ─────────────────────────────────────────────────────────────────────────────
 // ORDERS FUNCTIONS (full)
 // ─────────────────────────────────────────────────────────────────────────────
-
-// Combination Quests: Requires sacrificing specific livestock (or rare/adult variants) AND coins
-const COMBINATION_POOL = [
-  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c',   metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
-  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
-  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
-  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
-  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
-];
 function getRawMetricValue(o) {
   if (o.metric === 'combo_trade') {
     const matchCount = fishList.filter(f => f.type === o.ftypereq && (!o.reqRare || f.isRare) && (!o.reqAdult || f.age > getAdultAge(f))).length;
@@ -2746,12 +3067,12 @@ function claimOrder(i) {
     const def=TYPES[o.ftyperew];
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const genes={c1:[isLeg?def.rare.c1:def.c1,isLeg?def.rare.c1:def.c1],c2:[isLeg?def.rare.c2:def.c2,isLeg?def.rare.c2:def.c2],trait:['active','greedy'],isRareMut:isLeg,szMod:1};
-    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes,isRareMut:isLeg});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,hatchTime:getEggHatchTime(o.ftyperew),genes,isRareMut:isLeg});
     spawnJuice(W/2,H/4,ICONS.egg+` UNLOCKED: ${def.name}!`,isLeg?'#c084fc':'var(--ui-accent)',2);
     updateHUD();
   }
 
-  spawnJuice(W/2,H/5,`${tm.icon} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
+  spawnJuice(W/2,H/5,`${o.icon} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
 
   if(o.tier==='legend'){
     for(let b=0;b<16;b++){
@@ -2788,7 +3109,7 @@ function buildOrders() {
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const rewHtml=o.ftyperew&&TYPES[o.ftyperew]
       ?`<span style="display:flex;align-items:center;gap:3px;color:var(--tier-legend); font-weight:bold;">${ICONS.egg} Unlocks ${TYPES[o.ftyperew].name} ${o.rewardIsRare?'(Rare) ':''}${o.reward>0?' + '+ICONS.coin+o.reward:''}</span>`
-      :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${o.reward}</span>`;
+      :`<span style="display:flex;align-items:center;gap:3px;">${ICONS.coin} ${formatCoins(o.reward)}</span>`;
 
     const btnText = o.claimed 
       ? (ICONS.done + ' Done') 
@@ -2832,9 +3153,9 @@ function resetSave(){
      fishList=[];eggs=[];foodList=[];bubbles=[];
      particles=[];isHarmony=false;combo=0;
      clams=[];snails=[];seaweeds=[];
-     curFloor='default';curTheme='default';curBorder='none';curBubble='default';
+     curFloor='default';curTheme='default';curBorder='none';curBubble='default';_substrateDirty=true;_waterGrad=null;
      ownedThemes=['default'];ownedFloors=['default'];ownedBorders=['none'];
-     ownedBubbles=['default'];ownedFlora=['seaweed','grass'];
+     ownedBubbles=['default'];ownedFlora=['seaweed','grass'];activeFlora=['seaweed','grass'];applyBorder();
      boughtCounts={};for(let k in TYPES)boughtCounts[k]=0;
      sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0};
      questStreak=0; currentOrders=[]; completedOrders=0; codesRedeemed=0;
