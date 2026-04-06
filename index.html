@@ -126,6 +126,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nb.active svg{transform:translateY(-1px); filter:drop-shadow(0 2px 4px rgba(var(--ui-accent-rgb),.4));}
 .nb.notify::after{content:'';position:absolute;top:2px;right:calc(50% - 12px);width:7px;height:7px;background:#f43f5e;border-radius:50%;border:2px solid rgba(0,0,0,.5);box-shadow:0 0 10px rgba(244,63,94,.6);}
 
+#sov{position:fixed;inset:0;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;}
 #sov.open{opacity:1;pointer-events:all;background:rgba(0,0,0,0.1);backdrop-filter:blur(3px);}
 .panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-top:1px solid var(--border);border-radius:32px 32px 0 0;padding:24px 20px 0;z-index:21;transform:translateY(102%);transition:transform .55s cubic-bezier(.34, 1.56, .64, 1), height .55s cubic-bezier(.34, 1.56, .64, 1);height:54dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -10px 50px rgba(0,0,0,0.3);will-change:transform;}
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));}
@@ -253,6 +254,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 .ft{position:fixed;pointer-events:none;z-index:30;font-weight:900;animation:spk 1.2s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.8); display:flex; align-items:center; gap:4px;}
 @keyframes spk{0%{transform:translateY(0) scale(.5);opacity:0;}15%{transform:translateY(-18px) scale(1.15);opacity:1;}100%{transform:translateY(-62px) scale(.8);opacity:0;}}
+@keyframes juice{0%{transform:translateY(0) scale(.5);opacity:0;}15%{transform:translateY(-18px) scale(1.15);opacity:1;}100%{transform:translateY(-62px) scale(.8);opacity:0;}}
+.cbtn{background:rgba(var(--ui-accent-rgb),.1);border:1px solid rgba(var(--ui-accent-rgb),.3);color:var(--ui-accent);border-radius:12px;padding:8px 16px;font-weight:bold;font-size:12px;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;font-family:inherit;box-shadow:none;}
+.cbtn:active{transform:scale(.95);}
 #toast{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:14px;font-weight:bold;font-size:12px;pointer-events:none;opacity:0;transition:opacity .28s;z-index:55;color:#fff;white-space:nowrap;}
 .trait-icon{display:inline-flex; align-items:center; justify-content:center; width:14px;height:14px;border-radius:50%;font-size:9px;margin-right:4px;background:rgba(0,0,0,0.3); color:#fff;}
 
@@ -328,6 +332,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div id="acc-substrates"></div>
     <div id="acc-bubbles"></div>
     <div id="acc-borders"></div>
+    <div id="acc-flora"></div>
   </div>
 </div>
 
@@ -1801,7 +1806,7 @@ function drawFish(f){
     ctx.fillStyle=bg;
     ctx.beginPath();ctx.ellipse(0,0,s*2,s*.8,0,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff3';
-    for(let i=0;i<12;i++) ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<12;i++){ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();}
     ctx.fillStyle=bg;
     ctx.beginPath();ctx.moveTo(-s*1.5, 0); ctx.lineTo(-s*2.2, -s*.6+wag); ctx.lineTo(-s*2.2, s*.6+wag); ctx.closePath(); ctx.fill();
     drawEye(ctx, s*1.8, -s*.2, s*.05);
@@ -2725,7 +2730,7 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
+  ['market','decor','orders','shop','social','finder'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
   currentTab='tank';
 }
 
@@ -3044,7 +3049,7 @@ function redeemCode(raw){
         if(Math.random()<0.5) genes.c1[0] = def.rare.c1;
         else genes.c2[0] = def.rare.c2;
     }
-    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:fData.type,timer:getEggTimerFrames(fData.type),genes:genes,isRareMut:fData.isRare});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:fData.type,hatchTime:getEggHatchTime(fData.type),genes:genes,isRareMut:fData.isRare});
     updateHUD();
     toast(ICONS.egg + ' Egg received!','#10b981');
     document.getElementById('codein').value='';
@@ -3212,6 +3217,15 @@ function importSaveClick() {
   }
 }
 
+// Combination Quests: Requires sacrificing specific livestock (or rare/adult variants) AND coins
+const COMBINATION_POOL = [
+  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c',   metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
+  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
+  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
+  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
+  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
+];
+
 // BOOT
 try {
   initDecor();
@@ -3248,15 +3262,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();
 // ─────────────────────────────────────────────────────────────────────────────
 // ORDERS FUNCTIONS (full)
 // ─────────────────────────────────────────────────────────────────────────────
-
-// Combination Quests: Requires sacrificing specific livestock (or rare/adult variants) AND coins
-const COMBINATION_POOL = [
-  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c',   metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
-  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
-  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
-  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
-  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
-];
 function getRawMetricValue(o) {
   if (o.metric === 'combo_trade') {
     const matchCount = fishList.filter(f => f.type === o.ftypereq && (!o.reqRare || f.isRare) && (!o.reqAdult || f.age > getAdultAge(f))).length;
@@ -3427,12 +3432,12 @@ function claimOrder(i) {
     const def=TYPES[o.ftyperew];
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const genes={c1:[isLeg?def.rare.c1:def.c1,isLeg?def.rare.c1:def.c1],c2:[isLeg?def.rare.c2:def.c2,isLeg?def.rare.c2:def.c2],trait:['active','greedy'],isRareMut:isLeg,szMod:1};
-    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,timer:getEggTimerFrames(o.ftyperew),genes,isRareMut:isLeg});
+    eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,hatchTime:getEggHatchTime(o.ftyperew),genes,isRareMut:isLeg});
     spawnJuice(W/2,H/4,ICONS.egg+` UNLOCKED: ${def.name}!`,isLeg?'#c084fc':'var(--ui-accent)',2);
     updateHUD();
   }
 
-  spawnJuice(W/2,H/5,`${tm.icon} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
+  spawnJuice(W/2,H/5,`${o.icon} ${tm.label} COMPLETE!`,tm.strip,o.tier==='legend'?2.8:o.tier==='hard'?2.2:1.8);
 
   if(o.tier==='legend'){
     for(let b=0;b<16;b++){
