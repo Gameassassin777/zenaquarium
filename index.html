@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.29 - Update System Fix -->
+<!-- ZenAquarium v2.1.30 - Remote Update Sync -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.29 | Update Fix</title>
+<title>Zen Aquarium v2.1.30 | Update Sync</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -370,7 +370,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.29</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.30</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -403,13 +403,29 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.29';
+const CUR_VER = '2.1.30';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
   try{document.getElementById('mlink').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));}catch(_){}
   
   const last_v = localStorage.getItem('zen_v');
+  
+  // ── REMOTE VERSION SYNC (Look-ahead) ──
+  // This background check ensures that even aggressively-cached PWAs see new updates
+  if(navigator.onLine && Math.random() < 0.3) {
+    fetch(location.href + '?sync=' + Date.now(), { cache:'no-store' })
+      .then(r => r.text())
+      .then(txt => {
+        const match = txt.match(/const CUR_VER = ['"](.*?)['"]/);
+        if(match && match[1] && match[1] !== CUR_VER) {
+           console.warn(`[Sync] Remote version newer: ${match[1]}. Triggering sync...`);
+           localStorage.setItem('zen_v', CUR_VER); // Prepare local for the transition
+           setTimeout(() => location.reload(true), 2000); // Delayed reload to show final UI
+        }
+      }).catch(()=>{});
+  }
+
   if(last_v && last_v !== CUR_VER) {
     localStorage.setItem('zen_v', CUR_VER);
     console.warn(`[ZenUpdate] Version mismatch: ${last_v} -> ${CUR_VER}. Forcing refresh...`);
