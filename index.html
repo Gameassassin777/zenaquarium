@@ -1703,7 +1703,7 @@
   </div>
 
   <div id="socpanel" class="panel">
-    <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.33</span><button class="xbtn"
+    <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.34</span><button class="xbtn"
         onclick="closeAll()"></button></div>
     <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
   </div>
@@ -1742,7 +1742,8 @@
     // ─────────────────────────────────────────────────────────────────────────────
     // PWA & UPDATER SETUP
     // ─────────────────────────────────────────────────────────────────────────────
-    const CUR_VER = '2.1.33';
+    const CUR_VER = '2.1.34';
+
     function setupPWA() {
       const isRemote = location.protocol.startsWith('http');
       const ico = s => `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s * .22)}' fill='%23001428'/><text y='${Math.round(s * .78)}' font-size='${Math.round(s * .58)}' text-anchor='middle' x='${Math.round(s / 2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1780,7 +1781,7 @@
       </div>`;
 
         localStorage.setItem('zen_v', CUR_VER);
-        console.warn(`[ZenUpdate] Asset Refresh: ${last_v} -> ${CUR_VER}`);
+        console.warn(\`[ZenUpdate] Asset Refresh: \${last_v} -> \${CUR_VER}\`);
 
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(rs => {
@@ -1801,7 +1802,7 @@
     const _stopBoot = setupPWA();
     if (_stopBoot) {
       document.body.style.background = '#001428';
-      console.log("[ZenUpdate] Reloading app for version v" + CUR_VER);
+      console.log("[ZenUpdate] Asset Refresh (v" + CUR_VER + ") in progress...");
     }
     // Note: Boot side-effects are now wrapped in BOOT_APP() at the bottom.
 
@@ -2297,7 +2298,7 @@
         eggs.push({ ...e, timer: Math.max(0, e.timer - elapsedFrames) });
       }
 
-      for (const f of (s.fish || [])) {
+      for (const f of (s.fishList || s.fish || [])) {
         const def = TYPES[f.type]; if (!def) continue;
         const genes = f.genes || generateRandomGenes(f.type);
         fishList.push({
