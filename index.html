@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.21 - Cosmetics Overhaul -->
+<!-- ZenAquarium v2.1.22 - Cosmetics Overhaul -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.21 | Cosmetics Overhaul</title>
+<title>Zen Aquarium v2.1.22 | Cosmetics Overhaul</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -356,7 +356,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.21</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.22</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -389,7 +389,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.21';
+const CUR_VER = '2.1.22';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
@@ -1236,7 +1236,11 @@ function updateFish(f){
   const def=TYPES[f.type];
   const trait = f.genes.trait[0];
   
-  f.phase+=.1;f.timer++;
+  // ── PERF: Accumulated phase for smoother, grounded animations ──
+  // Base speeds are now slower for a more zen experience
+  const ts = (f.hunger < 30 ? 0.15 : 0.08) + (f.eat > 0 ? 0.15 : 0) + Math.abs(f.vx) * 0.04;
+  f.phase += ts;
+  f.timer++;
   if(f.eat>0)f.eat--;
   if(f.bonded>0) {
     f.bonded--;
@@ -1457,11 +1461,10 @@ function drawHeart(ctx, x, y, size, color) {
 
 function drawFish(f){
   const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
-  const ts=(f.hunger<30?.2:.1)+(eating?.2:0)+Math.abs(f.vx)*.05;
-  const wag=Math.sin(time*ts+f.id)*(s*.4);
-  const pw=Math.sin(time*ts*2+f.id)*(s*.2);
-  const paddle = Math.sin(time*ts*3+f.id)*s*.15; 
-  const br=1+Math.sin(time*.05+f.id)*.03;
+  // Use accumulated phase to prevent flickering (Ground logic speed)
+  const wag = Math.sin(f.phase) * (s * 0.35);
+  const paddle = Math.sin(f.phase * 2.5) * s * 0.12; 
+  const br = 1 + Math.sin(f.phase * 0.4) * 0.02;
   
   const fs = f.scale * (f.genes.szMod||1) * getGlobalLevelScale();
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
@@ -1523,7 +1526,7 @@ function drawFish(f){
     drawEye(ctx, s*.5, -s*.05, s*.08);
   }
   else if(f.type==='seahorse'){
-    const bob = Math.sin(time*0.1+f.id)*s*0.1;
+    const bob = Math.sin(f.phase*0.8)*s*0.08;
     ctx.translate(0, bob);
     ctx.fillStyle=f.genes.c2[0]+'aa';
     ctx.beginPath();ctx.arc(-s*.2, s*.8, s*.3, 0, Math.PI);ctx.fill(); 
@@ -1640,7 +1643,7 @@ function drawFish(f){
     ctx.strokeStyle=f.genes.c1[0]; ctx.lineCap='round';
     for(let i=0; i<9; i++){
       const a = -Math.PI/2 + (i/8)*Math.PI; 
-      const r = s*1.5 + Math.sin(time*2+i)*s*.2;
+      const r = s*1.5 + Math.sin(f.phase*0.6+i)*s*.15;
       ctx.lineWidth=4; ctx.strokeStyle=f.genes.c1[0];
       ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.stroke();
       ctx.lineWidth=2; ctx.strokeStyle=f.genes.c2[0];
@@ -1889,10 +1892,17 @@ try {
   _dtAcc += dtMs;
   const ticks = Math.floor(_dtAcc / 16.666); // 60fps = 16.666ms per tick
   _dtAcc -= ticks * 16.666;
-  time += ticks || 1; // always advance at least 1 to avoid freezes
-
+  
   if(!W || !H) resize();
-  updateEco();if(time%60===0)checkMilestones();ctx.clearRect(0,0,W,H);
+
+  for(let i=0; i<ticks; i++){
+    time++;
+    updateEco();
+    for(const f of fishList) updateFish(f);
+    if(time%60===0) checkMilestones();
+  }
+  
+  ctx.clearRect(0,0,W,H);
 
   // ── PERF: Cached water gradient (rebuild when algae or theme changes) ──
   // ── Dirty water now works on ALL themes, not just default ──
@@ -2325,12 +2335,13 @@ try {
     } else {
       ctx.arc(p.x, p.y, sz, 0, Math.PI*2);
     }
-    ctx.fill();
+ctx.fill();
   }ctx.globalAlpha=1;
 
   // ── PERF: Sort fish by scale only every 30 frames (scale changes slowly) ──
   if(time%30===0) fishList.sort((a,b)=>a.scale-b.scale);
-  for(const f of fishList){updateFish(f);drawFish(f);}
+  const d=window.devicePixelRatio||1;
+  for(const f of fishList){ drawFish(f); }
   for(const sw of seaweeds) { if(sw.z === 'front') drawFlora(sw); }
 
   // Egg timers ABOVE flora
