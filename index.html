@@ -1,4 +1,4 @@
-<!-- ZenAquarium v2.1.19 - Cosmetics Overhaul -->
+<!-- ZenAquarium v2.1.20 - Cosmetics Overhaul -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium v2.1.19 | Cosmetics Overhaul</title>
+<title>Zen Aquarium v2.1.20 | Cosmetics Overhaul</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -356,7 +356,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.17</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social & Data v2.1.20</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -389,7 +389,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.19';
+const CUR_VER = '2.1.20';
 function setupPWA(){
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
   const mf={name:'Zen Aquarium',short_name:'ZenTank',start_url:'./',display:'standalone',orientation:'any',background_color:'#001428',theme_color:'#001428',icons:[{src:ico(192),sizes:'192x192',type:'image/svg+xml'},{src:ico(512),sizes:'512x512',type:'image/svg+xml'}]};
@@ -399,27 +399,22 @@ function setupPWA(){
   const last_v = localStorage.getItem('zen_v');
   if(last_v && last_v !== CUR_VER) {
     localStorage.setItem('zen_v', CUR_VER);
+    console.log(`Version mismatch: ${last_v} -> ${CUR_VER}. Reloading...`);
     // Unregister everything and reload
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(rs => {
         for(let r of rs) r.unregister();
-        location.reload(true);
-      });
+        location.reload();
+      }).catch(() => location.reload());
     } else {
-      location.reload(true);
+      location.reload();
     }
-    return;
+    return true; // SIGNAL: Should stop boot
   }
   localStorage.setItem('zen_v', CUR_VER);
-
-  // Unregister old problematic service workers to fix caching issues
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) registration.unregister();
-    });
-  }
+  return false;
 }
-setupPWA();
+const _shouldStopBoot = setupPWA();
 
 // SVG ICON LIBRARY (full)
 const svg = (path, v='0 0 24 24') => `<svg viewBox="${v}" fill="currentColor">${path}</svg>`;
@@ -963,7 +958,7 @@ function updateHUD(){
   
   let pct = 100;
   const th = LEVEL_THRESHOLDS;
-  if(playerLevel < 10) {
+  if(playerLevel < th.length) {
     const base = th[playerLevel-1] || 0;
     const next = th[playerLevel];
     pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
@@ -971,7 +966,7 @@ function updateHUD(){
   const xpe = document.getElementById('xp-bar');
   if(xpe) {
     xpe.style.width = pct + '%';
-    if(playerLevel >= 10) { 
+    if(playerLevel >= th.length) { 
       xpe.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)'; 
       xpe.style.boxShadow = '0 0 10px rgba(251,191,36,0.6)';
     }
@@ -2609,6 +2604,7 @@ function checkLevel(){
     document.getElementById('nb-shop').classList.add('notify');
     checkMilestones();
   }
+  updateHUD();
 }
 
 function checkMilestones() {
@@ -3227,6 +3223,7 @@ const COMBINATION_POOL = [
 ];
 
 // BOOT
+if (!_shouldStopBoot) {
 try {
   initDecor();
   const saved=loadSave();
@@ -3255,6 +3252,7 @@ try {
   errBox.style.cssText = 'position:fixed;inset:0;background:black;color:red;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
   errBox.innerHTML = '<h2>CRASH DETECTED</h2>' + crashError.message + '<br><br>' + crashError.stack;
   document.body.appendChild(errBox);
+}
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
 // End of script. loop() was already called above.

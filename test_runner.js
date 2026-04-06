@@ -18,7 +18,6 @@ var btoa = function() { return ""; };
 var atob = function() { return ""; };
 var decodeURIComponent = function() {};
 var encodeURIComponent = function() {};
-var console = { log: print, error: print };
 
 
 // ─────────────────────────────────────────────────────────────────────────────
