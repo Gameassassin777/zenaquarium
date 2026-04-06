@@ -1742,7 +1742,7 @@
     // ─────────────────────────────────────────────────────────────────────────────
     // PWA & UPDATER SETUP
     // ─────────────────────────────────────────────────────────────────────────────
-    const CUR_VER = '2.1.34';
+    const CUR_VER = '2.1.35';
 
     function setupPWA() {
       const isRemote = location.protocol.startsWith('http');
@@ -1781,7 +1781,7 @@
       </div>`;
 
         localStorage.setItem('zen_v', CUR_VER);
-        console.warn(\`[ZenUpdate] Asset Refresh: \${last_v} -> \${CUR_VER}\`);
+        console.warn(`[ZenUpdate] Asset Refresh: ${last_v} -> ${CUR_VER}`);
 
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(rs => {
@@ -1800,10 +1800,6 @@
       return false;
     }
     const _stopBoot = setupPWA();
-    if (_stopBoot) {
-      document.body.style.background = '#001428';
-      console.log("[ZenUpdate] Asset Refresh (v" + CUR_VER + ") in progress...");
-    }
     // Note: Boot side-effects are now wrapped in BOOT_APP() at the bottom.
 
     // SVG ICON LIBRARY (full)
