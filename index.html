@@ -132,8 +132,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .ocard.expanded{height:auto;border-color:rgba(var(--ui-accent-rgb),0.4);background:rgba(var(--ui-accent-rgb),0.02);}
 .ocard.odone{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,0.03);}
 .ocard.oclaimed{opacity:0.6;filter:grayscale(0.5);}
-.o-details{max-height:0;overflow:hidden;transition:max-height 0.3s ease-out;font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:0;opacity:0;}
-.ocard.expanded .o-details{max-height:200px;margin-top:12px;opacity:1;}
+.o-details{max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, margin-top 0.3s;font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:0;opacity:0;}
+.ocard.expanded .o-details{max-height:500px;margin-top:12px;opacity:1;}
+.o-chevron{transition:transform 0.3s ease-out;color:var(--text-dim);font-size:10px;}
+.ocard.expanded .o-chevron{transform:rotate(180deg);}
 .o-how{background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;margin-top:8px;border:1px dashed rgba(255,255,255,0.1);font-style:italic;}
 .o-reward-item{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;padding:4px 0;}
 .q-daily{border:2px solid #a855f7 !important;background:linear-gradient(135deg, rgba(168,85,247,0.1), rgba(103,232,249,0.05)) !important;box-shadow:0 0 25px rgba(168,85,247,0.2) !important;}
@@ -425,7 +427,7 @@ function setupPWA(){
   if(last_v && last_v !== CUR_VER) {
     document.body.innerHTML = `
       <div style="position:fixed;inset:0;background:#001428;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#67e8f9;font-family:system-ui,-apple-system,sans-serif;z-index:9999;">
-        <div style="font-size:48px;margin-bottom:20px;filter:drop-shadow(0 0 15px #67e8f9);">🐠</div>
+        <div style="font-size:48px;margin-bottom:20px;filter:drop-shadow(0 0 15px #67e8f9);width:60px;height:60px;margin:0 auto 20px;">${ICONS.fish_logo}</div>
         <div style="font-weight:900;letter-spacing:1px;font-size:18px;">ZEN AQUARIUM</div>
         <div style="font-size:12px;opacity:0.6;margin-top:8px;">Refreshing Game Engine... v${CUR_VER}</div>
         <div style="font-size:10px;opacity:0.4;margin-top:4px;">(Your save data is safe)</div>
@@ -501,7 +503,12 @@ const ICONS = {
   pencil: svg('<path d="M12 20h9 M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/>'),
   gift: svg('<rect x="4" y="8" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="20" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/><path d="M12 8 C8 4 6 8 12 8 M12 8 C16 4 18 8 12 8" fill="none" stroke="currentColor" stroke-width="2"/>'),
   heart: svg('<path d="M12 21 l-1.45-1.3C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21z" fill="currentColor"/>'),
-  close: svg('<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')
+  close: svg('<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  seaweed: svg('<path d="M12 22c0-8-5-10-3-14c1-2 4-4 3-6c-2 2-3 4-2 6c1 3 4 5 4 14z" fill="currentColor"/><path d="M12 18c-3-2-6-4-5-8c1-3 2-4 1-6c-2 2-1 4-2 5c-1 3 2 6 6 9z" fill="currentColor"/><path d="M12 20c4-1 6-4 6-7c0-2-1-4-2-6c2 2 3 4 2 6c0 4-2 6-6 7z" fill="currentColor"/>'),
+  grass: svg('<path d="M12 22c-2-8-6-14-10-20c3 8 7 14 10 20z M12 22c0-8-2-15-4-20c2 8 3 15 4 20z M12 22c1-10 6-16 10-20c-3 8-7 14-10 20z" fill="currentColor"/>'),
+  kelp: svg('<path d="M6 22c-2-4-2-10 0-14c1-3 5-5 5-5c-2 3-2 6 0 10l-2 2c0 3 2 4 1 7zM12 22c0-5 2-8 1-13c-2-4-1-7-1-7c1 2 2 5 2 8c2 2 1 6 0 12zM18 22c2-3 1-8-1-12c-1-3 1-6 2-8c-2 4-2 7 0 10c0 4-1 6-1 10z" fill="currentColor"/>'),
+  coral_fan: svg('<path d="M12 22v-4m0 0c-4-4-6-8-4-12m4 12c3-3 6-7 4-11m-4 11c-2-3-4-6-2-9m2 9c2-2 3-5 1-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  fish_logo: svg('<path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/>')
 };
 
 // UI INJECTION
@@ -808,64 +815,64 @@ const TIER_META={
 // ── QUEST POOL (Elite Audit) ──
 const ORDER_POOL=[
   // ═ EASY ═
-  {id:'e0a', tier:'easy', icon:ICONS.shop,   desc:'Upgrade Local Tech', howTo:'Go to the Upgrades menu and purchase any 2 permanent tank improvements.', metric:'upgrades_owned', isState:true, target:2, reward:300, minLvl:1},
-  {id:'e0b', tier:'easy', icon:ICONS.coin,   desc:'Expansion Budget', howTo:'Spend coins on anything—fish, food, or shop items—to reach the target.', metric:'coinsSpent', isState:false, target:2000, reward:400, minLvl:2},
-  {id:'e1', tier:'easy',  icon:ICONS.flakes, desc:'Feeding Routine', howTo:'Drop food into the tank 10 separate times. Your fish must be present to eat!', metric:'feeds',       isState:false,target:10,  reward:120, minLvl:1},
-  {id:'e2', tier:'easy',  icon:ICONS.flakes, desc:'Plentiful Harvest', howTo:'Drop 25 portions of food. Overfeeding is okay for the quest!', metric:'feeds',       isState:false,target:25,  reward:200, minLvl:1},
-  {id:'e3', tier:'easy',  icon:ICONS.clean,  desc:'Glass Scrubber', howTo:'Toggle Cleaning mode and tap on the green algae spots to scrub the glass.', metric:'cleaned',     isState:false,target:15,  reward:140, minLvl:1},
-  {id:'e4', tier:'easy',  icon:ICONS.star,   desc:'Harmony Seeker', howTo:'Keep the Harmony bar full by keeping fish fed and the tank clean.', metric:'harmonySec',  isState:false,target:60,  reward:200, minLvl:1},
-  {id:'e5', tier:'easy',  icon:ICONS.tank,   desc:'Small School', howTo:'Successfully hatch or buy 3 fish to inhabit the tank at once.', metric:'fish_total',  isState:true, target:3,   reward:150, minLvl:1},
-  {id:'e6', tier:'easy',  icon:ICONS.market, desc:'First Payday', howTo:'Open the Market, select a fish you have raised, and sell it for profit.', metric:'marketSales', isState:false,target:1,   reward:320, minLvl:1},
-  {id:'e7', tier:'easy',  icon:ICONS.egg,    desc:'Life Bringer', howTo:'Wait for an egg to hatch naturally. High water quality speeds up the timer.', metric:'hatched',     isState:false,target:1,   reward:260, minLvl:2},
-  {id:'e8', tier:'easy',  icon:ICONS.social, desc:'Fish Whisperer', howTo:'Tap on your fish repeatedly to bond with them and earn their trust.', metric:'bonded',      isState:false,target:3,   reward:160, minLvl:1},
-  {id:'e9', tier:'easy',  icon:ICONS.tank,   desc:'Growing Pains', howTo:'Wait for a baby fish to reach its adult stage. This takes about 5 minutes.',  metric:'adults',      isState:true, target:1,   reward:220, minLvl:2},
+  {id:'e0a', tier:'easy', icon:ICONS.shop,   desc:'Upgrade Local Tech', howTo:'Tap the Shop button, switch to Supplies, and purchase any 2 permanent upgrades.', metric:'upgrades_owned', isState:true, target:2, reward:300, minLvl:1},
+  {id:'e0b', tier:'easy', icon:ICONS.coin,   desc:'Expansion Budget', howTo:'Tap the Market or Shop and spend coins on anything—fish, food, or items—to hit this budget.', metric:'coinsSpent', isState:false, target:2000, reward:400, minLvl:2},
+  {id:'e1', tier:'easy',  icon:ICONS.flakes, desc:'Feeding Routine', howTo:'Tap the Feed button at the top of the screen to drop food. Fish must swim up and eat it to count!', metric:'feeds',       isState:false,target:10,  reward:120, minLvl:1},
+  {id:'e2', tier:'easy',  icon:ICONS.flakes, desc:'Plentiful Harvest', howTo:'Keep tapping the Feed button to drop 25 portions of food. Overfeeding is okay for this quest!', metric:'feeds',       isState:false,target:25,  reward:200, minLvl:1},
+  {id:'e3', tier:'easy',  icon:ICONS.clean,  desc:'Glass Scrubber', howTo:'Tap the Feed/Clean button to switch to Cleaning mode, then tap on any green algae spots in the water.', metric:'cleaned',     isState:false,target:15,  reward:140, minLvl:1},
+  {id:'e4', tier:'easy',  icon:ICONS.star,   desc:'Harmony Seeker', howTo:'Keep your Harmony bar (at the top) full by feeding hungry fish and cleaning all algae promptly.', metric:'harmonySec',  isState:false,target:60,  reward:200, minLvl:1},
+  {id:'e5', tier:'easy',  icon:ICONS.tank,   desc:'Small School', howTo:'Open the Shop and buy fish or hatch eggs until you have 3 fish swimming in the tank at the same time.', metric:'fish_total',  isState:true, target:3,   reward:150, minLvl:1},
+  {id:'e6', tier:'easy',  icon:ICONS.market, desc:'First Payday', howTo:'Tap Market, then Finder, tap a fish you own, and press Sell to earn back your investment plus profit.', metric:'marketSales', isState:false,target:1,   reward:320, minLvl:1},
+  {id:'e7', tier:'easy',  icon:ICONS.egg,    desc:'Life Bringer', howTo:'Wait for a glowing egg to hatch. Keep water clean and Harmony high to speed up the process!', metric:'hatched',     isState:false,target:1,   reward:260, minLvl:2},
+  {id:'e8', tier:'easy',  icon:ICONS.social, desc:'Fish Whisperer', howTo:'Tap directly on any of your swimming fish repeatedly to build a bond and earn extra coins and trust.', metric:'bonded',      isState:false,target:3,   reward:160, minLvl:1},
+  {id:'e9', tier:'easy',  icon:ICONS.tank,   desc:'Growing Pains', howTo:'Wait for a newly hatched or bought baby fish to grow up. It takes about 5 minutes of tank time.',  metric:'adults',      isState:true, target:1,   reward:220, minLvl:2},
 
   // ═ MEDIUM ═
-  {id:'m0a', tier:'med',  icon:ICONS.decor,  desc:'Aquascape Artist', howTo:'Purchase new tank themes, floors, or borders in the Decor menu.', metric:'decor_owned', isState:true, target:2, reward:600, minLvl:3},
-  {id:'m0b', tier:'med',  icon:ICONS.coin,   desc:'High Roller', howTo:'Spend 20,000 coins across upgrades and decorations.',  metric:'coinsSpent', isState:false, target:20000, reward:1500, minLvl:3},
-  {id:'m1', tier:'med',   icon:ICONS.flakes, desc:'Dedicated Feeder', howTo:'Drop 50 portions of food into the tank for your growing population.', metric:'feeds',       isState:false,target:50,  reward:440, minLvl:2},
-  {id:'m3', tier:'med',   icon:ICONS.star,   desc:'Inner Peace', howTo:'Hold 100% Harmony for a combined total of 5 minutes.',    metric:'harmonySec',  isState:false,target:300, reward:550, minLvl:2},
-  {id:'m4', tier:'med',   icon:ICONS.market, desc:'Merchant Entry', howTo:'Sell 4 fish at the Market panel for a combined profit.',     metric:'marketSales', isState:false,target:4,   reward:700, minLvl:2},
-  {id:'m5', tier:'med',   icon:ICONS.egg,    desc:'Breeder Basics', howTo:'Successfully hatch 3 eggs into new fish.',                  metric:'hatched',     isState:false,target:3,   reward:620, minLvl:2},
-  {id:'m8', tier:'med',   icon:ICONS.market, desc:'Betta Delivery', howTo:'Raise a fully adult Royal Betta and hand it in via this quest card.', metric:'combo_trade',ftypereq:'betta',isTrade:true,reqAmt:1,isState:true,target:1,reward:520,minLvl:4},
-  {id:'m9', tier:'med',   icon:ICONS.star,   desc:'Genetic Breakthrough', howTo:'Hatch eggs until a Rare mutant (glowing) fish appears.', metric:'rares',       isState:false,target:1,   reward:850, minLvl:3},
-  {id:'m13',tier:'med',   icon:ICONS.market, desc:'Goldfish Trade', howTo:'Hand in a Goldfish at the Market via this quest card.',            metric:'combo_trade',ftypereq:'goldfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:400,minLvl:3},
+  {id:'m0a', tier:'med',  icon:ICONS.decor,  desc:'Aquascape Artist', howTo:'Open the Decor menu and purchase new water themes, floors, or borders to customize your tank.', metric:'decor_owned', isState:true, target:2, reward:600, minLvl:3},
+  {id:'m0b', tier:'med',  icon:ICONS.coin,   desc:'High Roller', howTo:'Spend a total of 20,000 coins anywhere in the Shop or Decor menus.',  metric:'coinsSpent', isState:false, target:20000, reward:1500, minLvl:3},
+  {id:'m1', tier:'med',   icon:ICONS.flakes, desc:'Dedicated Feeder', howTo:'Tap the Feed button 50 times to drop food. Make sure you have enough hungry fish to eat it all!', metric:'feeds',       isState:false,target:50,  reward:440, minLvl:2},
+  {id:'m3', tier:'med',   icon:ICONS.star,   desc:'Inner Peace', howTo:'Keep the top Harmony bar at 100% (gold) for 5 minutes total by constantly cleaning and feeding.',    metric:'harmonySec',  isState:false,target:300, reward:550, minLvl:2},
+  {id:'m4', tier:'med',   icon:ICONS.market, desc:'Merchant Entry', howTo:'Open the Market and Finder menus to sell 4 different adult fish you no longer need.',     metric:'marketSales', isState:false,target:4,   reward:700, minLvl:2},
+  {id:'m5', tier:'med',   icon:ICONS.egg,    desc:'Breeder Basics', howTo:'Wait for 3 separate eggs to hatch. Buy fish or complete quests to get more eggs.',                  metric:'hatched',     isState:false,target:3,   reward:620, minLvl:2},
+  {id:'m8', tier:'med',   icon:ICONS.market, desc:'Betta Delivery', howTo:'Buy or breed a Royal Betta, wait until it is fully grown, then press Hand In on this specific quest card.', metric:'combo_trade',ftypereq:'betta',isTrade:true,reqAmt:1,isState:true,target:1,reward:520,minLvl:4},
+  {id:'m9', tier:'med',   icon:ICONS.star,   desc:'Genetic Breakthrough', howTo:'Hatch eggs until you get lucky with a sparking Rare mutant! Upgrading UV Lights increases odds.', metric:'rares',       isState:false,target:1,   reward:850, minLvl:3},
+  {id:'m13',tier:'med',   icon:ICONS.market, desc:'Goldfish Trade', howTo:'Buy or breed a Goldfish, wait for it to grow up, then press Hand In on this specific quest card.',            metric:'combo_trade',ftypereq:'goldfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:400,minLvl:3},
   
   // ═ HARD ═
-  {id:'h0a', tier:'hard', icon:ICONS.shop,   desc:'Industrialized', howTo:'Buy a total of 6 permanent upgrades for your aquarium.', metric:'upgrades_owned', isState:true, target:6, reward:3500, minLvl:5},
-  {id:'h2', tier:'hard',  icon:ICONS.star,   desc:'Zen Master', howTo:'Keep the tank in perfect Harmony for 20 accumulative minutes.',        metric:'harmonySec',  isState:false,target:1200,reward:1800,minLvl:3},
-  {id:'h8', tier:'hard',  icon:ICONS.market, desc:'Hand over an Angel', howTo:'Deliver a large, healthy Angelfish to a private collector.', metric:'combo_trade',ftypereq:'angelfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:1200,minLvl:5},
-  {id:'h9', tier:'hard',  icon:ICONS.market, desc:'The Blue Discus Trade', howTo:'Deliver a Blue Discus to fulfill this elite order.',         metric:'combo_trade',ftypereq:'discus',isTrade:true,reqAmt:1,isState:true,target:1,reward:1500,minLvl:6},
+  {id:'h0a', tier:'hard', icon:ICONS.shop,   desc:'Industrialized', howTo:'Open the Shop, switch to Supplies, and purchase 6 permanent tank upgrades like Auto-Feeders.', metric:'upgrades_owned', isState:true, target:6, reward:3500, minLvl:5},
+  {id:'h2', tier:'hard',  icon:ICONS.star,   desc:'Zen Master', howTo:'Keep the top Harmony bar golden for 20 total minutes by keeping everything clean and fed.',        metric:'harmonySec',  isState:false,target:1200,reward:1800,minLvl:3},
+  {id:'h8', tier:'hard',  icon:ICONS.market, desc:'Hand over an Angel', howTo:'Raise an Angelfish to adulthood, then press Hand In on this quest card to deliver it.', metric:'combo_trade',ftypereq:'angelfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:1200,minLvl:5},
+  {id:'h9', tier:'hard',  icon:ICONS.market, desc:'The Blue Discus Trade', howTo:'Raise a Blue Discus to adulthood, then press Hand In on this quest card to deliver it to a buyer.',         metric:'combo_trade',ftypereq:'discus',isTrade:true,reqAmt:1,isState:true,target:1,reward:1500,minLvl:6},
   
   // ═ LEGENDARY ═
-  {id:'l0a', tier:'legend',icon:ICONS.coin,  desc:'Trillionaire Aspirant', howTo:'Spend 1 million coins total on your career as an aquarist.', metric:'coinsSpent', isState:false, target:1000000, reward:50000, minLvl:7},
-  {id:'l3', tier:'legend',icon:ICONS.star,   desc:'Rare Collection', howTo:'Keep at least 5 glowing rare-mutation fish in your tank at the same time.',           metric:'rares_owned', isState:true, target:5,   reward:0,   minLvl:6,ftyperew:'jellyfish'},
-  {id:'l5', tier:'legend',icon:ICONS.coin,   desc:'The Midas Challenge', howTo:'Reach a lifetime total of 1 million coins through sales and quests.', metric:'totalCoins',  isState:true, target:1000000,reward:0,minLvl:7,ftyperew:'narwhal'},
-  {id:'l8', tier:'legend',icon:ICONS.market, desc:'Elite Octopus Order', howTo:'Hand in a giant Octopus to receive a Narwhal egg unlock!',            metric:'combo_trade',ftypereq:'octopus',isTrade:true,reqAmt:1,isState:true,target:1,reward:0,minLvl:8,ftyperew:'octopus'},
+  {id:'l0a', tier:'legend',icon:ICONS.coin,  desc:'Trillionaire Aspirant', howTo:'Spend 1 million coins total. Try buying Mythic decorations or elite fish to reach this goal!', metric:'coinsSpent', isState:false, target:1000000, reward:50000, minLvl:7},
+  {id:'l3', tier:'legend',icon:ICONS.star,   desc:'Rare Collection', howTo:'Breed and keep 5 sparking Rare mutant fish swimming in your tank at the same time. Do not sell them!',           metric:'rares_owned', isState:true, target:5,   reward:0,   minLvl:6,ftyperew:'jellyfish'},
+  {id:'l5', tier:'legend',icon:ICONS.coin,   desc:'The Midas Challenge', howTo:'Earn 1 million coins total across your entire save by selling expensive adult fish or doing quests.', metric:'totalCoins',  isState:true, target:1000000,reward:0,minLvl:7,ftyperew:'narwhal'},
+  {id:'l8', tier:'legend',icon:ICONS.market, desc:'Elite Octopus Order', howTo:'Raise an Octopus to adulthood, then press Hand In on this quest card to unlock the legendary Narwhal!',            metric:'combo_trade',ftypereq:'octopus',isTrade:true,reqAmt:1,isState:true,target:1,reward:0,minLvl:8,ftyperew:'octopus'},
 ];
 
 const ELITE_DAILY_POOL = [
   {id:'d1', desc:'Deep Sea Curator', howTo:'Hatch 5 rare mutations in a single day.', metric:'rares', target:5, reward:10000, rewardMaster:true},
-  {id:'d2', desc:'Grand Architect', howTo:'Have 12 different Decorations (Themes/Floors) unlocked.', metric:'decor_owned', isState:true, target:12, reward:15000, rewardMaster:true},
-  {id:'d3', desc:'The Infinite Zen', howTo:'Maintain perfect Harmony for 60 consecutive minutes.', metric:'harmonySec', target:3600, reward:20000, rewardMaster:true},
-  {id:'d4', desc:'Biomass Surge', howTo:'Have 12 adult fish in your tank simultaneously.', metric:'adults', isState:true, target:12, reward:12000, rewardMaster:true},
-  {id:'d5', desc:'Economic Overlord', howTo:'Spend 500,000 coins on upgrades and tank growth.', metric:'coinsSpent', target:500000, reward:30000, rewardMaster:true}
+  {id:'d2', desc:'Grand Architect', howTo:'Open Decor and purchase at least 12 different Themes, Floors, Bubbles, or Borders.', metric:'decor_owned', isState:true, target:12, reward:15000, rewardMaster:true},
+  {id:'d3', desc:'The Infinite Zen', howTo:'Keep the Harmony bar gold for 60 minutes. Use auto-feeders and filters to help automate this!', metric:'harmonySec', target:3600, reward:20000, rewardMaster:true},
+  {id:'d4', desc:'Biomass Surge', howTo:'Keep 12 fully grown fish in your tank. You will need Tank Expansion upgrades to fit them all!', metric:'adults', isState:true, target:12, reward:12000, rewardMaster:true},
+  {id:'d5', desc:'Economic Overlord', howTo:'Spend half a million coins on luxury decorations, mythic themes, or high tier eggs.', metric:'coinsSpent', target:500000, reward:30000, rewardMaster:true}
 ];
 
 // ── PROCEDURALLY GENERATED QUESTS (150+ Total) ──
 const MATH_GEN = [
-  {m:'feeds',     ic:ICONS.flakes, txt:['Novice Feeder','Dedicated Feeder','Master Feeder','Legendary Feeder'],   isSt:false,  baseT:30,  tMul:5, rMul:3, minL:[1,2,3,4]},
-  {m:'cleaned',   ic:ICONS.clean,  txt:['Scrubber','Custodian','Sanitizer','Eradicator'],                         isSt:false,  baseT:40,  tMul:4, rMul:2, minL:[1,2,3,4]},
-  {m:'harmonySec',ic:ICONS.star,   txt:['Brief Peace','Zen Master','Nirvana Seeker','Eternal Harmony'],           isSt:false,  baseT:150, tMul:4, rMul:2, minL:[1,2,3,5]},
-  {m:'hatched',   ic:ICONS.egg,    txt:['Hatchling','Breeder','Genomics Lab','Life Creator'],                     isSt:false,  baseT:4,   tMul:3, rMul:3, minL:[2,3,4,6]},
-  {m:'rares',     ic:ICONS.star,   txt:['Lucky Find','Shiny Collector','Mutant Farmer','Genetic Anomaly'],        isSt:false,  baseT:2,   tMul:2.5,rMul:4, minL:[3,4,5,7]},
-  {m:'bonded',    ic:ICONS.social, txt:['Friendly Face','Fish Whisperer','Ocean Heart','Aquaman'],                isSt:false,  baseT:15,  tMul:4, rMul:2, minL:[1,2,4,5]},
-  {m:'marketSales',ic:ICONS.market,txt:['Amateur Seller','Merchant','Fish Tycoon','Global Conglomerate'],         isSt:false,  baseT:6,   tMul:3, rMul:3, minL:[2,3,4,5]},
-  {m:'adults',    ic:ICONS.tank,   txt:['Fish Parent','Matriarch','Guardian of Age','Time Weaver'],               isSt:true,   baseT:2,   tMul:2.2,rMul:2, minL:[2,3,4,5]},
-  {m:'coinsSpent',ic:ICONS.coin,   txt:['Spender','Consumer','Investor','Philanthropist'],                        isSt:false,  baseT:1500,tMul:8, rMul:4, minL:[1,3,5,7]},
-  {m:'totalCoins',ic:ICONS.coin,   txt:['Coin Collector','Banker','Midas Touch','Infinite Wealth'],               isSt:true,   baseT:5000,tMul:10,rMul:4, minL:[1,3,5,8]},
-  {m:'decor_owned',ic:ICONS.decor, txt:['Decorator','Designer','Architect','Master Builder'],                     isSt:true,   baseT:3,   tMul:1.7,rMul:2, minL:[2,3,4,6]},
-  {m:'upgrades_owned',ic:ICONS.shop,txt:['Tinkerer','Mechanic','Engineer','Techno-Wizard'],                       isSt:true,   baseT:3,   tMul:2, rMul:2, minL:[2,4,6,8]},
+  {m:'feeds',     ic:ICONS.flakes, txt:['Novice Feeder','Dedicated Feeder','Master Feeder','Legendary Feeder'],   isSt:false,  baseT:30,  tMul:5, rMul:3, minL:[1,2,3,4], ht:'Tap Feed to drop food for your fish.'},
+  {m:'cleaned',   ic:ICONS.clean,  txt:['Scrubber','Custodian','Sanitizer','Eradicator'],                         isSt:false,  baseT:40,  tMul:4, rMul:2, minL:[1,2,3,4], ht:'Toggle Clean mode and tap green algae spots.'},
+  {m:'harmonySec',ic:ICONS.star,   txt:['Brief Peace','Zen Master','Nirvana Seeker','Eternal Harmony'],           isSt:false,  baseT:150, tMul:4, rMul:2, minL:[1,2,3,5], ht:'Keep the Harmony bar gold by cleaning and feeding.'},
+  {m:'hatched',   ic:ICONS.egg,    txt:['Hatchling','Breeder','Genomics Lab','Life Creator'],                     isSt:false,  baseT:4,   tMul:3, rMul:3, minL:[2,3,4,6], ht:'Wait for eggs to hatch. Buy more fish to lay eggs!'},
+  {m:'rares',     ic:ICONS.star,   txt:['Lucky Find','Shiny Collector','Mutant Farmer','Genetic Anomaly'],        isSt:false,  baseT:2,   tMul:2.5,rMul:4, minL:[3,4,5,7], ht:'Hatch eggs until you get rare sparkling mutants.'},
+  {m:'bonded',    ic:ICONS.social, txt:['Friendly Face','Fish Whisperer','Ocean Heart','Aquaman'],                isSt:false,  baseT:15,  tMul:4, rMul:2, minL:[1,2,4,5], ht:'Repeatedly tap your swimming fish to bond with them.'},
+  {m:'marketSales',ic:ICONS.market,txt:['Amateur Seller','Merchant','Fish Tycoon','Global Conglomerate'],         isSt:false,  baseT:6,   tMul:3, rMul:3, minL:[2,3,4,5], ht:'Open Finder and sell your adult fish for profit.'},
+  {m:'adults',    ic:ICONS.tank,   txt:['Fish Parent','Matriarch','Guardian of Age','Time Weaver'],               isSt:true,   baseT:2,   tMul:2.2,rMul:2, minL:[2,3,4,5], ht:'Wait for baby fish to grow until they are adults.'},
+  {m:'coinsSpent',ic:ICONS.coin,   txt:['Spender','Consumer','Investor','Philanthropist'],                        isSt:false,  baseT:1500,tMul:8, rMul:4, minL:[1,3,5,7], ht:'Spend your coins in the Shop or Decor menus.'},
+  {m:'totalCoins',ic:ICONS.coin,   txt:['Coin Collector','Banker','Midas Touch','Infinite Wealth'],               isSt:true,   baseT:5000,tMul:10,rMul:4, minL:[1,3,5,8], ht:'Acquire wealth through sales and completing quests.'},
+  {m:'decor_owned',ic:ICONS.decor, txt:['Decorator','Designer','Architect','Master Builder'],                     isSt:true,   baseT:3,   tMul:1.7,rMul:2, minL:[2,3,4,6], ht:'Buy new decorations from the Decor menu.'},
+  {m:'upgrades_owned',ic:ICONS.shop,txt:['Tinkerer','Mechanic','Engineer','Techno-Wizard'],                       isSt:true,   baseT:3,   tMul:2, rMul:2, minL:[2,4,6,8], ht:'Buy permanent tank upgrades from the Shop.'},
 ];
 
 const TIERS = ['easy','med','hard','legend'];
@@ -1946,6 +1953,37 @@ function refreshThemeCache() {
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', refreshThemeCache);
 refreshThemeCache();
 
+function updateEliteTimerUI() {
+  const el = document.getElementById('daily-timer');
+  if(el) {
+    const now = new Date();
+    const midnight = new Date(now).setHours(24,0,0,0);
+    if(lastEliteTs && lastEliteTs < new Date(now).setHours(0,0,0,0)) {
+      el.innerHTML = `New Elite Daily Available!`;
+    } else {
+      const diff = midnight - now;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const pad = x => x.toString().padStart(2, '0');
+      el.innerHTML = `Next Elite Daily refresh in: <span style="color:var(--ui-accent); margin-left:4px; font-family:monospace; font-size:12px;">${pad(h)}:${pad(m)}:${pad(s)}</span>`;
+    }
+  }
+
+  let rebuild = false;
+  document.querySelectorAll('.c-timer').forEach(tel => {
+    const t = parseInt(tel.getAttribute('data-t'));
+    const wait = Math.max(0, t - Date.now());
+    if(wait <= 0 && t > 0) { rebuild = true; } 
+    else if (wait > 0) {
+      const m = Math.floor(wait / 60000);
+      const s = Math.floor((wait % 60000) / 1000).toString().padStart(2, '0');
+      tel.textContent = `${m}:${s}`;
+    }
+  });
+  if(rebuild) buildOrders();
+}
+
 // GAME LOOP
 function loop(frameTs){
 try {
@@ -1968,7 +2006,7 @@ try {
     time++;
     updateEco();
     for(const f of fishList) updateFish(f);
-    if(time%60===0) checkMilestones();
+    if(time%60===0) { checkMilestones(); updateEliteTimerUI(); }
   }
   
   ctx.clearRect(0,0,W,H);
@@ -2700,10 +2738,22 @@ function checkLevel(){
   }
   if(playerLevel>old){
     document.getElementById('lvl').textContent=playerLevel;
-    toast(ICONS.star+` Level ${playerLevel}! New items unlocked`,'var(--ui-accent)');
     spawnJuice(W/2,H/4,ICONS.star+' LEVEL UP!','var(--ui-accent)',2);
     document.getElementById('nb-shop').classList.add('notify');
     checkMilestones();
+    
+    // Level Up Modal Injection
+    let unlocks = [];
+    if(playerLevel===2) unlocks.push("• Market Rerolling (50 Coins)");
+    if(playerLevel===3) unlocks.push("• Elite Daily Quests", "• Combination Quests", "• Tier-2 Flora");
+    if(playerLevel===4) unlocks.push("• Hard Quests", "• Betta Fish", "• Fish Bios Unlocked");
+    if(playerLevel===5) unlocks.push("• Legendary Quests", "• Goldfish", "• Mid-tier Themes");
+    if(playerLevel===7) unlocks.push("• Angelfish", "• Advanced Decor", "• Elite Achievements");
+    if(unlocks.length === 0) unlocks.push("• Higher Quest Multipliers", "• Increased Base Rewards");
+    
+    document.getElementById('lvlnum').textContent = playerLevel;
+    document.getElementById('lvlunlocks').innerHTML = unlocks.join('<br>');
+    document.getElementById('lvlmodal').classList.add('show');
   }
   updateHUD();
 }
@@ -3008,10 +3058,10 @@ function buildDecor() {
       ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
       
   const allFlora = [
-    {id:'seaweed', name:'Seaweed', icon:'🌿', req:1},
-    {id:'grass',   name:'Grass',   icon:'🌱', req:1},
-    {id:'kelp',    name:'Purple Kelp', icon:'🪸', req:3, upgrade:'kelp'},
-    {id:'coral',   name:'Fan Coral',   icon:'🌺', req:5, upgrade:'coral'}
+    {id:'seaweed', name:'Seaweed', icon:ICONS.seaweed, req:1},
+    {id:'grass',   name:'Grass',   icon:ICONS.grass, req:1},
+    {id:'kelp',    name:'Purple Kelp', icon:ICONS.kelp, req:3, upgrade:'kelp'},
+    {id:'coral',   name:'Fan Coral',   icon:ICONS.coral_fan, req:5, upgrade:'coral'}
   ];
   cardEl = makeAccordion('acc-flora','Tank Flora', activeFlora.join(', ') || 'None', null, 'flora');
   if(cardEl) {
@@ -3316,51 +3366,14 @@ function importSaveClick() {
 
 // Combination Quests: Requires sacrificing specific livestock (or rare/adult variants) AND coins
 const COMBINATION_POOL = [
-  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c',   metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
-  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
-  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
-  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
-  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
+  {id:'cb1', tier:'med', icon:ICONS.market, desc:'Trade 3 Guppies & 500c', howTo:'Breed or buy 3 Guppies and save 500 coins, then click Hand In.', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:3, reqRare:false, reqCoins:500, target:1, reward:0, ftyperew:'goldfish', rewardIsRare:false},
+  {id:'cb2', tier:'hard', icon:ICONS.market, desc:'Trade a Rare Guppy & 2,500c', howTo:'Hatch a glowing Rare Guppy and save 2,500 coins, then click Hand In.', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'guppy', reqAdult:false, reqAmt:1, reqRare:true, reqCoins:2500, target:1, reward:0, ftyperew:'angelfish', rewardIsRare:false},
+  {id:'cb3', tier:'hard', icon:ICONS.market, desc:'Deliver 2 Adult Tetras & 8k', howTo:'Raise 2 Neon Tetras to adulthood and save 8,000 coins, then click Hand In.', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'tetra', reqAdult:true, reqAmt:2, reqRare:false, reqCoins:8000, target:1, reward:0, ftyperew:'betta', rewardIsRare:true},
+  {id:'cb4', tier:'legend', icon:ICONS.market, desc:'Trade 3 Adult Angelfish & 50k', howTo:'Raise 3 Angelfish to adulthood and save 50,000 coins, then click Hand In.', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'angelfish', reqAdult:true, reqAmt:3, reqRare:false, reqCoins:50000, target:1, reward:0, ftyperew:'discus', rewardIsRare:true},
+  {id:'cb5', tier:'legend', icon:ICONS.star, desc:'Deliver 2 Rare Bettas & 200k', howTo:'Hatch 2 Rare Bettas and save 200,000 coins, then click Hand In.', metric:'combo_trade', isState:true, isTrade:true, ftypereq:'betta', reqAdult:false, reqAmt:2, reqRare:true, reqCoins:200000, target:1, reward:0, ftyperew:'octopus', rewardIsRare:true},
 ];
 
-// BOOT
-if (!_shouldStopBoot) {
-try {
-  initDecor();
-  const saved=loadSave();
-  if(saved){
-    const offline=calcOffline(saved);
-    applyState(saved);
-    if(offline&&offline.total>0){
-      if(needsDaily()){pendingDaily=true;showWelcome(offline);}
-      else showWelcome(offline);
-    }else if(needsDaily()){
-      showDailyModal();
-    }
-  }else{
-    const def=TYPES['guppy'];
-    for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?.5:-.5,vy:0,phase:Math.random()*Math.PI*2,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:0,scale:0.28,bonded:0,bcd:0,genes:generateRandomGenes('guppy', true),isRare:false});
-    updateHUD();
-    if(needsDaily())showDailyModal();
-  }
-  applyBorder();
-  if(saved) {
-    if(saved._openQuests) _openQuests = new Set(saved._openQuests);
-    lastEliteTs = saved.lastEliteTs || 0;
-  }
-
-  window.addEventListener('beforeunload',saveGame);
-  // No more recursive t(ts) loop. loop() handles its own requestAnimationFrame.
-  loop(); 
-} catch (crashError) {
-  const errBox = document.createElement('div');
-  errBox.style.cssText = 'position:fixed;inset:0;background:black;color:red;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
-  errBox.innerHTML = '<h2>CRASH DETECTED</h2>' + crashError.message + '<br><br>' + crashError.stack;
-  document.body.appendChild(errBox);
-}
-}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame();});
-// End of script. loop() was already called above.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ORDERS FUNCTIONS (full)
@@ -3415,7 +3428,7 @@ function _selectTier(slotIdx) {
   return 'easy';
 }
 
-function generateSingleOrder(index) {
+function generateSingleOrder(index, init=false) {
   const tier = _selectTier(index);
   const usedMetrics = currentOrders.slice(0,index).map(o=>o.metric+(o.ftype||''));
   const pool = ORDER_POOL.filter(o =>
@@ -3436,22 +3449,28 @@ function generateSingleOrder(index) {
     if (Math.random() < 0.2) tmpl.ftyperew = 'narwhal';
   }
 
+  const cooldownMap = { 'easy': 5, 'med': 10, 'hard': 15, 'legend': 15 };
+  const mins = cooldownMap[tmpl.tier || 'easy'] || 5;
+  const unlockTs = Date.now() + (mins * 60000);
+
   currentOrders[index]={
     id:tmpl.id, icon:tmpl.icon, desc:tmpl.desc, tier:tmpl.tier||'easy',
     metric:tmpl.metric, ftype:tmpl.ftype, isState:tmpl.isState, isTrade:tmpl.isTrade, ftypereq:tmpl.ftypereq,
     reqAdult:tmpl.reqAdult, reqRare:tmpl.reqRare, reqAmt:tmpl.reqAmt, reqCoins:tmpl.reqCoins, rewardIsRare:tmpl.rewardIsRare,
-    ftyperew:tmpl.ftyperew, target:t, reward:r,
+    ftyperew:tmpl.ftyperew, target:t, reward:r, howTo:tmpl.howTo, unlockAt: init ? 0 : unlockTs,
     startVal:0, progress:0, complete:false, claimed:false, delivered:false
   };
   if(!tmpl.isState) currentOrders[index].startVal=getRawMetricValue(currentOrders[index]);
 }
 
 function generateDailyQuest() {
-  const now = Date.now();
-  if(lastEliteTs && now - lastEliteTs < 86400000 && currentOrders[5]) return;
+  if(playerLevel < 3) return;
+  const now = new Date();
+  const midnight = new Date(now).setHours(0,0,0,0);
+  if(lastEliteTs && lastEliteTs >= midnight && currentOrders[5]) return;
   
   const tmpl = ELITE_DAILY_POOL[Math.floor(Math.random()*ELITE_DAILY_POOL.length)];
-  lastEliteTs = now;
+  lastEliteTs = Date.now();
   
   currentOrders[5] = {
     id: tmpl.id, icon: ICONS.star, desc: tmpl.desc, tier: 'legend',
@@ -3471,7 +3490,7 @@ function rerollOrder(i) {
   if(coins < cost) { toast(ICONS.close + " Not enough coins to Reroll!", "#ef4444"); return; }
   coins -= cost; sm.coinsSpent=(sm.coinsSpent||0)+cost;
   document.getElementById('cv').textContent=formatCoins(coins);
-  generateSingleOrder(i);
+  generateSingleOrder(i, true);
   buildOrders();
   saveGame();
   toast(ICONS.market + " Quest Rerolled!", "var(--ui-accent)");
@@ -3479,7 +3498,7 @@ function rerollOrder(i) {
 
 function generateOrders() {
   currentOrders=[];
-  for(let i=0;i<ORDER_SLOTS;i++) generateSingleOrder(i);
+  for(let i=0;i<ORDER_SLOTS;i++) generateSingleOrder(i, true);
   generateDailyQuest();
 }
 
@@ -3547,13 +3566,24 @@ function claimOrder(i) {
     if(streakBonus>0) setTimeout(()=>spawnJuice(W/2,H/3-50,`<div style="display:flex;align-items:center;gap:4px;">${ICONS.fire} +${Math.round(streakBonus*100)}% streak!</div>`,'#f59e0b',1.3),120);
   }
 
+  // Random Bonus Egg drop
+  let droppedBonusEgg = false;
+  const eggChanceMap = { 'easy': 0.05, 'med': 0.10, 'hard': 0.15 };
+  const rollChance = eggChanceMap[o.tier || 'easy'] || 0;
+  if(o.tier !== 'legend' && !o.ftyperew && Math.random() < rollChance) {
+     const types = ['guppy','tetra','betta'];
+     o.ftyperew = types[Math.floor(Math.random()*types.length)];
+     o.rewardIsRare = true;
+     droppedBonusEgg = true;
+  }
+
   // Give fish egg unlock
   if(o.ftyperew&&TYPES[o.ftyperew]){
     const def=TYPES[o.ftyperew];
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const genes={c1:[isLeg?def.rare.c1:def.c1,isLeg?def.rare.c1:def.c1],c2:[isLeg?def.rare.c2:def.c2,isLeg?def.rare.c2:def.c2],trait:['active','greedy'],isRareMut:isLeg,szMod:1};
     eggs.push({x:Math.random()*(W-100)+50,y:H-85,type:o.ftyperew,hatchTime:getEggHatchTime(o.ftyperew),genes,isRareMut:isLeg});
-    spawnJuice(W/2,H/4,ICONS.egg+` UNLOCKED: ${def.name}!`,isLeg?'#c084fc':'var(--ui-accent)',2);
+    spawnJuice(W/2,H/4,ICONS.egg+(droppedBonusEgg?` BONUS EGG: ${def.name}!`:` UNLOCKED: ${def.name}!`),isLeg?'#c084fc':'var(--ui-accent)',2);
     updateHUD();
   }
 
@@ -3602,7 +3632,30 @@ function buildOrders() {
     // Streak UI explicitly hidden per user request to keep UI clean and compact
   }
 
-  html+=currentOrders.map((o,i)=>{
+  const orderIndices = [0,1,2,3,4,5];
+  orderIndices.sort((a,b) => {
+    const aTop = a === 5 && !currentOrders[5].claimed;
+    const bTop = b === 5 && !currentOrders[5].claimed;
+    if(aTop && !bTop) return -1;
+    if(bTop && !aTop) return 1;
+    return a - b;
+  });
+
+  html+=orderIndices.map((i)=>{
+    const o=currentOrders[i];
+    if(o.unlockAt && Date.now() < o.unlockAt) {
+      const wait = Math.max(0, o.unlockAt - Date.now());
+      const mins = Math.floor(wait / 60000);
+      const secs = Math.floor((wait % 60000) / 1000).toString().padStart(2, '0');
+      return `<div class="ocard" style="opacity:0.65; padding:18px; filter:grayscale(0.5);">
+        <div style="display:flex;align-items:center;justify-content:center;height:45px;">
+           <span style="color:var(--text-dim);font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;">
+             ${ICONS.lock} Next Quest In: <span class="c-timer" data-t="${o.unlockAt}" style="color:var(--ui-accent);font-family:monospace;font-size:14px;">${mins}:${secs}</span>
+           </span>
+        </div>
+      </div>`;
+    }
+
     const p=o.progress||0;
     const pct=Math.min(100,(p/o.target)*100);
     const done=o.complete||p>=o.target;
@@ -3622,14 +3675,17 @@ function buildOrders() {
         : (done ? 'Claim Reward!' : 'In Progress...');
 
     return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''} ${isDaily?'q-daily':''} ${expanded?'expanded':''}" 
-           style="position:relative;padding-left:24px;" onclick="toggleQuest(${i})">
+           style="position:relative;padding-left:24px;" onclick="toggleQuest(${i}, this)">
       ${isDaily?'<div class="nebula-glow"></div>':''}
       <div style="position:absolute;left:0;top:0;bottom:0;width:6px;background:${isDaily?'#a855f7':tm.strip};border-radius:6px 0 0 6px;opacity:${o.claimed?.3:1};"></div>
       <div class="ohead"><span class="oico" style="font-size:24px;">${o.icon}</span>
         <div style="flex:1; margin-left:12px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-            <span class="tier-badge">${isDaily?'ELITE DAILY':tm.label}</span>
-            <span style="color:var(--card-text); font-weight:700; font-size:14px;">${o.desc}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="tier-badge">${isDaily?'ELITE DAILY':tm.label}</span>
+              <span style="color:var(--card-text); font-weight:700; font-size:14px;">${o.desc}</span>
+            </div>
+            <div class="o-chevron">▼</div>
           </div>
           <div class="opbg" style="margin:8px 0;"><div class="opf ${done?'odone':''}" style="width:${pct}%;background:${isDaily?'linear-gradient(90deg,#a855f7,#67e8f9)':tm.strip};"></div></div>
           <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-dim); text-transform:uppercase;">
@@ -3642,6 +3698,7 @@ function buildOrders() {
       <div class="o-details">
          <div style="font-weight:700; color:var(--card-text); margin-bottom:4px; font-size:11px; text-transform:uppercase; letter-spacing:1px;">Quest Rewards</div>
          ${rewHtml}
+         ${(o.tier !== 'legend' && !o.ftyperew) ? `<div class="o-reward-item" style="color:var(--text-dim); font-size:11px;">${ICONS.egg} Chance for Bonus Egg Drop</div>` : ''}
          <div class="o-how">
             <strong>GUIDE:</strong> ${o.howTo || 'Complete the tracking metric to fulfill this quest and earn rewards.'}
          </div>
@@ -3658,7 +3715,8 @@ function buildOrders() {
 
   const done=currentOrders.filter(o=>o.claimed).length;
   generateDailyQuest(); // Ensure daily is present
-  html+=`<div class="q-total">${completedOrders} quests completed lifetime • ${ORDER_POOL.length} quests in pool</div>`;
+  html+=`<div id="daily-timer" style="text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);margin:20px 0 10px;"></div>`;
+  html+=`<div class="q-total" style="margin-top:0;">${completedOrders} quests completed lifetime • ${ORDER_POOL.length} quests in pool</div>`;
   olist.innerHTML=html;
 }
 
@@ -3685,10 +3743,14 @@ function resetSave(){
 // ─────────────────────────────────────────────────────────────────────────────
 // QUEST EXPAND / COLLAPSE
 // ─────────────────────────────────────────────────────────────────────────────
-function toggleQuest(i){
-  if(_openQuests.has(i)) _openQuests.delete(i);
-  else _openQuests.add(i);
-  buildOrders();
+function toggleQuest(i, el){
+  if(_openQuests.has(i)) {
+    _openQuests.delete(i);
+    if(el) el.classList.remove('expanded');
+  } else {
+    _openQuests.add(i);
+    if(el) el.classList.add('expanded');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3706,8 +3768,38 @@ function BOOT_APP() {
   if(_stopBoot) return;
   try { initSwatches(); } catch(e) { console.error("BOOT: initSwatches failed:", e); }
   try { resize(); } catch(e) { console.error("BOOT: resize failed:", e); }
-  try { initDecor(); } catch(e) { console.error("BOOT: initDecor failed:", e); }
-  try { const s = loadSave(); if(s) applyState(s); } catch(e) { console.error("BOOT: loadSave/applyState failed:", e); }
+  try {
+    initDecor();
+    const saved=loadSave();
+    if(saved){
+      const offline=calcOffline(saved);
+      applyState(saved);
+      if(offline&&offline.total>0){
+        if(needsDaily()){pendingDaily=true;showWelcome(offline);}
+        else showWelcome(offline);
+      }else if(needsDaily()){
+        showDailyModal();
+      }
+    }else{
+      const def=TYPES['guppy'];
+      for(let i=0;i<3;i++)fishList.push({id:fid++,type:'guppy',x:W*(i+1)/4,y:H/2,vx:i%2===0?.5:-.5,vy:0,phase:Math.random()*Math.PI*2,timer:Math.floor(Math.random()*120),eat:0,hunger:100,age:0,scale:0.28,bonded:0,bcd:0,genes:generateRandomGenes('guppy', true),isRare:false});
+      updateHUD();
+      if(needsDaily())showDailyModal();
+    }
+    applyBorder();
+    if(saved) {
+      if(saved._openQuests) _openQuests = new Set(saved._openQuests);
+      lastEliteTs = saved.lastEliteTs || 0;
+    }
+    window.addEventListener('beforeunload',saveGame);
+  } catch (crashError) {
+    console.error("BOOT: core simulation setup failed:", crashError);
+    const errBox = document.createElement('div');
+    errBox.style.cssText = 'position:fixed;inset:0;background:black;color:red;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;';
+    errBox.innerHTML = '<h2>CRASH DETECTED</h2>' + crashError.message + '<br><br>' + crashError.stack;
+    document.body.appendChild(errBox);
+  }
+  
   try { buildOrders(); } catch(e) { console.error("BOOT: buildOrders failed:", e); }
   try { updateHUD(); } catch(e) { console.error("BOOT: updateHUD failed:", e); }
   requestAnimationFrame(loop);
