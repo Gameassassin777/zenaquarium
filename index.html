@@ -414,7 +414,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.50';
+const CUR_VER = '2.1.51';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -990,12 +990,9 @@ function applyState(s){
   
   for(const[k,v] of Object.entries(s.upgrades || {}))if(UPGRADES[k])UPGRADES[k].owned=v;
   
-  const elapsedSec = (Date.now() - (s.ts||Date.now())) / 1000;
-  const elapsedFrames = elapsedSec * 60;
-  
   eggs = [];
   for(const e of (s.eggs || [])){
-    eggs.push({...e, timer: Math.max(0, e.timer - elapsedFrames)});
+    eggs.push({...e, hatchTime: e.h});
   }
 
   for(const f of(s.fishList || s.fish || [])) {
