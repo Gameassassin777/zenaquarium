@@ -872,18 +872,18 @@ const ELITE_DAILY_POOL = [
 
 // ── PROCEDURALLY GENERATED QUESTS (150+ Total) ──
 const MATH_GEN = [
-  {m:'feeds',     ic:ICONS.flakes, txt:['Novice Feeder','Dedicated Feeder','Master Feeder','Legendary Feeder'],   isSt:false,  baseT:30,  tMul:5, rMul:3, minL:[1,2,3,4], ht:'Tap Feed to drop food for your fish.'},
-  {m:'cleaned',   ic:ICONS.clean,  txt:['Scrubber','Custodian','Sanitizer','Eradicator'],                         isSt:false,  baseT:40,  tMul:4, rMul:2, minL:[1,2,3,4], ht:'Toggle Clean mode and tap green algae spots.'},
-  {m:'harmonySec',ic:ICONS.star,   txt:['Brief Peace','Zen Master','Nirvana Seeker','Eternal Harmony'],           isSt:false,  baseT:150, tMul:4, rMul:2, minL:[1,2,3,5], ht:'Keep the Harmony bar gold by cleaning and feeding.'},
-  {m:'hatched',   ic:ICONS.egg,    txt:['Hatchling','Breeder','Genomics Lab','Life Creator'],                     isSt:false,  baseT:4,   tMul:3, rMul:3, minL:[2,3,4,6], ht:'Wait for eggs to hatch. Buy more fish to lay eggs!'},
-  {m:'rares',     ic:ICONS.star,   txt:['Lucky Find','Shiny Collector','Mutant Farmer','Genetic Anomaly'],        isSt:false,  baseT:2,   tMul:2.5,rMul:4, minL:[3,4,5,7], ht:'Hatch eggs until you get rare sparkling mutants.'},
-  {m:'bonded',    ic:ICONS.social, txt:['Friendly Face','Fish Whisperer','Ocean Heart','Aquaman'],                isSt:false,  baseT:15,  tMul:4, rMul:2, minL:[1,2,4,5], ht:'Repeatedly tap your swimming fish to bond with them.'},
-  {m:'marketSales',ic:ICONS.market,txt:['Amateur Seller','Merchant','Fish Tycoon','Global Conglomerate'],         isSt:false,  baseT:6,   tMul:3, rMul:3, minL:[2,3,4,5], ht:'Open Finder and sell your adult fish for profit.'},
-  {m:'adults',    ic:ICONS.tank,   txt:['Fish Parent','Matriarch','Guardian of Age','Time Weaver'],               isSt:true,   baseT:2,   tMul:2.2,rMul:2, minL:[2,3,4,5], ht:'Wait for baby fish to grow until they are adults.'},
-  {m:'coinsSpent',ic:ICONS.coin,   txt:['Spender','Consumer','Investor','Philanthropist'],                        isSt:false,  baseT:1500,tMul:8, rMul:4, minL:[1,3,5,7], ht:'Spend your coins in the Shop or Decor menus.'},
-  {m:'totalCoins',ic:ICONS.coin,   txt:['Coin Collector','Banker','Midas Touch','Infinite Wealth'],               isSt:true,   baseT:5000,tMul:10,rMul:4, minL:[1,3,5,8], ht:'Acquire wealth through sales and completing quests.'},
-  {m:'decor_owned',ic:ICONS.decor, txt:['Decorator','Designer','Architect','Master Builder'],                     isSt:true,   baseT:3,   tMul:1.7,rMul:2, minL:[2,3,4,6], ht:'Buy new decorations from the Decor menu.'},
-  {m:'upgrades_owned',ic:ICONS.shop,txt:['Tinkerer','Mechanic','Engineer','Techno-Wizard'],                       isSt:true,   baseT:3,   tMul:2, rMul:2, minL:[2,4,6,8], ht:'Buy permanent tank upgrades from the Shop.'},
+  {m:'feeds',     ic:ICONS.flakes, txt:['Novice Feeder','Dedicated Feeder','Master Feeder','Legendary Feeder'],   isSt:false,  baseT:30,  tMul:5, rMul:3, minL:[1,2,3,4], ht:'Tap the Feed button at the top of the screen to drop food flakes. Your fish must swim up and eat them for each feeding to count. Keep the tank stocked with hungry fish to hit higher targets faster!'},
+  {m:'cleaned',   ic:ICONS.clean,  txt:['Scrubber','Custodian','Sanitizer','Eradicator'],                         isSt:false,  baseT:40,  tMul:4, rMul:2, minL:[1,2,3,4], ht:'Press the Feed button to toggle into Cleaning mode (the icon changes), then tap any green algae patches on the tank walls. Act fast — algae spreads over time and lowers your Harmony bar!'},
+  {m:'harmonySec',ic:ICONS.star,   txt:['Brief Peace','Zen Master','Nirvana Seeker','Eternal Harmony'],           isSt:false,  baseT:150, tMul:4, rMul:2, minL:[1,2,3,5], ht:'Keep the Harmony bar at the top of the screen fully golden. Feed every hungry fish promptly and scrub away algae as soon as it appears. Auto-Feeders and Power Filters help maintain Harmony passively!'},
+  {m:'hatched',   ic:ICONS.egg,    txt:['Hatchling','Breeder','Genomics Lab','Life Creator'],                     isSt:false,  baseT:4,   tMul:3, rMul:3, minL:[2,3,4,6], ht:'Eggs are laid automatically when two adult fish share the tank. Keep the water clean and Harmony high to speed up hatching. Buying a Breeding Slate upgrade from the Shop greatly increases egg production!'},
+  {m:'rares',     ic:ICONS.star,   txt:['Lucky Find','Shiny Collector','Mutant Farmer','Genetic Anomaly'],        isSt:false,  baseT:2,   tMul:2.5,rMul:4, minL:[3,4,5,7], ht:'Hatch eggs and watch for ones that emerge with a sparkling glow — those are rare mutations! The base chance is 5%. Purchasing a UV Light upgrade from the Shop doubles your odds to 10%. Keep breeding!'},
+  {m:'bonded',    ic:ICONS.social, txt:['Friendly Face','Fish Whisperer','Ocean Heart','Aquaman'],                isSt:false,  baseT:15,  tMul:4, rMul:2, minL:[1,2,4,5], ht:'Tap directly on any swimming fish repeatedly to build a bond. Each tap earns a small coin bonus and counts toward this quest. Bonding with fish also unlocks better sell prices on the market!'},
+  {m:'marketSales',ic:ICONS.market,txt:['Amateur Seller','Merchant','Fish Tycoon','Global Conglomerate'],         isSt:false,  baseT:6,   tMul:3, rMul:3, minL:[2,3,4,5], ht:'Open the Finder tab to see all your fish. Tap any fully grown adult fish and press Sell to list it on the market. Raising fish with active traits or rare mutations earns significantly higher sale prices!'},
+  {m:'adults',    ic:ICONS.tank,   txt:['Fish Parent','Matriarch','Guardian of Age','Time Weaver'],               isSt:true,   baseT:2,   tMul:2.2,rMul:2, minL:[2,3,4,5], ht:'Newly hatched or purchased fish are babies that grow into adults over about 5 minutes of tank time. Keep them well-fed and the water clean to avoid stunted growth. Having multiple adults at once satisfies Maintain goals!'},
+  {m:'coinsSpent',ic:ICONS.coin,   txt:['Spender','Consumer','Investor','Philanthropist'],                        isSt:false,  baseT:1500,tMul:8, rMul:4, minL:[1,3,5,7], ht:'Spend coins anywhere in the game — buy fish in the Shop, purchase decor in the Decor menu, or grab upgrades in Supplies. Every coin you spend counts toward this total, so invest freely!'},
+  {m:'totalCoins',ic:ICONS.coin,   txt:['Coin Collector','Banker','Midas Touch','Infinite Wealth'],               isSt:true,   baseT:5000,tMul:10,rMul:4, minL:[1,3,5,8], ht:'Accumulate total lifetime wealth by selling adult fish, completing quests, and earning passive income from Snails and Clams. Your total never decreases — it tracks every coin you have ever earned!'},
+  {m:'decor_owned',ic:ICONS.decor, txt:['Decorator','Designer','Architect','Master Builder'],                     isSt:true,   baseT:3,   tMul:1.7,rMul:2, minL:[2,3,4,6], ht:'Open the Decor menu and purchase Themes, Floors, Bubbles, or Borders to customize your tank. Each unique item you own counts toward this goal — mix and match styles to unlock higher-tier cosmetics!'},
+  {m:'upgrades_owned',ic:ICONS.shop,txt:['Tinkerer','Mechanic','Engineer','Techno-Wizard'],                       isSt:true,   baseT:3,   tMul:2, rMul:2, minL:[2,4,6,8], ht:'Open the Shop and switch to the Supplies tab to find permanent tank upgrades. Each unique upgrade you purchase counts toward this goal. Upgrades like Auto-Feeders and Power Filters also make future quests much easier!'},
 ];
 
 const TIERS = ['easy','med','hard','legend'];
@@ -895,12 +895,12 @@ for(const g of MATH_GEN) {
     // Add multiple permutations to pad out the pool size and variance
     ORDER_POOL.push({
       id: 'g_' + g.m + '_' + gid++, tier: TIERS[i], icon: g.ic, metric: g.m,
-      desc: g.txt[i] + (g.isSt?` (Maintain ${Math.floor(curT)})`:` (Target: ${Math.floor(curT)})`),
+      desc: g.txt[i], howTo: g.ht,
       isState: g.isSt, target: Math.floor(curT), reward: curR, minLvl: g.minL[i]
     });
     ORDER_POOL.push({
       id: 'g_' + g.m + '_' + gid++, tier: TIERS[i], icon: g.ic, metric: g.m,
-      desc: g.txt[i] + ' II' + (g.isSt?` (Maintain ${Math.floor(curT*1.5)})`:` (Target: ${Math.floor(curT*1.5)})`),
+      desc: g.txt[i] + ' II', howTo: g.ht,
       isState: g.isSt, target: Math.floor(curT*1.5), reward: Math.floor(curR*1.5), minLvl: g.minL[i]
     });
     curT = curT * g.tMul;
