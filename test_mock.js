@@ -457,12 +457,12 @@ for(const g of MATH_GEN) {
     // Add multiple permutations to pad out the pool size and variance
     ORDER_POOL.push({
       id: 'g_' + g.m + '_' + gid++, tier: TIERS[i], icon: g.ic, metric: g.m,
-      desc: g.txt[i] + (g.isSt?` (Maintain ${Math.floor(curT)})`:` (Target: ${Math.floor(curT)})`),
+      desc: g.txt[i],
       isState: g.isSt, target: Math.floor(curT), reward: curR, minLvl: g.minL[i]
     });
     ORDER_POOL.push({
       id: 'g_' + g.m + '_' + gid++, tier: TIERS[i], icon: g.ic, metric: g.m,
-      desc: g.txt[i] + ' II' + (g.isSt?` (Maintain ${Math.floor(curT*1.5)})`:` (Target: ${Math.floor(curT*1.5)})`),
+      desc: g.txt[i] + ' II',
       isState: g.isSt, target: Math.floor(curT*1.5), reward: Math.floor(curR*1.5), minLvl: g.minL[i]
     });
     curT = curT * g.tMul;
