@@ -436,7 +436,7 @@ function setupPWA(){
   if(last_v && last_v !== CUR_VER) {
     document.body.innerHTML = `
       <div style="position:fixed;inset:0;background:#001428;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#67e8f9;font-family:system-ui,-apple-system,sans-serif;z-index:9999;">
-        <div style="font-size:48px;margin-bottom:20px;filter:drop-shadow(0 0 15px #67e8f9);width:60px;height:60px;margin:0 auto 20px;">${ICONS.fish_logo}</div>
+        <div style="font-size:48px;margin-bottom:20px;filter:drop-shadow(0 0 15px #67e8f9);width:60px;height:60px;margin:0 auto 20px;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/></svg></div>
         <div style="font-weight:900;letter-spacing:1px;font-size:18px;">ZEN AQUARIUM</div>
         <div style="font-size:12px;opacity:0.6;margin-top:8px;">Refreshing Game Engine... v${CUR_VER}</div>
         <div style="font-size:10px;opacity:0.4;margin-top:4px;">(Your save data is safe)</div>
@@ -936,7 +936,8 @@ function buildSave(){
     questStreak, codesRedeemed, claimedCodes: [...claimedCodes], dailyStreak, lastDailyTs,
     ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, activeFlora, boughtCounts,
     upgrades: Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
-    _openQuests: sQuests
+    _openQuests: sQuests,
+    ts: Date.now()
   };
 }
 
@@ -1059,7 +1060,7 @@ function calcOffline(s){
   const sc=(s.upgrades && s.upgrades.snail) || 0;
   if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
   if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
-  const fish=s.fish || [];
+  const fish=s.fishList || s.fish || [];
   if(fish.length>0){
     const avg=fish.reduce((a,f)=>a+((TYPES[f.type] && TYPES[f.type].val) || 1),0)/fish.length;
     const e=Math.floor(fish.length*avg*.015*elapsed*lvlScale);
