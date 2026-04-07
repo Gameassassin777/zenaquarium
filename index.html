@@ -110,7 +110,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   .hbtn { padding: 6px 10px; font-size: 11px; gap:3px; }
 }
 
-#combo-ui{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,0.4);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;background:none!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;}
+#combo-ui{position:fixed;top:calc(125px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,0.4);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;background:none!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;}
 #combo-ui.on{transform:translateX(-50%) scale(1);opacity:1;}
 .cbar{width:100%;height:3px;background:rgba(255,255,255,0.06) !important;border-radius:2px;margin-top:4px;}
 .cfill{height:100%;background:#fbbf24;transform-origin:left;border-radius:2px;}
@@ -395,13 +395,22 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <button class="mbtn gold" onclick="claimDaily()">Claim!</button>
   </div>
 </div>
+<div id="lvlmodal" class="modal">
+  <div class="mbox">
+    <h2 style="margin-bottom:5px;">Level Up!</h2>
+    <span class="msub" style="font-size:14px; margin-bottom:15px;">You reached Level <span id="lvlnum" style="font-weight:900; color:var(--ui-accent); font-size:18px;">2</span>!</span>
+    <div id="lvlunlocks" style="text-align:left; background:rgba(0,0,0,0.3); border-radius:12px; padding:15px; margin-bottom:15px; font-size:13px; color:#cbd5e1; line-height:1.6;">
+    </div>
+    <button class="mbtn gold" onclick="document.getElementById('lvlmodal').classList.remove('show');">Awesome!</button>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.39';
+const CUR_VER = '2.1.40';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1974,14 +1983,17 @@ function updateEliteTimerUI() {
   document.querySelectorAll('.c-timer').forEach(tel => {
     const t = parseInt(tel.getAttribute('data-t'));
     const wait = Math.max(0, t - Date.now());
-    if(wait <= 0 && t > 0) { rebuild = true; } 
+    if(wait <= 0 && t > 0) { rebuild = true; tel.setAttribute('data-t', '0'); } 
     else if (wait > 0) {
       const m = Math.floor(wait / 60000);
       const s = Math.floor((wait % 60000) / 1000).toString().padStart(2, '0');
       tel.textContent = `${m}:${s}`;
     }
   });
-  if(rebuild) buildOrders();
+  if(rebuild) {
+    document.getElementById('nb-orders').classList.add('notify');
+    buildOrders();
+  }
 }
 
 // GAME LOOP
@@ -3472,9 +3484,13 @@ function generateDailyQuest() {
   const tmpl = ELITE_DAILY_POOL[Math.floor(Math.random()*ELITE_DAILY_POOL.length)];
   lastEliteTs = Date.now();
   
+  const scale = getDifficultyScale();
+  const scaledTarget = tmpl.isState ? tmpl.target : Math.ceil(tmpl.target * scale);
+  const scaledReward = tmpl.reward > 0 ? Math.ceil(tmpl.reward * scale) : 0;
+  
   currentOrders[5] = {
     id: tmpl.id, icon: ICONS.star, desc: tmpl.desc, tier: 'legend',
-    metric: tmpl.metric, target: tmpl.target, reward: tmpl.reward,
+    metric: tmpl.metric, target: scaledTarget, reward: scaledReward,
     isState: tmpl.isState, isDaily: true, isMasterpieceReward: true,
     howTo: tmpl.howTo, startVal: 0, progress: 0, complete: false, claimed: false
   };
@@ -3634,10 +3650,18 @@ function buildOrders() {
 
   const orderIndices = Array.from(currentOrders.keys());
   orderIndices.sort((a,b) => {
-    const aTop = a === 5 && currentOrders[5] && !currentOrders[5].claimed;
-    const bTop = b === 5 && currentOrders[5] && !currentOrders[5].claimed;
+    const oa = currentOrders[a]; const ob = currentOrders[b];
+    const aTop = a === 5 && oa && !oa.claimed;
+    const bTop = b === 5 && ob && !ob.claimed;
     if(aTop && !bTop) return -1;
     if(bTop && !aTop) return 1;
+    
+    // Cooldown quests move to bottom
+    const aCool = oa && oa.unlockAt && Date.now() < oa.unlockAt;
+    const bCool = ob && ob.unlockAt && Date.now() < ob.unlockAt;
+    if(aCool && !bCool) return 1;
+    if(bCool && !aCool) return -1;
+
     return a - b;
   });
 
