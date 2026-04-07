@@ -2759,11 +2759,13 @@ function checkLevel(){
     
     // Level Up Modal Injection
     let unlocks = [];
-    if(playerLevel===2) unlocks.push("• Market Rerolling (50 Coins)");
-    if(playerLevel===3) unlocks.push("• Elite Daily Quests", "• Combination Quests", "• Tier-2 Flora");
-    if(playerLevel===4) unlocks.push("• Hard Quests", "• Betta Fish", "• Fish Bios Unlocked");
-    if(playerLevel===5) unlocks.push("• Legendary Quests", "• Goldfish", "• Mid-tier Themes");
-    if(playerLevel===7) unlocks.push("• Angelfish", "• Advanced Decor", "• Elite Achievements");
+    if(playerLevel===2) unlocks.push("• Market Rerolling (50 Coins)", "• Neon Tetra Available");
+    if(playerLevel===3) unlocks.push("• Hard Quests", "• Elite Daily Quests", "• Combination Quests", "• Goldfish Available", "• Tier-2 Flora");
+    if(playerLevel===4) unlocks.push("• Betta Fish Available", "• Fish Bios Unlocked");
+    if(playerLevel===5) unlocks.push("• Angelfish Available", "• Mid-tier Themes");
+    if(playerLevel===6) unlocks.push("• Blue Discus Available");
+    if(playerLevel===7) unlocks.push("• Legendary Quests", "• Moon Jellyfish Available", "• Advanced Decor", "• Elite Achievements");
+    if(playerLevel===8) unlocks.push("• Octopus Available");
     if(unlocks.length === 0) unlocks.push("• Higher Quest Multipliers", "• Increased Base Rewards");
     
     document.getElementById('lvlnum').textContent = playerLevel;
