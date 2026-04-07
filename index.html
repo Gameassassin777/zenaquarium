@@ -3621,7 +3621,7 @@ function buildOrders() {
   if(!olist) return;
   
   // ── AUTO-REPAIR LOGIC: Ensure quest list is robust ──
-  if(!currentOrders || currentOrders.length < 6) {
+  if(!currentOrders || currentOrders.length < 5) {
     console.log("Repairing Orders menu...");
     generateOrders(); 
   }
@@ -3632,10 +3632,10 @@ function buildOrders() {
     // Streak UI explicitly hidden per user request to keep UI clean and compact
   }
 
-  const orderIndices = [0,1,2,3,4,5];
+  const orderIndices = Array.from(currentOrders.keys());
   orderIndices.sort((a,b) => {
-    const aTop = a === 5 && !currentOrders[5].claimed;
-    const bTop = b === 5 && !currentOrders[5].claimed;
+    const aTop = a === 5 && currentOrders[5] && !currentOrders[5].claimed;
+    const bTop = b === 5 && currentOrders[5] && !currentOrders[5].claimed;
     if(aTop && !bTop) return -1;
     if(bTop && !aTop) return 1;
     return a - b;
