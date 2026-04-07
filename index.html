@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium</title>
+<title>Zen Aquarium 🐠</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -71,7 +71,7 @@
   #nav { background: #000 !important; }
 }
 
-html,body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:'Outfit','Inter',system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
 canvas{position:absolute;inset:0;width:100%;height:100%;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
@@ -141,28 +141,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .nebula-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.1), transparent 70%);pointer-events:none;animation:nebulaPulse 4s infinite alternate;}
 @keyframes nebulaPulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.6; transform: scale(1.1); } }
 
-.panel {
-  position:fixed; bottom:0; left:0; right:0;
-  background:var(--panel-bg); backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
-  border-top:1px solid var(--border); border-radius:32px 32px 0 0;
-  padding:24px 20px 0; z-index:21;
-  transform:translateY(100%) translateZ(0); /* Optimized initial position */
-  opacity: 0; filter: blur(4px); /* Smoothed entrance */
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, height 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
-  height:75dvh; display:flex; flex-direction:column; pointer-events:none;
-  box-shadow:0 -10px 50px rgba(0,0,0,0.3);
-  will-change:transform, opacity, height;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-}
-.panel.open { 
-  transform:translateY(0) translateZ(0); 
-  pointer-events:auto; height:82dvh; opacity:1; filter: none;
-}
-.panel.full { 
-  transform:translateY(0) translateZ(0);
-  pointer-events:auto; height:94dvh; opacity:1; filter:none; 
-  background:rgba(10,18,32,0.9);
-}
+.panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-top:1px solid var(--border);border-radius:32px 32px 0 0;padding:24px 20px 0;z-index:21;transform:translate3d(0,102%,0);transition:transform .5s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1);height:54dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -10px 50px rgba(0,0,0,.3);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.panel.open{transform:translate3d(0,0,0);pointer-events:auto;height:82dvh;}
+.panel.full{transform:translate3d(0,0,0);pointer-events:auto;height:94dvh;background:rgba(10,18,32,0.9);}
 .pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
 .panel.dragging{transition:none;}
@@ -228,9 +209,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .cpr{color:#fbbf24;font-size:13px;font-weight:900;text-shadow:0 0 10px rgba(251,191,36,.5);}
 .cown{color:var(--ui-accent);font-size:10px;margin-top:5px;display:block;font-weight:bold;}
 
-.ocard{background:var(--card-bg);border:1px solid var(--border);border-radius:13px;padding:12px;margin-bottom:9px;}
-.ocard.odone{border-color:rgba(16,185,129,.4);}
-.ocard.oclaimed{opacity:.3;pointer-events:none;}
 .ohead{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .oico{font-size:22px; color:var(--text-main);}
 .odesc{color:var(--text-main);font-size:12px;font-weight:600;display:block;}
@@ -388,7 +366,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.1.36</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.1.38</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -421,7 +399,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.1.37';
+const CUR_VER = '2.1.38';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -638,17 +616,21 @@ const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05)
 
 // DEFINITIONS & GENETICS
 const TYPES = {
-  guppy:    {name:'Neon Guppy',   icon:ICONS.tank, cost:50,     val:14,  c1:'#22d3ee',c2:'#0891b2',sz:22,spd:1.2,req:1, rare:{c1:'#f472b6',c2:'#db2777'}},
-  tetra:    {name:'Neon Tetra',    icon:ICONS.tank, cost:150,    val:28,  c1:'#38bdf8',c2:'#1d4ed8',sz:18,spd:1.5,req:2, rare:{c1:'#fbbf24',c2:'#d97706'}},
-  goldfish: {name:'Goldfish',      icon:ICONS.tank, cost:400,    val:58,  c1:'#fb923c',c2:'#ea580c',sz:28,spd:0.8,req:3, rare:{c1:'#fef08a',c2:'#facc15'}},
-  betta:    {name:'Royal Betta',   icon:ICONS.tank, cost:1200,   val:115, c1:'#f43f5e',c2:'#9f1239',sz:30,spd:1.0,req:4, rare:{c1:'#a78bfa',c2:'#7c3aed'}},
-  angelfish:{name:'Angelfish',     icon:ICONS.tank, cost:4500,   val:275, c1:'#e2e8f0',c2:'#475569',sz:42,spd:0.7,req:5, rare:{c1:'#fbbf24',c2:'#22c55e'}},
-  discus:   {name:'Blue Discus',   icon:ICONS.tank, cost:12000,  val:620, c1:'#60a5fa',c2:'#1e40af',sz:45,spd:0.6,req:6, rare:{c1:'#fdba74',c2:'#f97316'}},
-  jellyfish:{name:'Moon Jelly',    icon:ICONS.tank, cost:40000,  val:380, c1:'#cbd5e1',c2:'#94a3b8',sz:32,spd:0.4,req:7, rare:{c1:'#c4b5fd',c2:'#8b5cf6'}},
-  octopus:  {name:'Octopus',       icon:ICONS.tank, cost:150000, val:460, c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,req:8, rare:{c1:'#fb923c',c2:'#c2410c'}},
-  turtle:   {name:'Sea Turtle',    icon:ICONS.tank, cost:200000, val:520, c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,req:8, rare:{c1:'#fbbf24',c2:'#ca8a04'}},
-  whaleshark:{name:'Whale Shark',  icon:ICONS.tank, cost:500000, val:960, c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,req:9, rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
-  narwhal:  {name:'Narwhal',       icon:ICONS.tank, cost:1500000,val:2000,c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6,max:1, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}}
+  guppy:     {name:'Neon Guppy',   icon:ICONS.tank, cost:50,       val:14,    c1:'#22d3ee',c2:'#0891b2',sz:22,spd:1.2,req:1, rare:{c1:'#f472b6',c2:'#db2777'}},
+  tetra:     {name:'Neon Tetra',    icon:ICONS.tank, cost:150,      val:28,    c1:'#38bdf8',c2:'#1d4ed8',sz:18,spd:1.5,req:2, rare:{c1:'#fbbf24',c2:'#d97706'}},
+  goldfish:  {name:'Goldfish',      icon:ICONS.tank, cost:400,      val:58,    c1:'#fb923c',c2:'#ea580c',sz:28,spd:0.8,req:3, rare:{c1:'#fef08a',c2:'#facc15'}},
+  betta:     {name:'Royal Betta',   icon:ICONS.tank, cost:1200,     val:115,   c1:'#f43f5e',c2:'#9f1239',sz:30,spd:1.0,req:4, rare:{c1:'#a78bfa',c2:'#7c3aed'}},
+  angelfish: {name:'Angelfish',     icon:ICONS.tank, cost:4500,     val:275,   c1:'#e2e8f0',c2:'#475569',sz:42,spd:0.7,req:5, rare:{c1:'#fbbf24',c2:'#22c55e'}},
+  discus:    {name:'Blue Discus',   icon:ICONS.tank, cost:12000,    val:620,   c1:'#60a5fa',c2:'#1e40af',sz:45,spd:0.6,req:6, rare:{c1:'#fdba74',c2:'#f97316'}},
+  jellyfish: {name:'Moon Jelly',    icon:ICONS.tank, cost:40000,    val:380,   c1:'#cbd5e1',c2:'#94a3b8',sz:32,spd:0.4,req:7, rare:{c1:'#c4b5fd',c2:'#8b5cf6'}},
+  octopus:   {name:'Octopus',       icon:ICONS.tank, cost:150000,   val:460,   c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,req:8, rare:{c1:'#fb923c',c2:'#c2410c'}},
+  turtle:    {name:'Sea Turtle',    icon:ICONS.tank, cost:200000,   val:520,   c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,req:8, rare:{c1:'#fbbf24',c2:'#ca8a04'}},
+  whaleshark:{name:'Whale Shark',   icon:ICONS.tank, cost:500000,   val:960,   c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,req:9, rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
+  narwhal:   {name:'Narwhal',       icon:ICONS.tank, cost:1500000,  val:2000,  c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}},
+  // ── Tier IV: Mythic Roster (Levels 11-13) ──
+  lionfish:  {name:'Crimson Lionfish',icon:ICONS.tank,cost:5000000, val:4200,  c1:'#dc2626',c2:'#7f1d1d',sz:38,spd:0.7,req:11,rare:{c1:'#f0abfc',c2:'#a21caf'}},
+  seahorse:  {name:'Coral Seahorse',  icon:ICONS.tank,cost:18000000,val:9500,  c1:'#fbbf24',c2:'#b45309',sz:30,spd:0.5,req:12,rare:{c1:'#22d3ee',c2:'#0891b2'}},
+  idol:      {name:'Moorish Idol',    icon:ICONS.tank,cost:60000000,val:22000, c1:'#fef08a',c2:'#1e293b',sz:44,spd:0.9,req:13,rare:{c1:'#a855f7',c2:'#fbbf24'}}
 };
 
 let ownedFlora = ['seaweed', 'grass'];
@@ -663,57 +645,80 @@ function getFishPrice(type) {
 }
 
 const UPGRADES={
-  flakes:  {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,    info:'Double base coin value',          max:1,owned:0,req:2},
-  snail:   {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,    info:'Passive income + eats algae',      max:5,owned:0,req:1},
-  autofeed:{name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,   info:'Drops food automatically',          max:1,owned:0,req:3},
-  tank:    {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,   info:'+4 max fish capacity',              max:5,owned:0,req:4},
-  filter:  {name:'Power Filter',   icon:ICONS.filter, cost:8000,   info:'Auto-reduces algae',                max:1,owned:0,req:5},
-  nest:    {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,  info:'Adult fish naturally breed',        max:1,owned:0,req:3},
-  clam:    {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,  info:'Passive gold + filters water',     max:3,owned:0,req:6},
-  heater:  {name:'Water Heater',   icon:ICONS.gear,   cost:50000,  info:'+25% coin value for all fish',     max:1,owned:0,req:7},
-  kelp:    {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,  info:'Unlocks Purple Kelp in tank',      max:1,owned:0,req:3},
-  coral:   {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,  info:'Unlocks Red Fan Coral in tank',    max:1,owned:0,req:5},
-  oxygen:  {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,  info:'Fish hunger drains 20% slower',    max:1,owned:0,req:6},
-  uvlight: {name:'UV Light',       icon:ICONS.star,   cost:75000,  info:'Rare mutation chance +5%',         max:1,owned:0,req:7}
+  flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,req:2},
+  snail:     {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,        info:'Passive income + eats algae',                  max:5,owned:0,req:1},
+  autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,req:3},
+  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+4 max fish capacity',                         max:5,owned:0,req:4},
+  filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,req:5},
+  nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:3},
+  clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,req:6},
+  heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:50000,      info:'+25% coin value for all fish',                 max:1,owned:0,req:7},
+  kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,req:3},
+  coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,req:5},
+  oxygen:    {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,      info:'Fish hunger drains 20% slower',                max:1,owned:0,req:6},
+  uvlight:   {name:'UV Light',       icon:ICONS.star,   cost:75000,      info:'Rare mutation chance +5%',                     max:1,owned:0,req:7},
+  // ── Tier IV: Mythic Upgrades (Levels 11-13) ──
+  bioreactor:{name:'Bioreactor',     icon:ICONS.filter, cost:2000000,    info:'Continuously purifies water (no algae)',       max:1,owned:0,req:11},
+  aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:5000000,    info:'+10% rare mutation chance',                    max:1,owned:0,req:11},
+  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:8000000,    info:'+50% coin value during Harmony',               max:1,owned:0,req:12},
+  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:25000000,   info:'Eggs hatch 35% faster',                        max:1,owned:0,req:12},
+  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:80000000,   info:'+100% income from all fish',                   max:1,owned:0,req:13},
+  prism:     {name:'Prism Lens',     icon:ICONS.crystal,cost:120000000,  info:'Daily quest rerolls are free',                 max:1,owned:0,req:13}
 };
 
 const THEMES={
-  default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,     c1:'#0369a1', c2:'#1d4ed8', c3:'#001428', req:1},
-  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,  c1:'#06b6d4', c2:'#0891b2', c3:'#0c4a6e', req:3},
-  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000, c1:'#c2410c', c2:'#9f1239', c3:'#500722', req:5},
-  abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000, c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
-  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000, c1:'#047857', c2:'#1e40af', c3:'#064e3b', req:4},
-  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000, c1:'#b45309', c2:'#7c2d12', c3:'#3b0a00', req:5},
-  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000, c1:'#134e4a', c2:'#0c0a1e', c3:'#040215', req:6},
-  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000, c1:'#9d174d', c2:'#86198f', c3:'#4a044e', req:6}
+  default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,        c1:'#0369a1', c2:'#1d4ed8', c3:'#001428', req:1},
+  reef:     {name:'Tropical Reef',    icon:ICONS.reef,    cost:5000,     c1:'#06b6d4', c2:'#0891b2', c3:'#0c4a6e', req:3},
+  sunset:   {name:'Sunset Bay',       icon:ICONS.sunset,  cost:15000,    c1:'#c2410c', c2:'#9f1239', c3:'#500722', req:5},
+  abyss:    {name:'Abyssal Trench',   icon:ICONS.abyss,   cost:30000,    c1:'#0f172a', c2:'#020617', c3:'#000000', req:6},
+  aurora:   {name:'Aurora Borealis',  icon:ICONS.star,    cost:20000,    c1:'#047857', c2:'#1e40af', c3:'#064e3b', req:4},
+  lava:     {name:'Lava Vent',        icon:ICONS.volcano, cost:25000,    c1:'#b45309', c2:'#7c2d12', c3:'#3b0a00', req:5},
+  biolume:  {name:'Bioluminescent',   icon:ICONS.decor,   cost:40000,    c1:'#134e4a', c2:'#0c0a1e', c3:'#040215', req:6},
+  sakura:   {name:'Cherry Blossom',   icon:ICONS.social,  cost:35000,    c1:'#9d174d', c2:'#86198f', c3:'#4a044e', req:6},
+  // ── Tier IV: Mythic Themes (Levels 11-13) ──
+  crystal:  {name:'Crystal Cavern',   icon:ICONS.crystal, cost:1000000,  c1:'#a78bfa', c2:'#4c1d95', c3:'#1e1b4b', req:11},
+  cosmos:   {name:'Cosmic Void',      icon:ICONS.star,    cost:6000000,  c1:'#7c3aed', c2:'#312e81', c3:'#020617', req:12},
+  eden:     {name:'Eternal Eden',     icon:ICONS.reef,    cost:30000000, c1:'#fbbf24', c2:'#16a34a', c3:'#064e3b', req:13}
 };
 
 const FLOORS={
-  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,     c:'rgba(15,20,40,0.88)',   grain:'#1e293b', req:1},
-  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,  c:'rgba(217,185,80,0.85)', grain:'#fef08a', req:3},
-  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000, c:'rgba(40,35,35,0.92)',   grain:'#6b7280', req:4},
-  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000, c:'rgba(88,28,135,0.88)',  grain:'#d8b4fe', req:6},
-  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,  c:'rgba(194,65,12,0.82)',  grain:'#fb923c', req:3},
-  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000, c:'rgba(5,5,8,0.96)',      grain:'#374151', req:5},
-  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000, c:'rgba(161,120,0,0.88)',  grain:'#fbbf24', req:6},
-  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000, c:'rgba(147,197,253,0.75)',grain:'#e0f2fe', req:4}
+  default:  {name:'Dark Slate',      icon:ICONS.nest,    cost:0,        c:'rgba(15,20,40,0.88)',     grain:'#1e293b', req:1},
+  sand:     {name:'White Sand',      icon:ICONS.sand,    cost:3000,     c:'rgba(217,185,80,0.85)',   grain:'#fef08a', req:3},
+  gravel:   {name:'Volcanic Rock',   icon:ICONS.volcano, cost:10000,    c:'rgba(40,35,35,0.92)',     grain:'#6b7280', req:4},
+  crystal:  {name:'Amethyst Geode',  icon:ICONS.crystal, cost:25000,    c:'rgba(88,28,135,0.88)',    grain:'#d8b4fe', req:6},
+  coral:    {name:'Living Coral',    icon:ICONS.reef,    cost:8000,     c:'rgba(194,65,12,0.82)',    grain:'#fb923c', req:3},
+  obsidian: {name:'Obsidian Glass',  icon:ICONS.abyss,   cost:18000,    c:'rgba(5,5,8,0.96)',        grain:'#374151', req:5},
+  gold:     {name:'Golden Gravel',   icon:ICONS.coin,    cost:30000,    c:'rgba(161,120,0,0.88)',    grain:'#fbbf24', req:6},
+  snow:     {name:'Arctic Ice',      icon:ICONS.drop,    cost:12000,    c:'rgba(147,197,253,0.75)',  grain:'#e0f2fe', req:4},
+  // ── Tier IV: Mythic Floors (Levels 11-13) ──
+  pearl:    {name:'Pearl Sands',     icon:ICONS.clam,    cost:1500000,  c:'rgba(248,232,255,0.82)',  grain:'#fce7f3', req:11},
+  bismuth:  {name:'Bismuth Cluster', icon:ICONS.crystal, cost:8000000,  c:'rgba(168,85,247,0.78)',   grain:'#fbcfe8', req:12},
+  diamond:  {name:'Diamond Dust',    icon:ICONS.star,    cost:35000000, c:'rgba(191,219,254,0.78)',  grain:'#f0f9ff', req:13}
 };
 
 const BUBBLES={
-  default:  {name:'Classic',    icon:ICONS.drop,   cost:0,     col:'rgba(255,255,255,{a})', fill:'rgba(200,235,255,{fa})', req:1},
-  gold:     {name:'Golden',     icon:ICONS.coin,   cost:5000,  col:'rgba(251,191,36,{a})',  fill:'rgba(253,230,100,{fa})', req:3},
-  pink:     {name:'Rose',       icon:ICONS.social, cost:8000,  col:'rgba(244,114,182,{a})', fill:'rgba(255,180,210,{fa})', req:4},
-  green:    {name:'Emerald',    icon:ICONS.reef,   cost:10000, col:'rgba(52,211,153,{a})',  fill:'rgba(110,240,190,{fa})', req:4},
-  rainbow:  {name:'Rainbow',    icon:ICONS.star,   cost:25000, col:'rainbow',               fill:'rainbow', req:6}
+  default:  {name:'Classic',    icon:ICONS.drop,    cost:0,        col:'rgba(255,255,255,{a})', fill:'rgba(200,235,255,{fa})', req:1},
+  gold:     {name:'Golden',     icon:ICONS.coin,    cost:5000,     col:'rgba(251,191,36,{a})',  fill:'rgba(253,230,100,{fa})', req:3},
+  pink:     {name:'Rose',       icon:ICONS.social,  cost:8000,     col:'rgba(244,114,182,{a})', fill:'rgba(255,180,210,{fa})', req:4},
+  green:    {name:'Emerald',    icon:ICONS.reef,    cost:10000,    col:'rgba(52,211,153,{a})',  fill:'rgba(110,240,190,{fa})', req:4},
+  rainbow:  {name:'Rainbow',    icon:ICONS.star,    cost:25000,    col:'rainbow',               fill:'rainbow', req:6},
+  // ── Tier IV: Mythic Bubbles (Levels 11-13) ──
+  crystal:  {name:'Crystal',    icon:ICONS.crystal, cost:1200000,  col:'rgba(196,181,253,{a})', fill:'rgba(167,139,250,{fa})', req:11},
+  plasma:   {name:'Plasma',     icon:ICONS.active,  cost:7000000,  col:'rgba(232,121,249,{a})', fill:'rgba(216,180,254,{fa})', req:12},
+  quantum:  {name:'Quantum',    icon:ICONS.star,    cost:30000000, col:'rainbow',               fill:'rainbow', req:13}
 };
 
 const BORDERS={
-  none:     {name:'None',           icon:ICONS.abyss,   cost:0,     style:'none',  r:0,       g:103,  gb:249, req:1},
-  glow:     {name:'Neon Glow',      icon:ICONS.star,    cost:6000,  style:'glow',  r:103,    g:232,  gb:249, req:3},
-  coral:    {name:'Coral Reef',     icon:ICONS.reef,    cost:12000, style:'coral', r:249,    g:115,  gb:22,  req:4},
-  gold:     {name:'Gold Frame',     icon:ICONS.coin,    cost:20000, style:'gold',  r:251,    g:191,  gb:36,  req:5},
-  pulse:    {name:'Pulse',          icon:ICONS.active,  cost:30000, style:'pulse', r:168,    g:85,   gb:247, req:6},
-  electric: {name:'Electric Blue',  icon:ICONS.drop,    cost:45000, style:'electric', r:56, g:189,  gb:248, req:7}
+  none:     {name:'None',           icon:ICONS.abyss,   cost:0,        style:'none',     r:0,    g:103,  gb:249, req:1},
+  glow:     {name:'Neon Glow',      icon:ICONS.star,    cost:6000,     style:'glow',     r:103,  g:232,  gb:249, req:3},
+  coral:    {name:'Coral Reef',     icon:ICONS.reef,    cost:12000,    style:'coral',    r:249,  g:115,  gb:22,  req:4},
+  gold:     {name:'Gold Frame',     icon:ICONS.coin,    cost:20000,    style:'gold',     r:251,  g:191,  gb:36,  req:5},
+  pulse:    {name:'Pulse',          icon:ICONS.active,  cost:30000,    style:'pulse',    r:168,  g:85,   gb:247, req:6},
+  electric: {name:'Electric Blue',  icon:ICONS.drop,    cost:45000,    style:'electric', r:56,   g:189,  gb:248, req:7},
+  // ── Tier IV: Mythic Borders (Levels 11-13) ──
+  aurora:   {name:'Aurora',         icon:ICONS.star,    cost:1800000,  style:'pulse',    r:74,   g:222,  gb:128, req:11},
+  nebula:   {name:'Nebula',         icon:ICONS.crystal, cost:9000000,  style:'pulse',    r:232,  g:121,  gb:249, req:12},
+  infinity: {name:'Infinity',       icon:ICONS.star,    cost:40000000, style:'electric', r:251,  g:191,  gb:36,  req:13}
 };
 
 const TRAITS = ['greedy', 'shy', 'lazy', 'active'];
@@ -1954,10 +1959,10 @@ try {
   const ticks = Math.floor(_dtAcc / 16.666); // 60fps = 16.666ms per tick
   _dtAcc -= ticks * 16.666;
   
-  if(!W || !H) {
-  resize();
-  if(!W || !H) { requestAnimationFrame(loop); return; }
-}
+  if(!W || !H || cv.width < 10) {
+    resize();
+    if(!W || !H) { requestAnimationFrame(loop); return; }
+  }
 
   for(let i=0; i<ticks; i++){
     time++;
@@ -2575,16 +2580,25 @@ ctx.fill();
   saveTimer++;
   if(saveTimer>=1800){saveTimer=0;saveGame();}
 
-  requestAnimationFrame(loop);
 } catch(crashError) {
+  // Log every crash to console so subsequent failures are visible
+  console.error('[ZenAquarium] LOOP CRASH:', crashError);
+  window._lastLoopError = crashError;
+  window._loopCrashCount = (window._loopCrashCount||0) + 1;
+  // Show overlay only once to avoid spam, but make it dismissable
   if(!window.crashedAlready) {
     window.crashedAlready=true;
-    const errBox = document.createElement('div');
-    errBox.style.cssText = 'position:fixed;inset:0;background:purple;color:white;z-index:999999;font-family:monospace;padding:20px;font-size:16px;overflow:auto;word-wrap:break-word;background-clip:padding-box;';
-    errBox.innerHTML = '<h2>LOOP CRASH</h2>' + crashError.message + '<br><br>' + crashError.stack;
-    document.body.appendChild(errBox);
+    try {
+      const errBox = document.createElement('div');
+      errBox.id = '_zaCrashBox';
+      errBox.style.cssText = 'position:fixed;inset:0;background:#1e1b4b;color:#fef3c7;z-index:999999;font-family:monospace;padding:20px;font-size:14px;overflow:auto;word-wrap:break-word;background-clip:padding-box;';
+      errBox.innerHTML = '<h2 style="color:#fbbf24">⚠ Loop Error (recovering)</h2><div style="margin:10px 0">'+(crashError.message||crashError)+'</div><pre style="font-size:11px;white-space:pre-wrap;color:#a5b4fc">'+(crashError.stack||'')+'</pre><button onclick="document.getElementById(\'_zaCrashBox\').remove()" style="margin-top:12px;padding:8px 16px;background:#7c3aed;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px">Dismiss</button>';
+      document.body.appendChild(errBox);
+    } catch(e) {}
   }
 }
+// CRITICAL: Always reschedule the next frame, even on crash, so we recover.
+requestAnimationFrame(loop);
 }
 
 // ── PERF: Pause loop when tab/app is hidden to save battery ──
@@ -2678,7 +2692,7 @@ function addCoins(amt,x,y,bonus=false){
   checkLevel();
   spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
-const LEVEL_THRESHOLDS=[0,5000,15000,45000,120000,350000,1200000,4000000,15000000,50000000];
+const LEVEL_THRESHOLDS=[0,5000,15000,45000,120000,350000,1200000,4000000,15000000,50000000,150000000,500000000,1500000000];
 function checkLevel(){
   const old=playerLevel;
   for(let i=LEVEL_THRESHOLDS.length-1;i>=1;i--){
@@ -3668,49 +3682,35 @@ function resetSave(){
   }
 }
 
-// PANEL DRAGGING (Restored v2.1.36)
-function setupDrag(id) {
-  const p = document.getElementById(id); if(!p) return;
-  const h = p.querySelector('.ph'); if(!h) return;
-  let isD = false, sy = 0, sh = 0, vy = 0;
-  const start = (e) => {
-    isD = true; p.classList.add('dragging');
-    sy = (e.touches ? e.touches[0].clientY : e.clientY);
-    sh = p.offsetHeight;
-    document.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', end);
-    document.addEventListener('touchmove', move, { passive:false });
-    document.addEventListener('touchend', end);
-  };
-  const move = (e) => {
-    if(!isD) return;
-    const cy = (e.touches ? e.touches[0].clientY : e.clientY);
-    const dy = sy - cy;
-    const nh = Math.max(200, Math.min(window.innerHeight * 0.95, sh + dy));
-    p.style.height = nh + 'px';
-    if(e.cancelable) e.preventDefault();
-  };
-  const end = () => {
-    isD = false; p.classList.remove('dragging');
-    document.removeEventListener('mousemove', move);
-    document.removeEventListener('mouseup', end);
-    document.removeEventListener('touchmove', move);
-    document.removeEventListener('touchend', end);
-  };
-  h.addEventListener('mousedown', start);
-  h.addEventListener('touchstart', start, { passive:true });
+// ─────────────────────────────────────────────────────────────────────────────
+// QUEST EXPAND / COLLAPSE
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleQuest(i){
+  if(_openQuests.has(i)) _openQuests.delete(i);
+  else _openQuests.add(i);
+  buildOrders();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOOT — error-resilient with global error handler
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('error', (ev) => {
+  console.error('[ZenAquarium] Uncaught error:', ev.error || ev.message);
+  // Don't show a white screen — keep the game running
+});
+window.addEventListener('unhandledrejection', (ev) => {
+  console.error('[ZenAquarium] Unhandled promise:', ev.reason);
+});
 
 function BOOT_APP() {
   if(_stopBoot) return;
-  requestAnimationFrame(loop);
   try { initSwatches(); } catch(e) { console.error("BOOT: initSwatches failed:", e); }
   try { resize(); } catch(e) { console.error("BOOT: resize failed:", e); }
   try { initDecor(); } catch(e) { console.error("BOOT: initDecor failed:", e); }
   try { const s = loadSave(); if(s) applyState(s); } catch(e) { console.error("BOOT: loadSave/applyState failed:", e); }
   try { buildOrders(); } catch(e) { console.error("BOOT: buildOrders failed:", e); }
   try { updateHUD(); } catch(e) { console.error("BOOT: updateHUD failed:", e); }
-  try { ['mpanel','dpanel','spanel','opanel','socpanel','fpanel'].forEach(setupDrag); } catch(e) { console.error("BOOT: setupDrag failed:", e); }
+  requestAnimationFrame(loop);
 }
 BOOT_APP();
 </script>
