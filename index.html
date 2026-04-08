@@ -4286,121 +4286,88 @@ function _cancelBookAnimations() {
 }
 
 function drawFishPreview(type, c1, c2, canvasW, canvasH, time) {
-  const cvs = document.createElement('canvas');
-  cvs.width = canvasW * 2; cvs.height = canvasH * 2;
-  cvs.style.width = canvasW + 'px'; cvs.style.height = canvasH + 'px';
-  cvs.className = 'aq-fish-preview';
-  const pc = cvs.getContext('2d');
+  const previewCvs = document.createElement('canvas');
+  previewCvs.width = canvasW * 2;
+  previewCvs.height = canvasH * 2;
+  const pc = previewCvs.getContext('2d');
   pc.scale(2, 2);
-  const def = TYPES[type];
-  if (!def) return cvs;
-  const s = def.sz;
-  const cx = canvasW / 2, cy = canvasH / 2;
-  pc.save();
-  pc.translate(cx, cy);
-  const previewScale = Math.min((canvasW * 0.45) / s, (canvasH * 0.45) / s);
-  pc.scale(previewScale, previewScale);
-  const _c1 = c1 || def.c1, _c2 = c2 || def.c2;
-  const bg = pc.createLinearGradient(0, -s, 0, s);
-  bg.addColorStop(0, _c1); bg.addColorStop(0.5, _c1); bg.addColorStop(1, _c2);
-  const wag = time ? Math.sin(time * 2.5) * s * 0.35 : 0;
-  const paddle = time ? Math.sin(time * 1.8 + 0.8) * s * 0.12 : 0;
-  if (time) pc.rotate(Math.sin(time * 2.5) * 0.05);
 
-  if (type === 'guppy') {
-    pc.fillStyle = _c2 + 'aa';
-    pc.beginPath(); pc.moveTo(-s * .2, 0);
-    pc.bezierCurveTo(-s * 1.5, -s * 1.2, -s * 1.8, -s + wag * 1.5, -s * 2.2, wag * 2);
-    pc.bezierCurveTo(-s * 1.8, s + wag * 1.5, -s * 1.5, s * 1.2, -s * .2, 0); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .8, s * .35, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .4, -s * .05, s * .12);
-  } else if (type === 'tetra') {
-    pc.fillStyle = _c1; pc.beginPath(); pc.moveTo(-s * .8, 0); pc.lineTo(-s * 1.5, -s * .5 + wag); pc.lineTo(-s * 1.5, s * .5 + wag); pc.fill();
-    pc.fillStyle = _c2; pc.beginPath(); pc.ellipse(0, 0, s * .9, s * .28, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .5, -s * .05, s * .08);
-  } else if (type === 'seahorse') {
-    pc.fillStyle = bg; pc.beginPath();
-    pc.moveTo(s * .2, -s * .6);
-    pc.quadraticCurveTo(-s * .3, -s * .2, -s * .3, s * .3);
-    pc.quadraticCurveTo(-s * .6, s * 1.2, 0, s * 1.2);
-    pc.quadraticCurveTo(s * .3, s * 1.2, -s * .1, s * .4);
-    pc.quadraticCurveTo(s * .5, -s * .2, s * .4, -s * .3);
-    pc.closePath(); pc.fill();
-    drawEye(pc, s * .2, -s * .45, s * .06);
-  } else if (type === 'goldfish') {
-    pc.fillStyle = _c2 + '66'; pc.beginPath(); pc.moveTo(-s * .2, 0);
-    pc.bezierCurveTo(-s * 1.2, -s * .6, -s * 1.8, -s * 1.4 + wag * 1.5, -s * 2.2, wag * 2);
-    pc.bezierCurveTo(-s * 1.5, s * 1.4 + wag * 1.5, -s * 1.2, s * .6, -s * .2, 0); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 1.1, s * .6, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .7, -s * .1, s * .12);
-  } else if (type === 'angelfish') {
-    pc.fillStyle = _c2 + 'aa'; pc.beginPath();
-    pc.moveTo(0, 0); pc.lineTo(-s * 1.8, -s * 1.5 + wag); pc.lineTo(-s * .2, 0); pc.lineTo(-s * 1.8, s * 1.5 + wag); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .6, s * .9, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .25, -s * .2, s * .08);
-  } else if (type === 'discus') {
-    pc.fillStyle = _c2 + 'aa'; pc.beginPath(); pc.moveTo(-s * .6, 0); pc.lineTo(-s * 1.5, -s * .8 + wag); pc.lineTo(-s * 1.5, s * .8 + wag); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.arc(0, 0, s, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .6, -s * .1, s * .1);
-  } else if (type === 'jellyfish') {
-    pc.strokeStyle = _c1 + '44'; pc.lineWidth = s * .1;
-    for (let i = -3; i <= 3; i++) { pc.beginPath(); pc.moveTo(i * s * .15, -s * .2); pc.quadraticCurveTo(i * s * .4, s * .5, i * s * .2, s * 1.8 + paddle * (i % 2 ? 1 : -1)); pc.stroke(); }
-    pc.fillStyle = _c2 + '88'; pc.beginPath();
-    pc.moveTo(-s * .7, -s * .2); pc.bezierCurveTo(-s * .7, -s * 1, s * .7, -s * 1, s * .7, -s * .2);
-    pc.quadraticCurveTo(0, 0, -s * .7, -s * .2); pc.fill();
-  } else if (type === 'octopus') {
-    pc.strokeStyle = bg; pc.lineCap = 'round';
-    for (let i = 0; i < 4; i++) { pc.lineWidth = s * .2; const a = (i / 3) * Math.PI * .8 - Math.PI * .4;
-      pc.beginPath(); pc.moveTo(0, s * .2); pc.quadraticCurveTo(Math.cos(a) * s, s, Math.cos(a) * s * 1.2, s * 1.8 + wag * (i % 2 ? 1 : -1)); pc.stroke(); }
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(-s * .3, -s * .2, s * .8, s * .6, -Math.PI / 12, 0, Math.PI * 2); pc.fill();
-    pc.beginPath(); pc.ellipse(s * .3, 0, s * .5, s * .4, Math.PI / 12, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .5, -s * .1, s * .08);
-  } else if (type === 'turtle') {
-    pc.fillStyle = _c1; pc.beginPath(); pc.ellipse(s * .9, 0, s * .35, s * .25, 0, 0, Math.PI * 2); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, s * .1, s * .95, s * .5, 0, Math.PI, Math.PI * 2); pc.closePath(); pc.fill();
-    pc.fillStyle = _c2 + 'ee'; pc.beginPath(); pc.ellipse(0, s * .1, s * .9, s * .2, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * 1.0, -s * .05, s * .06);
-  } else if (type === 'whaleshark') {
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 2, s * .8, 0, 0, Math.PI * 2); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * 1.5, 0); pc.lineTo(-s * 2.2, -s * .6 + wag); pc.lineTo(-s * 2.2, s * .6 + wag); pc.closePath(); pc.fill();
-    drawEye(pc, s * 1.8, -s * .2, s * .05);
-  } else if (type === 'narwhal') {
-    pc.fillStyle = bg; pc.beginPath();
-    pc.moveTo(-s * 1.5, 0); pc.bezierCurveTo(-s, -s * .8, s * .8, -s * .8, s * 1.4, -s * .2);
-    pc.quadraticCurveTo(s * 1.5, s * .1, s * 1.2, s * .3);
-    pc.bezierCurveTo(s * .5, s * .6, -s, s * .5, -s * 1.5, 0); pc.fill();
-    pc.strokeStyle = '#f8fafc'; pc.lineWidth = s * .08; pc.lineCap = 'round';
-    pc.beginPath(); pc.moveTo(s * 1.4, -s * .1); pc.lineTo(s * 3.2, -s * .3); pc.stroke();
-    drawEye(pc, s * 1.1, -s * .05, s * .05);
-  } else if (type === 'lionfish') {
-    pc.strokeStyle = _c1; pc.lineCap = 'round';
-    for (let i = 0; i < 9; i++) { const a = -Math.PI / 2 + (i / 8) * Math.PI; const r = s * 1.5;
-      pc.lineWidth = 4; pc.strokeStyle = _c1;
-      pc.beginPath(); pc.moveTo(0, 0); pc.lineTo(Math.cos(a) * r, Math.sin(a) * r); pc.stroke(); }
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .9, s * .5, 0, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .5, -s * .15, s * .1);
-  } else if (type === 'idol') {
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .8, s, 0, 0, Math.PI * 2); pc.fill();
-    pc.save(); pc.beginPath(); pc.ellipse(0, 0, s * .8, s, 0, 0, Math.PI * 2); pc.clip();
-    pc.fillStyle = _c2; pc.fillRect(-s * .3, -s, s * .25, s * 2); pc.fillRect(s * .2, -s, s * .15, s * 2);
-    pc.restore();
-    drawEye(pc, s * .4, -s * .3, s * .08);
-  } else if (type === 'betta') {
-    pc.fillStyle = _c2 + '77'; pc.beginPath(); pc.moveTo(s * .2, -s * .1);
-    pc.bezierCurveTo(-s * .5, -s * 2.5, -s * 2, -s * 1.5 + wag, -s * 1.8, -s * .5); pc.fill();
-    pc.beginPath(); pc.moveTo(s * .2, s * .1);
-    pc.bezierCurveTo(-s * .5, s * 2.5, -s * 2, s * 1.5 + wag, -s * 1.8, s * .5); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * .7, 0);
-    pc.quadraticCurveTo(0, -s * .4, s * .7, -s * .2);
-    pc.quadraticCurveTo(s * .8, -s * .3, s * .9, -s * .2);
-    pc.lineTo(s * .8, s * .1);
-    pc.quadraticCurveTo(s * .6, s * .4, 0, s * .4);
-    pc.quadraticCurveTo(-s * .5, s * .3, -s * .7, 0); pc.fill();
-    drawEye(pc, s * .5, -s * .1, s * .08);
+  const def = TYPES[type];
+  if (!def) return previewCvs;
+
+  // Per-fish visual bounding box (in units of def.sz = s):
+  // [leftExtent, rightExtent, topExtent, bottomExtent]
+  // Derived by inspecting every drawFish branch including peak animation extents.
+  const FISH_BOUNDS = {
+    guppy:      [2.5, 1.0, 1.5, 1.5],
+    tetra:      [1.7, 1.0, 0.5, 0.5],
+    seahorse:   [0.7, 0.5, 1.0, 1.8],
+    goldfish:   [2.5, 1.2, 1.2, 1.6],
+    angelfish:  [1.9, 0.8, 1.7, 3.2],
+    discus:     [1.7, 1.2, 1.2, 1.2],
+    jellyfish:  [0.9, 0.9, 1.2, 2.2],
+    octopus:    [1.0, 1.0, 1.1, 2.6],
+    turtle:     [1.0, 1.4, 0.7, 0.9],
+    whaleshark: [2.5, 2.2, 1.0, 1.0],
+    narwhal:    [2.3, 3.5, 1.0, 1.0],
+    lionfish:   [1.9, 1.8, 1.8, 2.9],
+    idol:       [4.3, 1.7, 2.4, 1.2],
+    betta:      [3.8, 1.0, 2.8, 2.8],
+  };
+
+  const s = def.sz;
+  const bounds = FISH_BOUNDS[type] || [2.0, 2.0, 2.0, 2.0];
+  const [bL, bR, bT, bB] = bounds;
+  const pad = 0.88;
+
+  // Compute scale so the entire visual bounding box fits with padding
+  const fs = Math.min(
+    (canvasW * pad) / ((bL + bR) * s),
+    (canvasH * pad) / ((bT + bB) * s)
+  );
+
+  // Shift origin so the visual bounding box is centered in the canvas
+  // Fish spans [fishX - bL*s*fs, fishX + bR*s*fs] horizontally
+  // Center of that range = fishX + (bR - bL)/2 * s * fs = canvasW/2
+  const fishX = canvasW / 2 - (bR - bL) / 2 * s * fs;
+  const fishY = canvasH / 2 - (bB - bT) / 2 * s * fs;
+
+  // drawFish computes: actualScale = f.scale * (szMod||1) * getGlobalLevelScale()
+  // We want actualScale = fs, so f.scale = fs / getGlobalLevelScale()
+  const mockFish = {
+    type,
+    key: null,
+    isVisitor: false,
+    isEcho: false,
+    def,
+    x: fishX,
+    y: fishY,
+    vx: 1,
+    vy: 0,
+    phase: time || 0,
+    scale: fs / getGlobalLevelScale(),
+    genes: {
+      c1: [c1 || def.c1, c1 || def.c1],
+      c2: [c2 || def.c2],
+      szMod: 1,
+    },
+    hunger: 100,
+    bonded: 0,
+    eat: 0,
+    id: 1,
+    _octoContractT: 0,
+  };
+
+  // Temporarily redirect global ctx so drawFish renders into the preview canvas
+  const savedCtx = ctx;
+  ctx = pc;
+  try {
+    drawFish(mockFish);
+  } finally {
+    ctx = savedCtx;
   }
 
-  pc.restore();
-  return cvs;
+  return previewCvs;
 }
 
 function buildAquapedia() {
