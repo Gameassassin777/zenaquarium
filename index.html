@@ -428,6 +428,17 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .book-nav-btn:disabled{opacity:0.3;cursor:default;}
 
 @keyframes bookOpen{0%{transform:perspective(1200px) rotateY(-40deg);opacity:0;}100%{transform:perspective(1200px) rotateY(-2deg);opacity:1;}}
+
+/* ── Skill Web Overlay ── */
+#skill-web-overlay{position:fixed;inset:0;z-index:50;display:none;background:#000d1a;flex-direction:column;}
+#skill-web-overlay.open{display:flex;}
+#swc{flex:1;width:100%;touch-action:none;}
+#sw-close{position:absolute;top:16px;right:16px;z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
+#sw-close:hover{background:rgba(255,255,255,0.18);}
+#sw-mini{position:absolute;bottom:80px;right:16px;width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-tip{position:absolute;pointer-events:none;background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f8fafc;max-width:200px;display:none;z-index:52;}
+.sw-open-btn{display:flex;align-items:center;gap:6px;background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);color:#67e8f9;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;width:100%;justify-content:center;margin-bottom:10px;flex-shrink:0;}
+.sw-open-btn:hover{background:rgba(103,232,249,0.2);}
 </style>
 </head>
 <body>
@@ -461,6 +472,15 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
 </nav>
+
+<!-- Skill Web Overlay -->
+<div id="skill-web-overlay">
+  <canvas id="swc"></canvas>
+  <button id="sw-close" onclick="closeSkillWeb()">Close</button>
+  <canvas id="sw-mini"></canvas>
+  <div id="sw-tip"></div>
+</div>
+
 <div id="sov" onclick="closeAll()"></div>
 
 <div id="mpanel" class="panel">
@@ -483,10 +503,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 <div id="spanel" class="panel">
   <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:15px;flex-shrink:0;">
+  <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:10px;flex-shrink:0;">
     <button class="tabbtn active" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
     <button class="tabbtn" onclick="switchShop('upgrades')" id="tab-upgrades">Supplies</button>
   </div>
+  <button class="sw-open-btn" id="sw-open-btn" onclick="openSkillWeb()"><span id="sw-btn-icon"></span>Skill Web</button>
   <div class="pscroll" id="shop-fish">
     <div class="cards" id="fcards"></div>
   </div>
@@ -562,7 +583,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.0.0';
+const CUR_VER = '2.0.1';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -698,6 +719,7 @@ document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
 document.getElementById('ic-book-fab').innerHTML = ICONS.book;
+document.getElementById('sw-btn-icon').innerHTML = ICONS.star;
 
 document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
@@ -1275,6 +1297,9 @@ function buildSave(){
     upgrades: Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     _openQuests: sQuests,
     currentEra,
+    sw_owned: Object.fromEntries(Object.entries(SW_NODE_OWNED).filter(([,v])=>v>0)),
+    sw_mastery: { ...sw_mastery },
+    sw_revealed: [...sw_revealed],
     v: 18,
     ts: Date.now()
   };
@@ -1330,6 +1355,10 @@ function applyState(s){
   ownedBorders = s.ownedBorders || ['none'];
   
   for(const[k,v] of Object.entries(s.upgrades || {}))if(UPGRADES[k])UPGRADES[k].owned=v;
+  
+  if(s.sw_owned) Object.assign(SW_NODE_OWNED, s.sw_owned);
+  if(s.sw_mastery) Object.assign(sw_mastery, s.sw_mastery);
+  if(s.sw_revealed) s.sw_revealed.forEach(id => sw_revealed.add(id));
   
   eggs = [];
   for(const e of (s.eggs || [])){
@@ -4632,10 +4661,816 @@ window.addEventListener('unhandledrejection', (ev) => {
   console.error('[ZenAquarium] Unhandled promise:', ev.reason);
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// GALAXY SKILL WEB
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Cluster & Node Definitions ──────────────────────────────────────
+const SW_CLUSTERS = [
+  {
+    id: 'core', name: 'Core', req: 1, cx: 0, cy: 0, color: '#67e8f9',
+    nodes: [
+      { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: 'Double base coin value',             cost: 500,      max: 1, req: [], effect: 'flakes',   angle: 0,        dist: 120 },
+      { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income + eats algae',        cost: 350,      max: 5, req: [], effect: 'snail',    angle: 45,       dist: 120 },
+      { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food automatically',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', angle: 90,  dist: 120 },
+      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+4 max fish capacity',               cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    angle: 135, dist: 120 },
+      { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  angle: 180, dist: 120 },
+      { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', angle: 225, dist: 120 },
+      { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Passive gold + filters water',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', angle: 270, dist: 120 },
+      { id: 'c_heater',   name: 'Water Heater',     desc: '+25% coin value for all fish',       cost: 50000,    max: 1, req: ['c_clam'],   effect: 'heater',  angle: 315, dist: 120 }
+    ]
+  },
+  {
+    id: 'deep', name: 'Deep Ocean', req: 10, cx: 600, cy: -200, color: '#3b82f6',
+    nodes: [
+      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',     angle: 0,   dist: 110 },
+      { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', angle: 45,  dist: 110 },
+      { id: 'd_vent',     name: 'Thermal Vent',       desc: 'Snails move 50% faster',           cost: 40000,    max: 1, req: ['d_plankton'], effect: 'vent',     angle: 90,  dist: 110 },
+      { id: 'd_dome',     name: 'Pressure Dome',      desc: 'Fish never lose hunger offline',   cost: 100000,   max: 1, req: ['d_vent'],     effect: 'dome',     angle: 135, dist: 110 },
+      { id: 'd_lens',     name: 'Abyssal Lens',       desc: 'Doubles clam income',              cost: 250000,   max: 1, req: ['d_dome'],     effect: 'lens',     angle: 180, dist: 110 },
+      { id: 'd_kelp',     name: 'Kelp Forest',        desc: '-30% algae growth rate',           cost: 500000,   max: 1, req: ['d_lens'],     effect: 'kelp_f',   angle: 225, dist: 110 },
+      { id: 'd_midnight', name: 'Midnight Zone',      desc: '+15% all income',                  cost: 1200000,  max: 1, req: ['d_kelp'],     effect: 'midnight', angle: 270, dist: 110 },
+      { id: 'd_hadal',    name: 'Hadal Trench',       desc: 'Unlocks Era 3 accelerator',        cost: 3000000,  max: 1, req: ['d_midnight'], effect: 'hadal',    angle: 315, dist: 110 }
+    ]
+  },
+  {
+    id: 'evo', name: 'Evolution', req: 20, cx: 600, cy: 200, color: '#34d399',
+    nodes: [
+      { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 8000,     max: 3, req: [], effect: 'sel_breed',  angle: 0,   dist: 110 },
+      { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 25000,    max: 1, req: ['e_breed'],  effect: 'gene_splice', angle: 45,  dist: 110 },
+      { id: 'e_chroma', name: 'Chromatic Drift',     desc: 'Color shift range +50%',            cost: 60000,    max: 1, req: ['e_splice'], effect: 'chroma',      angle: 90,  dist: 110 },
+      { id: 'e_apex',   name: 'Apex Genes',          desc: 'Adult fish gain +20% value',        cost: 150000,   max: 1, req: ['e_chroma'], effect: 'apex',        angle: 135, dist: 110 },
+      { id: 'e_prism',  name: 'Prismatic Lock',      desc: 'Prismatic band bonus x2',           cost: 400000,   max: 1, req: ['e_apex'],   effect: 'prism_lock',  angle: 180, dist: 110 },
+      { id: 'e_frenzy', name: 'Breeding Frenzy',     desc: 'Breeding cooldown -40%',            cost: 900000,   max: 1, req: ['e_prism'],  effect: 'brd_frenzy',  angle: 225, dist: 110 },
+      { id: 'e_mythic', name: 'Mythic Lineage',      desc: 'All rare fish sell for 3x',         cost: 2500000,  max: 1, req: ['e_frenzy'], effect: 'mythic_lin',  angle: 270, dist: 110 },
+      { id: 'e_trans',  name: 'Transcendence',       desc: 'One random fish becomes legendary', cost: 8000000,  max: 1, req: ['e_mythic'], effect: 'transcend',   angle: 315, dist: 110 }
+    ]
+  },
+  {
+    id: 'alch', name: 'Alchemy', req: 30, cx: -600, cy: -200, color: '#fbbf24',
+    nodes: [
+      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight', angle: 0,   dist: 110 },
+      { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    angle: 45,  dist: 110 },
+      { id: 'a_magnet',   name: 'Coin Magnet',         desc: 'Collect range +50%',               cost: 80000,    max: 1, req: ['a_arb'],     effect: 'coin_mag',   angle: 90,  dist: 110 },
+      { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5s',                  cost: 200000,   max: 1, req: ['a_magnet'],  effect: 'overflow',   angle: 135, dist: 110 },
+      { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All sales +10%',                   cost: 600000,   max: 1, req: ['a_overflow'], effect: 'gold_cat',  angle: 180, dist: 110 },
+      { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Convert algae to coins',           cost: 1500000,  max: 1, req: ['a_gold'],    effect: 'phil_stone', angle: 225, dist: 110 },
+      { id: 'a_eco',      name: 'Economic Singularity',desc: 'Income cap raised x2',             cost: 4000000,  max: 1, req: ['a_phil'],    effect: 'eco_sing',   angle: 270, dist: 110 },
+      { id: 'a_loop',     name: 'Infinite Loop',       desc: '1% of total coins/min passive',    cost: 12000000, max: 1, req: ['a_eco'],     effect: 'inf_loop',   angle: 315, dist: 110 }
+    ]
+  },
+  {
+    id: 'sing', name: 'Singularity', req: 40, cx: -600, cy: 200, color: '#a855f7',
+    nodes: [
+      { id: 's_quantum', name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 0,   dist: 100 },
+      { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  angle: 60,  dist: 100 },
+      { id: 's_horizon', name: 'Event Horizon',        desc: 'Tank capacity +10 permanently',       cost: 300000,  max: 1, req: ['s_dark'],    effect: 'evt_hor',   angle: 120, dist: 100 },
+      { id: 's_anti',    name: 'Antimatter',           desc: 'All negative events reversed',        cost: 900000,  max: 1, req: ['s_horizon'], effect: 'antimatter', angle: 180, dist: 100 },
+      { id: 's_warp',    name: 'Warp Core',            desc: 'Offline income x3',                   cost: 3000000, max: 1, req: ['s_anti'],    effect: 'warp_core', angle: 240, dist: 100 },
+      { id: 's_point',   name: 'Singularity Point',    desc: 'All cluster bonuses +5%',             cost: 15000000,max: 1, req: ['s_warp'],    effect: 'sing_pt',   angle: 300, dist: 100 }
+    ]
+  },
+  {
+    id: 'pres', name: 'Prestige', req: 50, cx: 0, cy: -600, color: '#f472b6',
+    nodes: [
+      { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 50000,    max: 1, req: [], effect: 'aura_weave',  angle: 0,   dist: 100 },
+      { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', angle: 72,  dist: 100 },
+      { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated background flowers',               cost: 1000000,  max: 1, req: ['p_chron'], effect: 'etrnl_bloom', angle: 144, dist: 100 },
+      { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'Rainbow wave animation on water surface',   cost: 5000000,  max: 1, req: ['p_bloom'], effect: 'cosmic_tide', angle: 216, dist: 100 },
+      { id: 'p_omega',   name: 'Omega Key',       desc: 'Unlock all cosmetic variants permanently',  cost: 25000000, max: 1, req: ['p_cosmic'], effect: 'omega_key',  angle: 288, dist: 100 }
+    ]
+  }
+];
+
+// Build a flat node map for fast lookup
+const SW_NODE_MAP = {};
+SW_CLUSTERS.forEach(cl => {
+  cl.nodes.forEach(nd => {
+    SW_NODE_MAP[nd.id] = { ...nd, clusterId: cl.id };
+  });
+});
+
+// State
+const SW_NODE_OWNED = {};      // nodeId -> purchase count (0..max)
+const sw_mastery    = {};      // nodeId -> 0|1|2|3
+const sw_revealed   = new Set(); // cluster ids already revealed
+
+// Compute world position for a node given its parent cluster
+function swNodePos(nd, cl) {
+  const rad = (nd.angle * Math.PI) / 180;
+  return {
+    x: cl.cx + Math.cos(rad) * nd.dist,
+    y: cl.cy + Math.sin(rad) * nd.dist
+  };
+}
+
+// ── Canvas State ─────────────────────────────────────────────────────
+let sw_open = false;
+let sw_camX = 0, sw_camY = 0, sw_zoom = 1.0;
+const SW_ZOOM_MIN = 0.15, SW_ZOOM_MAX = 2.5;
+let sw_dragging = false, sw_dragSX = 0, sw_dragSY = 0, sw_dragCamX = 0, sw_dragCamY = 0;
+let sw_touches = [];
+let sw_lastPinchDist = 0;
+let sw_animRAF = null;
+// Reveal animations: { clusterId, startTime, phase: 'reveal' }
+const sw_revealAnims = [];
+// Supernova: { clusterId, startTime }
+const sw_supernova = [];
+
+function openSkillWeb() {
+  sw_open = true;
+  document.getElementById('skill-web-overlay').classList.add('open');
+  closeAll(); // close shop panel
+  // Center on Core cluster
+  const ov = document.getElementById('swc');
+  sw_camX = ov.clientWidth / 2;
+  sw_camY = ov.clientHeight / 2;
+  sw_zoom = 0.85;
+  swResizeCanvas();
+  swCheckReveal(true);
+  swStartLoop();
+}
+
+function closeSkillWeb() {
+  sw_open = false;
+  document.getElementById('skill-web-overlay').classList.remove('open');
+  if (sw_animRAF) { cancelAnimationFrame(sw_animRAF); sw_animRAF = null; }
+}
+
+function swResizeCanvas() {
+  const ov = document.getElementById('skill-web-overlay');
+  const cvs = document.getElementById('swc');
+  const mini = document.getElementById('sw-mini');
+  if (!ov || !cvs) return;
+  cvs.width  = ov.clientWidth  || window.innerWidth;
+  cvs.height = ov.clientHeight || window.innerHeight;
+  if (mini) { mini.width = 120; mini.height = 90; }
+}
+
+// ── World <-> Screen conversions ────────────────────────────────────
+function swWorldToScreen(wx, wy) {
+  const cvs = document.getElementById('swc');
+  if (!cvs) return { x: 0, y: 0 };
+  return {
+    x: (wx - sw_camX) * sw_zoom + cvs.width / 2,
+    y: (wy - sw_camY) * sw_zoom + cvs.height / 2
+  };
+}
+function swScreenToWorld(sx, sy) {
+  const cvs = document.getElementById('swc');
+  if (!cvs) return { x: 0, y: 0 };
+  return {
+    x: (sx - cvs.width / 2) / sw_zoom + sw_camX,
+    y: (sy - cvs.height / 2) / sw_zoom + sw_camY
+  };
+}
+
+// ── Reveal Check ─────────────────────────────────────────────────────
+function swCheckReveal(silent) {
+  SW_CLUSTERS.forEach(cl => {
+    if (playerLevel >= cl.req && !sw_revealed.has(cl.id)) {
+      sw_revealed.add(cl.id);
+      if (!silent) {
+        sw_revealAnims.push({ clusterId: cl.id, startTime: performance.now() });
+      }
+    }
+  });
+}
+
+// ── Ownership helpers ─────────────────────────────────────────────────
+function swOwned(nodeId) {
+  return SW_NODE_OWNED[nodeId] || 0;
+}
+function swMastery(nodeId) {
+  return sw_mastery[nodeId] || 0;
+}
+function swNodeMaxed(nd) {
+  return swOwned(nd.id) >= nd.max;
+}
+function swNodeCost(nd) {
+  const base = nd.cost;
+  const m = swMastery(nd.id);
+  if (!swNodeMaxed(nd)) return base;
+  if (m === 0) return base * 5;   // M1
+  if (m === 1) return base * 25;  // M2
+  if (m === 2) return base * 125; // M3
+  return Infinity;
+}
+function swNodeFullyDone(nd) {
+  return swMastery(nd.id) >= 3;
+}
+function swCanBuy(nd, cl) {
+  if (swNodeFullyDone(nd)) return false;
+  if (playerLevel < cl.req) return false;
+  for (const reqId of nd.req) {
+    const reqNd = SW_NODE_MAP[reqId];
+    if (!reqNd) continue;
+    const reqCl = SW_CLUSTERS.find(c => c.id === reqNd.clusterId);
+    if (!reqCl) continue;
+    if (!swNodeMaxed(reqNd)) return false;
+  }
+  return coins >= swNodeCost(nd);
+}
+
+// ── Supernova check ──────────────────────────────────────────────────
+function swCheckSupernova(cl) {
+  if (cl.nodes.every(nd => swMastery(nd.id) >= 1)) {
+    if (!sm.clusterMastered) sm.clusterMastered = [];
+    if (!sm.clusterMastered.includes(cl.id)) {
+      sm.clusterMastered.push(cl.id);
+      sw_supernova.push({ clusterId: cl.id, startTime: performance.now() });
+      swShowToast('Cluster Mastered: ' + cl.name);
+    }
+  }
+}
+
+function swShowToast(msg) {
+  let t = document.getElementById('sw-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'sw-toast';
+    t.style.cssText = 'position:absolute;top:70px;left:50%;transform:translateX(-50%);' +
+      'background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.25);' +
+      'border-radius:10px;padding:10px 18px;font-size:13px;color:#f8fafc;' +
+      'pointer-events:none;z-index:53;display:flex;align-items:center;gap:7px;' +
+      'transition:opacity .4s;';
+    document.getElementById('skill-web-overlay').appendChild(t);
+  }
+  t.innerHTML = ICONS.star + ' ' + msg;
+  t.style.opacity = '1';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+// ── Purchase logic ────────────────────────────────────────────────────
+function swBuyNode(nd) {
+  const cl = SW_CLUSTERS.find(c => c.id === nd.clusterId);
+  if (!cl) return;
+  if (!swCanBuy(nd, cl)) return;
+
+  const cost = swNodeCost(nd);
+  coins -= cost;
+  sm.coinsSpent = (sm.coinsSpent || 0) + cost;
+
+  if (!swNodeMaxed(nd)) {
+    SW_NODE_OWNED[nd.id] = (SW_NODE_OWNED[nd.id] || 0) + 1;
+    // Sync Core cluster nodes with UPGRADES
+    if (cl.id === 'core' && nd.effect && UPGRADES[nd.effect] !== undefined) {
+      UPGRADES[nd.effect].owned = Math.max(UPGRADES[nd.effect].owned || 0, SW_NODE_OWNED[nd.id]);
+    }
+  } else {
+    // Buying mastery level
+    sw_mastery[nd.id] = (sw_mastery[nd.id] || 0) + 1;
+    swCheckSupernova(cl);
+  }
+
+  updateHUD();
+  saveGame();
+  swDrawAll();
+}
+
+// ── Main render ───────────────────────────────────────────────────────
+function swDrawAll() {
+  const cvs = document.getElementById('swc');
+  if (!cvs) return;
+  const ctx2 = cvs.getContext('2d');
+  if (!ctx2) return;
+  const W2 = cvs.width, H2 = cvs.height;
+  const now = performance.now();
+
+  // Background
+  ctx2.clearRect(0, 0, W2, H2);
+  const bg = ctx2.createRadialGradient(W2/2, H2/2, 0, W2/2, H2/2, Math.max(W2,H2)*0.8);
+  bg.addColorStop(0, '#001020');
+  bg.addColorStop(1, '#000d1a');
+  ctx2.fillStyle = bg;
+  ctx2.fillRect(0, 0, W2, H2);
+
+  // Star field
+  ctx2.save();
+  const starSeed = 12345;
+  for (let i = 0; i < 120; i++) {
+    const sx = ((starSeed * (i + 1) * 2654435761) >>> 0) % W2;
+    const sy = ((starSeed * (i + 1) * 1013904223) >>> 0) % H2;
+    const sa = 0.15 + (((starSeed * i * 16807) >>> 0) % 60) / 100;
+    ctx2.beginPath();
+    ctx2.arc(sx, sy, 0.8, 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(255,255,255,${sa})`;
+    ctx2.fill();
+  }
+  ctx2.restore();
+
+  // Draw connector lines between nodes
+  SW_CLUSTERS.forEach(cl => {
+    const revealed = sw_revealed.has(cl.id);
+    cl.nodes.forEach(nd => {
+      nd.req.forEach(reqId => {
+        const reqNd = SW_NODE_MAP[reqId];
+        if (!reqNd) return;
+        const reqCl = SW_CLUSTERS.find(c => c.id === reqNd.clusterId);
+        if (!reqCl) return;
+        const posA = swWorldToScreen(swNodePos(nd, cl).x, swNodePos(nd, cl).y);
+        const posB = swWorldToScreen(swNodePos(reqNd, reqCl).x, swNodePos(reqNd, reqCl).y);
+        const bothOwned = swOwned(nd.id) > 0 && swOwned(reqNd.id) > 0;
+        ctx2.beginPath();
+        ctx2.moveTo(posA.x, posA.y);
+        ctx2.lineTo(posB.x, posB.y);
+        if (!revealed) {
+          ctx2.strokeStyle = 'rgba(255,255,255,0.06)';
+        } else if (bothOwned) {
+          ctx2.strokeStyle = cl.color;
+          ctx2.globalAlpha = 0.9;
+        } else {
+          ctx2.strokeStyle = cl.color;
+          ctx2.globalAlpha = 0.25;
+        }
+        ctx2.lineWidth = 1.2;
+        ctx2.stroke();
+        ctx2.globalAlpha = 1;
+      });
+    });
+  });
+
+  // Draw inter-cluster connector lines (hub-spoke)
+  SW_CLUSTERS.forEach(cl => {
+    if (cl.id === 'core') return;
+    const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
+    if (!coreCl) return;
+    const a = swWorldToScreen(cl.cx, cl.cy);
+    const b = swWorldToScreen(coreCl.cx, coreCl.cy);
+    ctx2.beginPath();
+    ctx2.moveTo(a.x, a.y);
+    ctx2.lineTo(b.x, b.y);
+    ctx2.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx2.lineWidth = 1;
+    ctx2.setLineDash([6, 8]);
+    ctx2.stroke();
+    ctx2.setLineDash([]);
+  });
+
+  // Supernova flash
+  sw_supernova.forEach(sn => {
+    const elapsed = now - sn.startTime;
+    if (elapsed < 800) {
+      let alpha;
+      if (elapsed < 400) alpha = (elapsed / 400) * 0.8;
+      else alpha = 0.8 * (1 - (elapsed - 400) / 400);
+      ctx2.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx2.fillRect(0, 0, W2, H2);
+    }
+    // Rainbow connector lines for 3s
+    if (elapsed < 3000) {
+      const cl2 = SW_CLUSTERS.find(c => c.id === sn.clusterId);
+      if (cl2) {
+        const t2 = (now / 500) % 1;
+        cl2.nodes.forEach(ndA => {
+          cl2.nodes.forEach(ndB => {
+            if (ndA === ndB) return;
+            const pA = swWorldToScreen(swNodePos(ndA, cl2).x, swNodePos(ndA, cl2).y);
+            const pB = swWorldToScreen(swNodePos(ndB, cl2).x, swNodePos(ndB, cl2).y);
+            const h = (t2 * 360 + ndA.angle) % 360;
+            ctx2.beginPath();
+            ctx2.moveTo(pA.x, pA.y);
+            ctx2.lineTo(pB.x, pB.y);
+            ctx2.strokeStyle = `hsl(${h},100%,65%)`;
+            ctx2.globalAlpha = 0.6;
+            ctx2.lineWidth = 1.5;
+            ctx2.stroke();
+            ctx2.globalAlpha = 1;
+          });
+        });
+      }
+    }
+  });
+
+  // Draw clusters & nodes
+  SW_CLUSTERS.forEach(cl => {
+    const revealed = sw_revealed.has(cl.id);
+    // Reveal animation
+    let revAlpha = 1, revScale = 1;
+    const ra = sw_revealAnims.find(r => r.clusterId === cl.id);
+    if (ra) {
+      const elapsed = now - ra.startTime;
+      if (elapsed < 600) {
+        revAlpha = elapsed / 600;
+        revScale = 0.7 + 0.3 * (elapsed / 600);
+      }
+    }
+
+    // Cluster name label
+    const clCenter = swWorldToScreen(cl.cx, cl.cy);
+    ctx2.save();
+    ctx2.globalAlpha = revealed ? 0.6 * revAlpha : 0.2;
+    ctx2.font = `bold ${Math.round(11 * sw_zoom)}px system-ui`;
+    ctx2.fillStyle = cl.color;
+    ctx2.textAlign = 'center';
+    ctx2.textBaseline = 'bottom';
+    ctx2.fillText(cl.name.toUpperCase(), clCenter.x, clCenter.y - (60 * sw_zoom) - 6);
+    ctx2.restore();
+
+    // Cluster lock ring
+    if (!revealed) {
+      ctx2.save();
+      ctx2.globalAlpha = 0.12;
+      ctx2.beginPath();
+      ctx2.arc(clCenter.x, clCenter.y, 160 * sw_zoom, 0, Math.PI * 2);
+      ctx2.strokeStyle = cl.color;
+      ctx2.lineWidth = 1.5;
+      ctx2.stroke();
+      // Req level text
+      ctx2.globalAlpha = 0.3;
+      ctx2.font = `${Math.round(10 * sw_zoom)}px system-ui`;
+      ctx2.fillStyle = cl.color;
+      ctx2.textAlign = 'center';
+      ctx2.textBaseline = 'middle';
+      ctx2.fillText('Level ' + cl.req + ' required', clCenter.x, clCenter.y + 4);
+      ctx2.restore();
+    }
+
+    cl.nodes.forEach(nd => {
+      const wpos = swNodePos(nd, cl);
+      const spos = swWorldToScreen(wpos.x, wpos.y);
+      const r = Math.max(6, 28 * sw_zoom * (revealed ? revScale : 1));
+      const owned = swOwned(nd.id);
+      const mastery = swMastery(nd.id);
+      const maxed = swNodeMaxed(nd);
+
+      ctx2.save();
+      if (!revealed) ctx2.globalAlpha = 0.15;
+      else ctx2.globalAlpha = revAlpha;
+
+      // Node fill
+      ctx2.beginPath();
+      ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
+      if (owned > 0 || maxed) {
+        ctx2.fillStyle = cl.color;
+      } else {
+        // Parse color for rgba
+        const hex = cl.color;
+        const rr = parseInt(hex.slice(1,3),16);
+        const gg = parseInt(hex.slice(3,5),16);
+        const bb = parseInt(hex.slice(5,7),16);
+        ctx2.fillStyle = `rgba(${rr},${gg},${bb},0.3)`;
+      }
+      ctx2.fill();
+
+      // Node stroke / mastery ring
+      if (mastery >= 3) {
+        // M3: white glow
+        ctx2.shadowColor = '#ffffff';
+        ctx2.shadowBlur = 18 * sw_zoom;
+        ctx2.strokeStyle = '#ffffff';
+        ctx2.lineWidth = 2.5;
+      } else if (mastery === 2) {
+        // M2: animated rainbow gradient
+        const h2 = (now / 600) % 360;
+        ctx2.strokeStyle = `hsl(${h2},100%,65%)`;
+        ctx2.lineWidth = 2.5;
+      } else if (mastery === 1) {
+        // M1: gold
+        ctx2.strokeStyle = '#fbbf24';
+        ctx2.lineWidth = 2.5;
+      } else {
+        ctx2.strokeStyle = cl.color;
+        ctx2.lineWidth = 2;
+      }
+      ctx2.beginPath();
+      ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
+      ctx2.stroke();
+      ctx2.shadowBlur = 0;
+
+      // Owned count badge
+      if (owned > 0 && nd.max > 1) {
+        ctx2.font = `bold ${Math.max(7, Math.round(8 * sw_zoom))}px system-ui`;
+        ctx2.fillStyle = '#f8fafc';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText(owned + '/' + nd.max, spos.x, spos.y);
+      }
+
+      if (revealed) {
+        // Node name label below
+        const fsize = Math.max(7, Math.round(9 * sw_zoom));
+        ctx2.font = `${fsize}px system-ui`;
+        ctx2.fillStyle = '#f8fafc';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'top';
+        ctx2.fillText(nd.name, spos.x, spos.y + r + 4);
+
+        // Cost label above (if not fully done)
+        if (!swNodeFullyDone(nd)) {
+          const costStr = swFmtCost(swNodeCost(nd));
+          ctx2.font = `${Math.max(6, Math.round(8 * sw_zoom))}px system-ui`;
+          ctx2.fillStyle = cl.color;
+          ctx2.textAlign = 'center';
+          ctx2.textBaseline = 'bottom';
+          ctx2.fillText(costStr, spos.x, spos.y - r - 2);
+        }
+      }
+
+      ctx2.restore();
+    });
+  });
+
+  // Clean up old reveal / supernova animations
+  for (let i = sw_revealAnims.length - 1; i >= 0; i--) {
+    if (now - sw_revealAnims[i].startTime > 650) sw_revealAnims.splice(i, 1);
+  }
+  for (let i = sw_supernova.length - 1; i >= 0; i--) {
+    if (now - sw_supernova[i].startTime > 3200) sw_supernova.splice(i, 1);
+  }
+
+  // Draw minimap
+  swDrawMinimap();
+}
+
+function swFmtCost(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return String(Math.round(n));
+}
+
+// ── Minimap ──────────────────────────────────────────────────────────
+function swDrawMinimap() {
+  const mini = document.getElementById('sw-mini');
+  if (!mini) return;
+  const mc = mini.getContext('2d');
+  const MW = 120, MH = 90;
+  mc.clearRect(0, 0, MW, MH);
+  mc.fillStyle = 'rgba(0,0,0,0.7)';
+  mc.fillRect(0, 0, MW, MH);
+
+  // World bounds
+  const WX_MIN = -900, WX_MAX = 900, WY_MIN = -900, WY_MAX = 600;
+  const ww = WX_MAX - WX_MIN, wh = WY_MAX - WY_MIN;
+  const toMiniX = wx => ((wx - WX_MIN) / ww) * MW;
+  const toMiniY = wy => ((wy - WY_MIN) / wh) * MH;
+
+  // Draw cluster dots
+  SW_CLUSTERS.forEach(cl => {
+    mc.beginPath();
+    mc.arc(toMiniX(cl.cx), toMiniY(cl.cy), 5, 0, Math.PI * 2);
+    mc.fillStyle = sw_revealed.has(cl.id) ? cl.color : 'rgba(255,255,255,0.15)';
+    mc.fill();
+  });
+
+  // Viewport rect
+  const cvs = document.getElementById('swc');
+  if (cvs) {
+    const tl = swScreenToWorld(0, 0);
+    const br = swScreenToWorld(cvs.width, cvs.height);
+    const mx = toMiniX(tl.x), my = toMiniY(tl.y);
+    const mw = toMiniX(br.x) - mx, mh2 = toMiniY(br.y) - my;
+    mc.strokeStyle = 'rgba(255,255,255,0.55)';
+    mc.lineWidth = 1;
+    mc.strokeRect(mx, my, mw, mh2);
+  }
+}
+
+// ── RAF loop ─────────────────────────────────────────────────────────
+function swLoop() {
+  if (!sw_open) { sw_animRAF = null; return; }
+  swCheckReveal(false);
+  swDrawAll();
+  sw_animRAF = requestAnimationFrame(swLoop);
+}
+function swStartLoop() {
+  if (sw_animRAF) cancelAnimationFrame(sw_animRAF);
+  sw_animRAF = requestAnimationFrame(swLoop);
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────
+function swShowTip(nd, cl, sx, sy) {
+  const tip = document.getElementById('sw-tip');
+  if (!tip) return;
+  const owned = swOwned(nd.id);
+  const mastery = swMastery(nd.id);
+  const cost = swNodeCost(nd);
+  const canBuy = swCanBuy(nd, cl);
+  let masteryLabel = '';
+  if (mastery > 0) masteryLabel = ' (M' + mastery + ')';
+  let costLine = swNodeFullyDone(nd) ? 'Mastered' : 'Cost: ' + swFmtCost(cost) + (canBuy ? '' : ' (need more coins)');
+  tip.innerHTML = `<strong>${nd.name}</strong>${masteryLabel}<br>${nd.desc}<br><span style="opacity:0.7;font-size:11px;">${costLine}</span>`;
+  const cvs = document.getElementById('swc');
+  const tipW = 200, tipH = 80;
+  let tx = sx + 14, ty = sy - 20;
+  if (cvs && tx + tipW > cvs.width) tx = sx - tipW - 14;
+  if (cvs && ty + tipH > cvs.height) ty = sy - tipH;
+  tip.style.left = tx + 'px';
+  tip.style.top  = ty + 'px';
+  tip.style.display = 'block';
+}
+function swHideTip() {
+  const tip = document.getElementById('sw-tip');
+  if (tip) tip.style.display = 'none';
+}
+
+// ── Hit test ─────────────────────────────────────────────────────────
+function swHitNode(sx, sy) {
+  const hitR = Math.max(8, 28 * sw_zoom + 6);
+  for (const cl of SW_CLUSTERS) {
+    for (const nd of cl.nodes) {
+      const wpos = swNodePos(nd, cl);
+      const spos = swWorldToScreen(wpos.x, wpos.y);
+      const dx = sx - spos.x, dy = sy - spos.y;
+      if (dx*dx + dy*dy <= hitR*hitR) return { nd, cl };
+    }
+  }
+  return null;
+}
+
+// ── Mouse / touch events ─────────────────────────────────────────────
+function swInitEvents() {
+  const cvs = document.getElementById('swc');
+  const mini = document.getElementById('sw-mini');
+  if (!cvs) return;
+
+  // Mouse wheel zoom
+  cvs.addEventListener('wheel', e => {
+    e.preventDefault();
+    const scaleFactor = e.deltaY < 0 ? 1.12 : 0.89;
+    const oldZoom = sw_zoom;
+    sw_zoom = Math.min(SW_ZOOM_MAX, Math.max(SW_ZOOM_MIN, sw_zoom * scaleFactor));
+    // Zoom toward cursor
+    const rect = cvs.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const wBefore = swScreenToWorld(mx, my);
+    // After zoom change, adjust cam so wBefore maps back to same screen pos
+    sw_camX = wBefore.x - (mx - cvs.width/2) / sw_zoom;
+    sw_camY = wBefore.y - (my - cvs.height/2) / sw_zoom;
+  }, { passive: false });
+
+  // Mouse drag
+  cvs.addEventListener('mousedown', e => {
+    sw_dragging = true;
+    sw_dragSX = e.clientX; sw_dragSY = e.clientY;
+    sw_dragCamX = sw_camX; sw_dragCamY = sw_camY;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!sw_open) return;
+    if (sw_dragging) {
+      const dx = e.clientX - sw_dragSX;
+      const dy = e.clientY - sw_dragSY;
+      sw_camX = sw_dragCamX - dx / sw_zoom;
+      sw_camY = sw_dragCamY - dy / sw_zoom;
+      swHideTip();
+    } else if (sw_open && cvs) {
+      const rect = cvs.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const hit = swHitNode(sx, sy);
+      if (hit) {
+        cvs.style.cursor = 'pointer';
+        swShowTip(hit.nd, hit.cl, sx, sy);
+      } else {
+        cvs.style.cursor = 'grab';
+        swHideTip();
+      }
+    }
+  });
+  window.addEventListener('mouseup', e => {
+    if (!sw_open) return;
+    if (sw_dragging) {
+      const dist = Math.hypot(e.clientX - sw_dragSX, e.clientY - sw_dragSY);
+      sw_dragging = false;
+      if (dist < 5) {
+        // Click — buy node
+        const rect = cvs.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hit = swHitNode(sx, sy);
+        if (hit && sw_revealed.has(hit.cl.id)) {
+          swBuyNode(hit.nd);
+        }
+      }
+    }
+  });
+
+  // Touch events
+  cvs.addEventListener('touchstart', e => {
+    e.preventDefault();
+    sw_touches = Array.from(e.touches);
+    if (sw_touches.length === 1) {
+      sw_dragging = true;
+      sw_dragSX = sw_touches[0].clientX; sw_dragSY = sw_touches[0].clientY;
+      sw_dragCamX = sw_camX; sw_dragCamY = sw_camY;
+    } else if (sw_touches.length === 2) {
+      sw_dragging = false;
+      sw_lastPinchDist = Math.hypot(
+        sw_touches[0].clientX - sw_touches[1].clientX,
+        sw_touches[0].clientY - sw_touches[1].clientY
+      );
+    }
+  }, { passive: false });
+
+  cvs.addEventListener('touchmove', e => {
+    e.preventDefault();
+    sw_touches = Array.from(e.touches);
+    if (sw_touches.length === 1 && sw_dragging) {
+      const dx = sw_touches[0].clientX - sw_dragSX;
+      const dy = sw_touches[0].clientY - sw_dragSY;
+      sw_camX = sw_dragCamX - dx / sw_zoom;
+      sw_camY = sw_dragCamY - dy / sw_zoom;
+    } else if (sw_touches.length === 2) {
+      const dist = Math.hypot(
+        sw_touches[0].clientX - sw_touches[1].clientX,
+        sw_touches[0].clientY - sw_touches[1].clientY
+      );
+      const midX = (sw_touches[0].clientX + sw_touches[1].clientX) / 2;
+      const midY = (sw_touches[0].clientY + sw_touches[1].clientY) / 2;
+      const rect = cvs.getBoundingClientRect();
+      const smx = midX - rect.left, smy = midY - rect.top;
+      const wBefore = swScreenToWorld(smx, smy);
+      const scale = dist / sw_lastPinchDist;
+      sw_zoom = Math.min(SW_ZOOM_MAX, Math.max(SW_ZOOM_MIN, sw_zoom * scale));
+      sw_camX = wBefore.x - (smx - cvs.width/2) / sw_zoom;
+      sw_camY = wBefore.y - (smy - cvs.height/2) / sw_zoom;
+      sw_lastPinchDist = dist;
+    }
+  }, { passive: false });
+
+  cvs.addEventListener('touchend', e => {
+    const prev = sw_touches;
+    sw_touches = Array.from(e.touches);
+    if (prev.length === 1 && sw_touches.length === 0 && sw_dragging) {
+      const dx = (prev[0].clientX - sw_dragSX);
+      const dy = (prev[0].clientY - sw_dragSY);
+      sw_dragging = false;
+      if (Math.hypot(dx, dy) < 8) {
+        // Tap — buy node
+        const rect = cvs.getBoundingClientRect();
+        const sx = prev[0].clientX - rect.left, sy = prev[0].clientY - rect.top;
+        const hit = swHitNode(sx, sy);
+        if (hit && sw_revealed.has(hit.cl.id)) {
+          swBuyNode(hit.nd);
+          swShowTip(hit.nd, hit.cl, sx, sy);
+        }
+      }
+    }
+  }, { passive: false });
+
+  // Minimap click-to-pan
+  if (mini) {
+    mini.addEventListener('click', e => {
+      const rect = mini.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const WX_MIN = -900, WX_MAX = 900, WY_MIN = -900, WY_MAX = 600;
+      const ww = WX_MAX - WX_MIN, wh = WY_MAX - WY_MIN;
+      sw_camX = WX_MIN + (mx / 120) * ww;
+      sw_camY = WY_MIN + (my / 90)  * wh;
+    });
+  }
+
+  // ResizeObserver
+  const ro = new ResizeObserver(() => {
+    if (sw_open) swResizeCanvas();
+  });
+  const ov = document.getElementById('skill-web-overlay');
+  if (ov) ro.observe(ov);
+}
+
+// ── Save / Load hooks ─────────────────────────────────────────────────
+// These are called from buildSave / applyState below via the main functions.
+// Sync Core nodes from UPGRADES on load
+function swSyncCoreFromUpgrades() {
+  const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
+  if (!coreCl) return;
+  coreCl.nodes.forEach(nd => {
+    if (nd.effect && UPGRADES[nd.effect] !== undefined) {
+      const upOwned = UPGRADES[nd.effect].owned || 0;
+      if (upOwned > (SW_NODE_OWNED[nd.id] || 0)) {
+        SW_NODE_OWNED[nd.id] = upOwned;
+      }
+    }
+  });
+}
+
+// Initialize events after DOM ready (called from BOOT_APP)
+function initSkillWeb() {
+  swInitEvents();
+}
+
+// ── Passive bonuses applied by skill web nodes ───────────────────────
+// These flags/multipliers are checked at the appropriate game tick points.
+function swGetBonus(effect) {
+  // Returns owned count for nodes that provide the effect
+  for (const cl of SW_CLUSTERS) {
+    for (const nd of cl.nodes) {
+      if (nd.effect === effect) return swOwned(nd.id) || 0;
+    }
+  }
+  return 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// END SKILL WEB
+// ═══════════════════════════════════════════════════════════════════
+
 function BOOT_APP() {
   if(_stopBoot) return;
   try { initSwatches(); } catch(e) { console.error("BOOT: initSwatches failed:", e); }
   try { resize(); } catch(e) { console.error("BOOT: resize failed:", e); }
+  try { initSkillWeb(); } catch(e) { console.error("BOOT: initSkillWeb failed:", e); }
   try {
     initDecor();
     const saved=loadSave();
@@ -4659,6 +5494,7 @@ function BOOT_APP() {
       if(saved._openQuests) _openQuests = new Set(saved._openQuests);
       lastEliteTs = saved.lastEliteTs || 0;
     }
+    try { swSyncCoreFromUpgrades(); } catch(e) { console.error("BOOT: swSyncCoreFromUpgrades failed:", e); }
     window.addEventListener('beforeunload',saveGame);
   } catch (crashError) {
     console.error("BOOT: core simulation setup failed:", crashError);
