@@ -186,7 +186,7 @@ const maxLevel=50;
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
-const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
+const getGlobalLevelScale = () => Math.max(0.7, 1.0 - (playerLevel - 1) * 0.006);
 
 let playerLevel=1,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
@@ -224,7 +224,7 @@ const TYPES = {
   octopus:  {name:'Octopus',       icon:ICONS.tank, cost:150000, val:460, c1:'#d946ef',c2:'#a21caf',sz:36,spd:0.5,req:8, rare:{c1:'#fb923c',c2:'#c2410c'}},
   turtle:   {name:'Sea Turtle',    icon:ICONS.tank, cost:200000, val:520, c1:'#166534',c2:'#4ade80',sz:40,spd:0.6,req:8, rare:{c1:'#fbbf24',c2:'#ca8a04'}},
   whaleshark:{name:'Whale Shark',  icon:ICONS.tank, cost:500000, val:960, c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,req:9, rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
-  narwhal:  {name:'Narwhal',       icon:ICONS.tank, cost:1500000,val:2000,c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6,max:1, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}}
+  narwhal:  {name:'Narwhal',       icon:ICONS.tank, cost:1500000,val:2000,c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6, req:10,rare:{c1:'#fbbf24',c2:'#fef9c3'}}
 };
 
 let ownedFlora = ['seaweed', 'grass'];
@@ -593,7 +593,7 @@ function updateHUD(){
   document.getElementById('cv').textContent = formatCoins(coins);
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*3);
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let pct = 100;
@@ -898,7 +898,7 @@ function updateFish(f){
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*3);
   
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
@@ -2640,7 +2640,7 @@ function buySpawnEgg(type) {
 }
 
 function buildShop(){
-  const mF = baseMaxFish + (Object.values(UPGRADES).find(u=>u.name==='Tank Expansion').owned * 4);
+  const mF = baseMaxFish + (Object.values(UPGRADES).find(u=>u.name==='Tank Expansion').owned * 3);
   const lc=document.getElementById('fcards');lc.innerHTML='';
   for(let id in TYPES){
     const u=TYPES[id]; if(u.req>playerLevel)continue;
@@ -2696,7 +2696,7 @@ function redeemCode(raw){
     const fData = decodeFish(code);
     if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
     if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
-    const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+    const mF = baseMaxFish + (UPGRADES.tank.owned*3);
     if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
     
     claimedCodes.add(code); codesRedeemed++;
