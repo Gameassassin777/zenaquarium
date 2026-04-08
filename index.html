@@ -495,7 +495,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
         <span class="slbl">Lvl</span>
         <span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
-        <span id="active-badge" style="display:none;position:absolute;top:-12px;right:0;font-size:8px;color:#fbbf24;font-weight:900;letter-spacing:0.5px;">ACTIVE</span>
+
       </div>
       <div class="stat"><span class="slbl">Coins</span><span class="sval v-money" id="lbl-cv"></span></div>
       <div class="stat"><span class="slbl">Water</span><span class="sval" id="wvc"></span></div>
@@ -1482,8 +1482,6 @@ function updateHUD(){
   }
   const xpf=document.getElementById('xpf');
   if(xpf){xpf.style.width=easedPct+'%'; xpf.style.background=xpBarColor;}
-  const activeBadge=document.getElementById('active-badge');
-  if(activeBadge) activeBadge.style.display=isActive?'inline':'none';
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
   const eraEl = document.getElementById('era-val');
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
@@ -3911,11 +3909,11 @@ function addCoins(amt,x,y,bonus=false){
   spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const XP_THRESHOLDS=[
-  0,1200,2800,5000,8000,12000,17500,25000,35000,50000,
-  70000,95000,130000,175000,235000,310000,405000,520000,660000,820000,
-  1000000,1190000,1390000,1610000,1860000,2150000,2490000,2890000,3360000,3910000,
-  4550000,5290000,6150000,7150000,8310000,9650000,11200000,13000000,15100000,17550000,
-  20400000,23700000,27500000,31850000,36850000,42600000,49150000,56600000,65050000,74600000
+  0,900,2100,3750,6000,9000,13125,18750,26250,37500,
+  52500,71250,97500,131250,176250,232500,303750,390000,495000,615000,
+  750000,892500,1042500,1207500,1395000,1612500,1867500,2167500,2520000,2932500,
+  3412500,3967500,4612500,5362500,6232500,7237500,8400000,9750000,11325000,13162500,
+  15300000,17775000,20625000,23887500,27637500,31950000,36862500,42450000,48787500,55950000
 ];
 const LEVEL_UNLOCKS={
   2:['Market','Easy Orders','Neon Tetra'],3:['Fish Finder','Fish Count HUD'],
