@@ -1602,23 +1602,29 @@ function buildMarket() {
     </div>
   `;
 
-  const sorted = [...fishList].sort((a,b) => getPrice(b) - getPrice(a));
+  // Group fish by type, sort groups by unlock level
+  const mGroups = {};
+  for(const f of fishList) {
+    if(!mGroups[f.type]) mGroups[f.type] = [];
+    mGroups[f.type].push(f);
+  }
+  const mSortedTypes = Object.keys(mGroups).sort((a, b) => (TYPES[a]?.req ?? 999) - (TYPES[b]?.req ?? 999));
+  // Within each group, sort by price descending
+  for(const type of mSortedTypes) mGroups[type].sort((a, b) => getPrice(b) - getPrice(a));
 
-  mlist.innerHTML = hhtml + sorted.map((f) => {
+  function _marketCard(f) {
     const def = TYPES[f.type];
     const price = getPrice(f);
     const rate = marketRates[f.type] || 1;
     const trend = rate > 1.4 ? 'SURGING' : rate < 0.8 ? 'CRASHING' : 'STABLE';
     const tcol = rate > 1.4 ? 'var(--tier-hard)' : rate < 0.8 ? '#0284c7' : 'var(--text-sub)';
-    
-    let ageTxt = f.age > getAdultAge(f) ? "Adult" : f.age > getJuvAge(f) ? "Juvenile" : "Baby";
-
+    const ageTxt = f.age > getAdultAge(f) ? "Adult" : f.age > getJuvAge(f) ? "Juvenile" : "Baby";
     return `<div class="ocard ${f.type===surgingType?'m-surge-hl':''}">
       <div class="ohead">
         <span class="oico">${def.icon}</span>
         <div style="flex:1;">
           <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
-            <span class="odesc" style="color:var(--card-text);">${f.isRare? ICONS.star : ''}${def.name} <span style="opacity:0.5; font-size:9px;">#${f.id}</span></span>
+            <span class="odesc" style="color:var(--card-text);">${f.isRare? ICONS.star : ''}${f.name || def.name} <span style="opacity:0.5; font-size:9px;">#${f.id}</span></span>
             <span class="m-badge b-age">${ageTxt}</span>
             <div style="display:flex;gap:3px;margin-left:auto;">
               <div class="c-dot" style="background:${f.genes.c1[0]}"></div>
@@ -1635,7 +1641,16 @@ function buildMarket() {
         <span class="m-price">${ICONS.coin}${formatCoins(price)}</span>
         ${f.isAbyssal ? `<span style="color:#a855f7;font-size:11px;font-weight:800;">${ICONS.lock} Unsellable</span>` : `<button class="cbtn2" style="background:linear-gradient(135deg,#b45309,#f59e0b); min-width:80px;" onclick="sellFish(${f.id}, ${price})">Sell</button>`}
       </div></div>`;
-  }).join('');
+  }
+
+  let mhtml = '';
+  for(const type of mSortedTypes) {
+    const def = TYPES[type];
+    mhtml += `<div class="sechead" style="padding:12px 4px 6px;">${def?.icon || ''} ${def?.name || type} <span style="opacity:0.5;font-size:10px;font-weight:600;">(${mGroups[type].length})</span></div>`;
+    mhtml += mGroups[type].map(_marketCard).join('');
+  }
+
+  mlist.innerHTML = hhtml + mhtml;
 }
 
 function getPrice(f) {
@@ -4202,8 +4217,17 @@ function getPersonality(f) {
 function buildFishFinder() {
   const flist = document.getElementById('flist');
   if(!fishList.length) { flist.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No fish in tank.</div>'; return; }
-  
-  flist.innerHTML = fishList.map(f => {
+
+  // Group fish by type
+  const groups = {};
+  for(const f of fishList) {
+    if(!groups[f.type]) groups[f.type] = [];
+    groups[f.type].push(f);
+  }
+  // Sort groups by unlock level (req), unknown types go last
+  const sortedTypes = Object.keys(groups).sort((a, b) => (TYPES[a]?.req ?? 999) - (TYPES[b]?.req ?? 999));
+
+  function _finderCard(f) {
     const def = TYPES[f.type];
     const fc1 = _safeColor(f.genes?.c1?.[0], def.c1);
     const fc2 = _safeColor(f.genes?.c2?.[0], def.c2);
@@ -4266,7 +4290,15 @@ function buildFishFinder() {
       </div>
     </div>`;
     return html;
-  }).join('');
+  }
+
+  let out = '';
+  for(const type of sortedTypes) {
+    const def = TYPES[type];
+    out += `<div class="sechead" style="padding:12px 4px 6px;">${def?.icon || ''} ${def?.name || type} <span style="opacity:0.5;font-size:10px;font-weight:600;">(${groups[type].length})</span></div>`;
+    out += groups[type].map(_finderCard).join('');
+  }
+  flist.innerHTML = out;
 }
 
 // ── Roman numeral helper ──
