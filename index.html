@@ -393,13 +393,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .book-close:hover,.book-close:active{background:rgba(0,0,0,0.08);}
 
 #book-content{
-  flex:1;overflow-y:auto;overflow-x:hidden;
+  flex:1;overflow:hidden;
   padding:0;position:relative;z-index:2;
-  scrollbar-width:thin;scrollbar-color:rgba(160,140,110,0.3) transparent;
-  -webkit-overflow-scrolling:touch;
 }
-#book-content::-webkit-scrollbar{width:6px;}
-#book-content::-webkit-scrollbar-thumb{background:rgba(160,140,110,0.35);border-radius:3px;}
 
 /* Override aquapedia card styles for book context */
 #book-content .aq-card{background:transparent!important;border-bottom:1px solid rgba(180,160,130,0.25)!important;}
@@ -428,6 +424,53 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .book-nav-btn:disabled{opacity:0.3;cursor:default;}
 
 @keyframes bookOpen{0%{transform:perspective(1200px) rotateY(-40deg);opacity:0;}100%{transform:perspective(1200px) rotateY(-2deg);opacity:1;}}
+
+/* ── Page-turn animations ── */
+@keyframes flipOutLeft{0%{transform:perspective(800px) rotateY(0) translateX(0);opacity:1;}100%{transform:perspective(800px) rotateY(15deg) translateX(-100%);opacity:0;}}
+@keyframes flipInRight{0%{transform:perspective(800px) rotateY(-15deg) translateX(100%);opacity:0;}100%{transform:perspective(800px) rotateY(0) translateX(0);opacity:1;}}
+@keyframes flipOutRight{0%{transform:perspective(800px) rotateY(0) translateX(0);opacity:1;}100%{transform:perspective(800px) rotateY(-15deg) translateX(100%);opacity:0;}}
+@keyframes flipInLeft{0%{transform:perspective(800px) rotateY(15deg) translateX(-100%);opacity:0;}100%{transform:perspective(800px) rotateY(0) translateX(0);opacity:1;}}
+@keyframes fadeInUp{0%{opacity:0;transform:translateY(16px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes sealPress{0%{transform:scale(0.5) rotate(-12deg);opacity:0;}60%{transform:scale(1.1) rotate(2deg);opacity:1;}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+
+.book-page-flip-out-left{animation:flipOutLeft .32s ease-in forwards;}
+.book-page-flip-in-right{animation:flipInRight .32s ease-out forwards;}
+.book-page-flip-out-right{animation:flipOutRight .32s ease-in forwards;}
+.book-page-flip-in-left{animation:flipInLeft .32s ease-out forwards;}
+.book-page-fade-in .aq-page-item{opacity:0;animation:fadeInUp .35s cubic-bezier(.22,1,.36,1) forwards;}
+
+/* Page corner fold indicator */
+.book-page-corner{position:absolute;bottom:0;right:0;width:22px;height:22px;z-index:3;pointer-events:none;}
+.book-page-corner::before{content:'';position:absolute;bottom:0;right:0;width:0;height:0;
+  border-style:solid;border-width:0 0 22px 22px;border-color:transparent transparent rgba(200,180,140,0.45) transparent;}
+.book-page-corner::after{content:'';position:absolute;bottom:0;right:0;width:22px;height:22px;
+  background:linear-gradient(135deg,transparent 50%,rgba(0,0,0,0.05) 50%);pointer-events:none;}
+
+/* Wax seal on cover */
+.aq-wax-seal{width:54px;height:54px;border-radius:50%;margin:12px auto 6px;
+  background:radial-gradient(circle at 35% 35%,#c0392b,#8b1a1a 60%,#5a0f0f);
+  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 -2px 4px rgba(0,0,0,0.3),inset 0 2px 4px rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  animation:sealPress .5s cubic-bezier(.22,1,.36,1) forwards;animation-delay:.3s;opacity:0;}
+.aq-wax-seal span{font-family:Georgia,serif;font-size:18px;color:rgba(255,220,180,0.85);text-shadow:0 1px 2px rgba(0,0,0,0.5);}
+
+/* Ink blot behind fish name */
+.aq-ink-blot{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:120px;height:40px;
+  border-radius:50%;filter:blur(14px);opacity:0.18;pointer-events:none;z-index:0;}
+
+/* Embossed stamp seals */
+.aq-stamp-seal{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  position:relative;transition:transform .15s cubic-bezier(.34,1.56,.64,1);}
+.aq-stamp-seal.seen{box-shadow:inset 0 1px 3px rgba(0,0,0,0.4),0 1px 1px rgba(255,255,255,0.15);}
+.aq-stamp-seal.seen:hover{transform:scale(1.2);}
+.aq-stamp-seal.seen:active{transform:scale(0.88);}
+.aq-stamp-seal.seen .aq-seal-ring{position:absolute;inset:1px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);pointer-events:none;}
+
+/* Page number styling */
+.aq-page-num{font-family:Georgia,serif;font-size:10px;color:#b09070;letter-spacing:1px;font-style:italic;}
+
+/* Fish preview canvas */
+.aq-fish-preview{display:block;margin:8px auto;border-radius:8px;background:rgba(180,160,130,0.08);}
 
 /* ── Skill Web Overlay ── */
 #skill-web-overlay{position:fixed;inset:0;z-index:50;display:none;background:#000d1a;flex-direction:column;}
@@ -1962,7 +2005,10 @@ function drawHeart(ctx, x, y, size, color) {
 
 function drawFish(f){
   if(!f.genes || !f.genes.c1?.[0] || !f.genes.c2?.[0]) return;
-  const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
+  const def=TYPES[f.type],dir=f.vx>=0?1:-1;
+  // For visitors, use their species size; for regular fish, use type def
+  const s = (f.isVisitor && f.def && !f.isEcho) ? f.def.sz : def.sz;
+  const eating=f.eat>0;
   // Validate gene colors, falling back to species defaults
   const _c1 = _safeColor(f.genes?.c1?.[0], def.c1);
   const _c2 = _safeColor(f.genes?.c2?.[0], def.c2);
@@ -1992,7 +2038,402 @@ function drawFish(f){
   bg.addColorStop(0.5, _c1);
   bg.addColorStop(1, _c2);
 
-  if(f.type==='guppy'){
+  // ── Visitor species unique visuals ──
+  const _vk = f.isVisitor && !f.isEcho ? f.key : null;
+  if(_vk === 'seahare'){
+    // Soft slug-like body with rhinophores and parapodia folds
+    ctx.fillStyle=_c2+'88';
+    // Parapodia (wing-like folds on back)
+    ctx.beginPath();ctx.moveTo(-s*.2, -s*.1);
+    ctx.bezierCurveTo(-s*.1, -s*1.2, s*.5, -s*1.4+wag*.5, s*.3, -s*.3);
+    ctx.fill();
+    ctx.beginPath();ctx.moveTo(-s*.2, s*.1);
+    ctx.bezierCurveTo(-s*.1, s*1.2, s*.5, s*1.4+wag*.5, s*.3, s*.3);
+    ctx.fill();
+    // Main body — soft blob
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.9,s*.4,0,0,Math.PI*2);ctx.fill();
+    // Mantle texture ripples
+    ctx.strokeStyle=_c1+'66'; ctx.lineWidth=1;
+    for(let i=-2;i<=2;i++){
+      ctx.beginPath();ctx.moveTo(-s*.6, i*s*.12);
+      ctx.quadraticCurveTo(0, i*s*.12+s*.06, s*.6, i*s*.12);ctx.stroke();
+    }
+    // Rhinophores (two antennae on head)
+    ctx.strokeStyle=_c1; ctx.lineWidth=2.5; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(s*.5,-s*.15);ctx.lineTo(s*.8,-s*.5+wag*.2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.6,-s*.1);ctx.lineTo(s*.9,-s*.4+wag*.2);ctx.stroke();
+    // Gill plume (frilly back tuft)
+    ctx.fillStyle=_c2+'cc';
+    for(let i=0;i<5;i++){
+      const a=-Math.PI*.3+i*Math.PI*.15;
+      ctx.beginPath();ctx.ellipse(-s*.6+Math.cos(a)*s*.15, Math.sin(a)*s*.15, s*.1, s*.05, a, 0, Math.PI*2);ctx.fill();
+    }
+    drawEye(ctx, s*.55, -s*.05, s*.06);
+  }
+  else if(_vk === 'mantisshrimp'){
+    // Segmented body with powerful raptorial appendages and colorful shell
+    // Tail fan
+    ctx.fillStyle=_c2+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.6,0);ctx.lineTo(-s*1.4,-s*.5+wag);ctx.lineTo(-s*1.6,0);ctx.lineTo(-s*1.4,s*.5+wag);ctx.closePath();ctx.fill();
+    // Segmented body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.8,s*.25,0,0,Math.PI*2);ctx.fill();
+    // Segment lines
+    ctx.strokeStyle=_c1+'88'; ctx.lineWidth=1.5;
+    for(let i=-3;i<=3;i++){
+      ctx.beginPath();ctx.moveTo(i*s*.18, -s*.25);ctx.lineTo(i*s*.18, s*.25);ctx.stroke();
+    }
+    // Raptorial claws (mantis clubs)
+    ctx.strokeStyle=_c1; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(s*.5,-s*.1);ctx.quadraticCurveTo(s*.8,-s*.5,s*1.1,-s*.3+paddle);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.5,s*.1);ctx.quadraticCurveTo(s*.8,s*.5,s*1.1,s*.3+paddle);ctx.stroke();
+    // Club ends
+    ctx.fillStyle='#ef4444';
+    ctx.beginPath();ctx.arc(s*1.1,-s*.3+paddle,s*.08,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(s*1.1,s*.3+paddle,s*.08,0,Math.PI*2);ctx.fill();
+    // Walking legs
+    ctx.strokeStyle=_c2+'99'; ctx.lineWidth=1;
+    for(let i=0;i<4;i++){
+      ctx.beginPath();ctx.moveTo(-s*.2+i*s*.2, s*.25);ctx.lineTo(-s*.3+i*s*.2, s*.5+paddle*(i%2?1:-1));ctx.stroke();
+    }
+    // Stalked eyes
+    ctx.strokeStyle=_c1; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(s*.6,-s*.15);ctx.lineTo(s*.75,-s*.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.6,s*.05);ctx.lineTo(s*.75,s*.15);ctx.stroke();
+    drawEye(ctx, s*.75, -s*.3, s*.05);
+    drawEye(ctx, s*.75, s*.15, s*.05);
+  }
+  else if(_vk === 'nudibranch'){
+    // Small colorful slug with cerata (spiky projections) and oral tentacles
+    // Cerata (spiky projections along back)
+    ctx.fillStyle=_c1+'cc';
+    for(let i=0;i<7;i++){
+      const cx2=-s*.4+i*s*.13, cy=-s*.15-Math.abs(Math.sin(i+f.phase*.5))*s*.3;
+      ctx.beginPath();ctx.moveTo(cx2-s*.04,0);ctx.lineTo(cx2,cy+wag*.3);ctx.lineTo(cx2+s*.04,0);ctx.fill();
+      // Orange tips
+      ctx.fillStyle=_c2;ctx.beginPath();ctx.arc(cx2,cy+wag*.3,s*.03,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=_c1+'cc';
+    }
+    // Body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,s*.05,s*.55,s*.18,0,0,Math.PI*2);ctx.fill();
+    // Rhinophores
+    ctx.strokeStyle=_c2; ctx.lineWidth=1.5; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(s*.35,-s*.05);ctx.lineTo(s*.5,-s*.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.4,-s*.02);ctx.lineTo(s*.55,-s*.25);ctx.stroke();
+    // Gill plume at tail
+    ctx.strokeStyle=_c1+'aa'; ctx.lineWidth=1;
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.moveTo(-s*.4,s*.05);ctx.quadraticCurveTo(-s*.55,s*.05+i*s*.08-s*.08,-s*.5,s*.05+i*s*.12-s*.12);ctx.stroke();
+    }
+    drawEye(ctx, s*.3, s*.01, s*.04);
+  }
+  else if(_vk === 'scorpionfish'){
+    // Lumpy ambush predator with elaborate camouflage fins and spines
+    // Dorsal spines
+    ctx.strokeStyle=_c1+'bb'; ctx.lineWidth=2; ctx.lineCap='round';
+    for(let i=0;i<7;i++){
+      const sx2=-s*.5+i*s*.18;
+      ctx.beginPath();ctx.moveTo(sx2,-s*.2);ctx.lineTo(sx2+s*.02,-s*.6-Math.sin(i)*s*.15+wag*.3);ctx.stroke();
+      // Webbing between spines
+      if(i>0){
+        ctx.fillStyle=_c2+'44';
+        ctx.beginPath();ctx.moveTo(sx2-s*.18,-s*.2);ctx.lineTo(sx2-s*.18+s*.02,-s*.6-Math.sin(i-1)*s*.15+wag*.3);
+        ctx.lineTo(sx2+s*.02,-s*.6-Math.sin(i)*s*.15+wag*.3);ctx.lineTo(sx2,-s*.2);ctx.fill();
+      }
+    }
+    // Lumpy body
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.7,0);
+    for(let a=0;a<=Math.PI*2;a+=Math.PI/8){
+      const r=s*.7*(1+Math.sin(a*3)*0.12);
+      ctx.lineTo(Math.cos(a)*r*1.1, Math.sin(a)*r*.5);
+    }
+    ctx.closePath();ctx.fill();
+    // Fleshy tassels under mouth
+    ctx.strokeStyle=_c2+'88'; ctx.lineWidth=1;
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.moveTo(s*.5+i*s*.08,s*.15);ctx.lineTo(s*.5+i*s*.1,s*.4+paddle);ctx.stroke();
+    }
+    // Pectoral fin (fan-like)
+    ctx.fillStyle=_c2+'55';
+    ctx.beginPath();ctx.moveTo(s*.1,s*.15);ctx.quadraticCurveTo(s*.3,s*.7+paddle,s*.6,s*.5);ctx.quadraticCurveTo(s*.4,s*.2,s*.1,s*.15);ctx.fill();
+    drawEye(ctx, s*.55, -s*.1, s*.08);
+  }
+  else if(_vk === 'frogfish'){
+    // Round, lumpy ambush predator with lure and hand-like pectoral fins
+    // Esca (lure) on head
+    ctx.strokeStyle=_c1; ctx.lineWidth=1.5; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(s*.5,-s*.3);ctx.quadraticCurveTo(s*.6,-s*.8+wag*.3,s*.7,-s*.7);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.7,-s*.7,s*.06,0,Math.PI*2);ctx.fill();
+    // Blobby body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.6,0,0,Math.PI*2);ctx.fill();
+    // Warts / texture
+    ctx.fillStyle=_c1+'66';
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI*.25, r=s*.4+Math.sin(i*2.3)*s*.15;
+      ctx.beginPath();ctx.arc(Math.cos(a)*r, Math.sin(a)*r*.7, s*.06, 0, Math.PI*2);ctx.fill();
+    }
+    // Hand-like pectoral fins
+    ctx.fillStyle=_c2+'99';
+    ctx.beginPath();ctx.ellipse(s*.2,s*.5,s*.15,s*.08,Math.PI/4+paddle*.3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.1,s*.5,s*.15,s*.08,-Math.PI/4+paddle*.3,0,Math.PI*2);ctx.fill();
+    // Small tail
+    ctx.fillStyle=_c2+'88';
+    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.lineTo(-s*.8,-s*.2+wag*.5);ctx.lineTo(-s*.8,s*.2+wag*.5);ctx.closePath();ctx.fill();
+    drawEye(ctx, s*.35, -s*.2, s*.1);
+  }
+  else if(_vk === 'vampiresquid'){
+    // Dark cephalopod with webbed arms and bioluminescent photophores
+    // Webbed arm cape
+    ctx.fillStyle=_c2+'88';
+    ctx.beginPath();ctx.moveTo(0,s*.2);
+    for(let i=0;i<8;i++){
+      const a=(i/7)*Math.PI-Math.PI*.5;
+      const r=s*1.4+Math.sin(f.phase*.3+i)*s*.15;
+      ctx.lineTo(Math.cos(a)*r*.6, s*.2+Math.sin(a)*r*.8+wag*(i%2?1:-1));
+    }
+    ctx.closePath();ctx.fill();
+    // Arm web inner pattern
+    ctx.strokeStyle=_c1+'44'; ctx.lineWidth=1;
+    for(let i=0;i<8;i++){
+      const a=(i/7)*Math.PI-Math.PI*.5;
+      ctx.beginPath();ctx.moveTo(0,s*.2);ctx.lineTo(Math.cos(a)*s*1.2*.6, s*.2+Math.sin(a)*s*1.2*.8);ctx.stroke();
+    }
+    // Mantle body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,-s*.1,s*.5,s*.7,0,0,Math.PI*2);ctx.fill();
+    // Photophores (bioluminescent dots)
+    ctx.fillStyle='rgba(100,200,255,0.5)';
+    for(let i=0;i<6;i++){
+      const bx=Math.cos(i*1.1+f.phase*.08)*s*.3, by=-s*.1+Math.sin(i*1.7)*s*.4;
+      ctx.beginPath();ctx.arc(bx,by,s*.04+Math.sin(f.phase*.15+i)*s*.02,0,Math.PI*2);ctx.fill();
+    }
+    // Fins (small ear-like)
+    ctx.fillStyle=_c2;
+    ctx.beginPath();ctx.ellipse(s*.3,-s*.5,s*.2,s*.1,Math.PI/6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.3,-s*.5,s*.2,s*.1,-Math.PI/6,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.2, -s*.25, s*.09);
+  }
+  else if(_vk === 'oarfish'){
+    // Very long, ribbon-like silver body with red dorsal crest
+    // Long ribbon body
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*2.5, 0);
+    ctx.quadraticCurveTo(s*2.5, -s*.2, s*2, -s*.15);
+    for(let i=20;i>=0;i--){
+      const t=i/20, x=s*2*t-s*1.5, y=Math.sin(f.phase+t*4)*s*.1;
+      ctx.lineTo(x, y-s*.12);
+    }
+    for(let i=0;i<=20;i++){
+      const t=i/20, x=s*2*t-s*1.5, y=Math.sin(f.phase+t*4)*s*.1;
+      ctx.lineTo(x, y+s*.12);
+    }
+    ctx.quadraticCurveTo(s*2.5, s*.2, s*2.5, 0);
+    ctx.closePath();ctx.fill();
+    // Red dorsal crest along top
+    ctx.fillStyle='#ef4444cc';
+    for(let i=0;i<12;i++){
+      const t=i/11, x=s*2*t-s*1.2, y=Math.sin(f.phase+t*4)*s*.1-s*.12;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s*.03,y-s*.25-Math.sin(f.phase*.5+i)*s*.08);
+      ctx.lineTo(x+s*.03,y);ctx.fill();
+    }
+    // Faint lateral line
+    ctx.strokeStyle=_c1+'55'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<=20;i++){
+      const t=i/20, x=s*2*t-s*1.5, y=Math.sin(f.phase+t*4)*s*.1;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Pelvic streamers
+    ctx.strokeStyle='#ef4444aa'; ctx.lineWidth=1.5; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(s*1.5,s*.1);ctx.quadraticCurveTo(s*1.8,s*.5+paddle,s*1.6,s*.8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*1.4,s*.1);ctx.quadraticCurveTo(s*1.7,s*.4+paddle,s*1.5,s*.7);ctx.stroke();
+    drawEye(ctx, s*2.2, -s*.03, s*.05);
+  }
+  else if(_vk === 'sunfish'){
+    // Massive oval body with truncated tail (clavus), small mouth, tall fins
+    // Tall dorsal fin
+    ctx.fillStyle=_c2+'99';
+    ctx.beginPath();ctx.moveTo(-s*.1,-s*.6);ctx.quadraticCurveTo(s*.2,-s*1.8+wag*.3,s*.5,-s*1.5);
+    ctx.quadraticCurveTo(s*.3,-s*.8,s*.1,-s*.6);ctx.fill();
+    // Tall anal fin (bottom)
+    ctx.beginPath();ctx.moveTo(-s*.1,s*.6);ctx.quadraticCurveTo(s*.2,s*1.8+wag*.3,s*.5,s*1.5);
+    ctx.quadraticCurveTo(s*.3,s*.8,s*.1,s*.6);ctx.fill();
+    // Massive oval body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.9,s*.7,0,0,Math.PI*2);ctx.fill();
+    // Clavus (truncated pseudo-tail)
+    ctx.fillStyle=_c2+'77';
+    ctx.beginPath();
+    ctx.moveTo(-s*.7,-s*.3);ctx.quadraticCurveTo(-s*1.1,0,-s*.7,s*.3);
+    ctx.lineTo(-s*.8,s*.2);ctx.lineTo(-s*.8,-s*.2);ctx.closePath();ctx.fill();
+    // Texture — rough skin dots
+    ctx.fillStyle=_c1+'33';
+    for(let i=0;i<10;i++){
+      ctx.beginPath();ctx.arc(Math.cos(i*0.7)*s*.5, Math.sin(i*1.1)*s*.4, s*.04, 0, Math.PI*2);ctx.fill();
+    }
+    // Small puckered mouth
+    ctx.strokeStyle=_c1; ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(s*.7,0,s*.08,Math.PI*.3,Math.PI*1.7);ctx.stroke();
+    drawEye(ctx, s*.55, -s*.15, s*.08);
+  }
+  else if(_vk === 'lanternfish'){
+    // Small deep-sea fish with rows of bioluminescent photophores
+    // Body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.25,0,0,Math.PI*2);ctx.fill();
+    // Tail
+    ctx.fillStyle=_c2+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.lineTo(-s*1,-s*.3+wag);ctx.lineTo(-s*1,s*.3+wag);ctx.closePath();ctx.fill();
+    // Photophore rows (glowing dots along ventral side)
+    const glowPhase = Math.sin(f.phase*0.2)*0.3+0.7;
+    ctx.fillStyle=`rgba(120,220,255,${glowPhase})`;
+    for(let i=0;i<6;i++){
+      const px=-s*.4+i*s*.15;
+      ctx.beginPath();ctx.arc(px, s*.15, s*.04, 0, Math.PI*2);ctx.fill();
+    }
+    // Lateral photophores
+    ctx.fillStyle=`rgba(180,255,220,${glowPhase*0.6})`;
+    for(let i=0;i<4;i++){
+      ctx.beginPath();ctx.arc(-s*.3+i*s*.2, 0, s*.03, 0, Math.PI*2);ctx.fill();
+    }
+    // Large eye (deep-sea adaptation)
+    drawEye(ctx, s*.4, -s*.03, s*.1);
+    // Adipose fin
+    ctx.fillStyle=_c1+'55';
+    ctx.beginPath();ctx.ellipse(-s*.3,-s*.2,s*.12,s*.06,0,0,Math.PI*2);ctx.fill();
+  }
+  else if(_vk === 'velvetray'){
+    // Flat diamond-shaped ray with long whip tail
+    // Whip tail
+    ctx.strokeStyle=_c2; ctx.lineWidth=2; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-s*.8,0);
+    ctx.quadraticCurveTo(-s*1.5,wag*.5,-s*2,wag);ctx.stroke();
+    // Tail barb
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.moveTo(-s*1.3,wag*.25);ctx.lineTo(-s*1.4,wag*.25-s*.08);ctx.lineTo(-s*1.35,wag*.25+s*.04);ctx.fill();
+    // Diamond-shaped body (disc)
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.8,0);ctx.quadraticCurveTo(s*.3,-s*.8,0,-s*.9);
+    ctx.quadraticCurveTo(-s*.3,-s*.8,-s*.8,0);
+    ctx.quadraticCurveTo(-s*.3,s*.8,0,s*.9);
+    ctx.quadraticCurveTo(s*.3,s*.8,s*.8,0);ctx.closePath();ctx.fill();
+    // Subtle pattern on disc
+    ctx.strokeStyle=_c1+'44'; ctx.lineWidth=1;
+    for(let i=0;i<5;i++){
+      ctx.beginPath();ctx.ellipse(s*.1,0,s*.15+i*s*.12,s*.1+i*s*.12,0,0,Math.PI*2);ctx.stroke();
+    }
+    // Eyes on top
+    drawEye(ctx, s*.3, -s*.15, s*.06);
+    drawEye(ctx, s*.3, s*.15, s*.06);
+    // Gill slits underneath (subtle)
+    ctx.strokeStyle=_c2+'55'; ctx.lineWidth=1;
+    for(let i=0;i<5;i++){
+      ctx.beginPath();ctx.moveTo(s*.1+i*s*.08,s*.2);ctx.lineTo(s*.1+i*s*.08,s*.35);ctx.stroke();
+    }
+  }
+  else if(_vk === 'glasseel'){
+    // Transparent serpentine body with visible skeleton and prismatic shimmer
+    // Sinuous transparent body
+    ctx.strokeStyle=_c1+'55'; ctx.lineWidth=s*.22; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.beginPath();
+    for(let i=0;i<=16;i++){
+      const t=i/16, x=s*1.5*t-s*.75, y=Math.sin(f.phase+t*5)*s*.2;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Inner glow / visible organs
+    ctx.strokeStyle=_c2+'44'; ctx.lineWidth=s*.12;
+    ctx.beginPath();
+    for(let i=0;i<=16;i++){
+      const t=i/16, x=s*1.5*t-s*.75, y=Math.sin(f.phase+t*5)*s*.2;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Prismatic shimmer dots along body
+    for(let i=0;i<8;i++){
+      const t=i/7, x=s*1.5*t-s*.75, y=Math.sin(f.phase+t*5)*s*.2;
+      const hue=(f.phase*20+i*45)%360;
+      ctx.fillStyle=`hsla(${hue},80%,70%,0.5)`;
+      ctx.beginPath();ctx.arc(x,y,s*.04,0,Math.PI*2);ctx.fill();
+    }
+    // Spine line
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<=16;i++){
+      const t=i/16, x=s*1.5*t-s*.75, y=Math.sin(f.phase+t*5)*s*.2;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Head
+    const hx=s*.75, hy=Math.sin(f.phase)*s*.2;
+    drawEye(ctx, hx-s*.05, hy-s*.02, s*.04);
+  }
+  else if(_vk === 'abyssalbloomer'){
+    // Flower-shaped deep-sea organism with petal-like appendages
+    // Petal appendages radiating outward
+    for(let i=0;i<6;i++){
+      const a=i*Math.PI/3+f.phase*0.05;
+      const pr=s*.7+Math.sin(f.phase*.3+i)*s*.1;
+      ctx.fillStyle=_c1+'77';
+      ctx.beginPath();ctx.ellipse(Math.cos(a)*pr*.5, Math.sin(a)*pr*.5, s*.3, s*.1, a, 0, Math.PI*2);ctx.fill();
+      // Petal edge glow
+      ctx.strokeStyle=_c2+'88'; ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(Math.cos(a)*pr*.5, Math.sin(a)*pr*.5, s*.3, s*.1, a, 0, Math.PI*2);ctx.stroke();
+    }
+    // Central body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.arc(0,0,s*.35,0,Math.PI*2);ctx.fill();
+    // Inner pattern (stamen-like)
+    ctx.fillStyle=_c2;
+    for(let i=0;i<5;i++){
+      const a=i*Math.PI*.4+Math.PI*.1;
+      ctx.beginPath();ctx.arc(Math.cos(a)*s*.15,Math.sin(a)*s*.15,s*.06,0,Math.PI*2);ctx.fill();
+    }
+    // Bioluminescent center glow
+    const glow=ctx.createRadialGradient(0,0,0,0,0,s*.35);
+    glow.addColorStop(0,'rgba(200,100,255,0.3)');glow.addColorStop(1,'rgba(200,100,255,0)');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,s*.35,0,Math.PI*2);ctx.fill();
+    // Tiny trailing tendrils
+    ctx.strokeStyle=_c2+'55'; ctx.lineWidth=1; ctx.lineCap='round';
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.moveTo(0,s*.3);ctx.quadraticCurveTo(i*s*.15-s*.15,s*.8+wag,i*s*.1-s*.1,s*1.1+paddle);ctx.stroke();
+    }
+  }
+  else if(_vk === 'starback'){
+    // Small luminous fish with star-pattern markings on its back
+    // Tail
+    ctx.fillStyle=_c2+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.5,0);ctx.lineTo(-s*1,-s*.4+wag);ctx.lineTo(-s*1,s*.4+wag);ctx.closePath();ctx.fill();
+    // Body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.3,0,0,Math.PI*2);ctx.fill();
+    // Star pattern markings on dorsal side
+    ctx.fillStyle=_c1;
+    for(let i=0;i<5;i++){
+      const cx2=-s*.3+i*s*.15, cy=-s*.1;
+      // 4-point star
+      ctx.beginPath();
+      ctx.moveTo(cx2,cy-s*.08);ctx.lineTo(cx2+s*.03,cy);ctx.lineTo(cx2,cy+s*.08);ctx.lineTo(cx2-s*.03,cy);ctx.closePath();ctx.fill();
+    }
+    // Luminous glow trail
+    const glow2=ctx.createRadialGradient(0,0,s*.1,0,0,s*.6);
+    glow2.addColorStop(0,`rgba(255,250,200,0.25)`);glow2.addColorStop(1,'rgba(255,250,200,0)');
+    ctx.fillStyle=glow2;ctx.beginPath();ctx.ellipse(0,0,s*.7,s*.3,0,0,Math.PI*2);ctx.fill();
+    // Fins
+    ctx.fillStyle=_c2+'66';
+    ctx.beginPath();ctx.ellipse(0,-s*.25,s*.2,s*.08,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(0,s*.25,s*.15,s*.06,paddle*.2,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.45, -s*.05, s*.06);
+  }
+  else if(f.type==='guppy'){
     ctx.fillStyle=_c2+'aa';
     ctx.beginPath();ctx.moveTo(-s*.2,0);
     ctx.bezierCurveTo(-s*1.5, -s*1.2, -s*1.8, -s+wag*1.5, -s*2.2, wag*2);
@@ -3589,6 +4030,132 @@ function buildFishFinder() {
   }).join('');
 }
 
+// ── Roman numeral helper ──
+function _toRoman(n){
+  const v=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const r=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  let s='';for(let i=0;i<v.length;i++){while(n>=v[i]){s+=r[i];n-=v[i];}}return s.toLowerCase();
+}
+
+let _bookPages = []; // array of page HTML strings
+let _bookPage = 0;
+
+function drawFishPreview(type, c1, c2, canvasW, canvasH) {
+  const cvs = document.createElement('canvas');
+  cvs.width = canvasW * 2; cvs.height = canvasH * 2;
+  cvs.style.width = canvasW + 'px'; cvs.style.height = canvasH + 'px';
+  cvs.className = 'aq-fish-preview';
+  const pc = cvs.getContext('2d');
+  pc.scale(2, 2);
+  const def = TYPES[type];
+  if (!def) return cvs;
+  const s = def.sz;
+  const cx = canvasW / 2, cy = canvasH / 2;
+  pc.save();
+  pc.translate(cx, cy);
+  const previewScale = Math.min((canvasW * 0.35) / s, (canvasH * 0.35) / s);
+  pc.scale(previewScale, previewScale);
+  const _c1 = c1 || def.c1, _c2 = c2 || def.c2;
+  const bg = pc.createLinearGradient(0, -s, 0, s);
+  bg.addColorStop(0, _c1); bg.addColorStop(0.5, _c1); bg.addColorStop(1, _c2);
+  const wag = 0, paddle = 0;
+
+  if (type === 'guppy') {
+    pc.fillStyle = _c2 + 'aa';
+    pc.beginPath(); pc.moveTo(-s * .2, 0);
+    pc.bezierCurveTo(-s * 1.5, -s * 1.2, -s * 1.8, -s, -s * 2.2, 0);
+    pc.bezierCurveTo(-s * 1.8, s, -s * 1.5, s * 1.2, -s * .2, 0); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .8, s * .35, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .4, -s * .05, s * .12);
+  } else if (type === 'tetra') {
+    pc.fillStyle = _c1; pc.beginPath(); pc.moveTo(-s * .8, 0); pc.lineTo(-s * 1.5, -s * .5); pc.lineTo(-s * 1.5, s * .5); pc.fill();
+    pc.fillStyle = _c2; pc.beginPath(); pc.ellipse(0, 0, s * .9, s * .28, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .5, -s * .05, s * .08);
+  } else if (type === 'seahorse') {
+    pc.fillStyle = bg; pc.beginPath();
+    pc.moveTo(s * .2, -s * .6);
+    pc.quadraticCurveTo(-s * .3, -s * .2, -s * .3, s * .3);
+    pc.quadraticCurveTo(-s * .6, s * 1.2, 0, s * 1.2);
+    pc.quadraticCurveTo(s * .3, s * 1.2, -s * .1, s * .4);
+    pc.quadraticCurveTo(s * .5, -s * .2, s * .4, -s * .3);
+    pc.closePath(); pc.fill();
+    drawEye(pc, s * .2, -s * .45, s * .06);
+  } else if (type === 'goldfish') {
+    pc.fillStyle = _c2 + '66'; pc.beginPath(); pc.moveTo(-s * .2, 0);
+    pc.bezierCurveTo(-s * 1.2, -s * .6, -s * 1.8, -s * 1.4, -s * 2.2, 0);
+    pc.bezierCurveTo(-s * 1.5, s * 1.4, -s * 1.2, s * .6, -s * .2, 0); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 1.1, s * .6, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .7, -s * .1, s * .12);
+  } else if (type === 'angelfish') {
+    pc.fillStyle = _c2 + 'aa'; pc.beginPath();
+    pc.moveTo(0, 0); pc.lineTo(-s * 1.8, -s * 1.5); pc.lineTo(-s * .2, 0); pc.lineTo(-s * 1.8, s * 1.5); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .6, s * .9, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .25, -s * .2, s * .08);
+  } else if (type === 'discus') {
+    pc.fillStyle = _c2 + 'aa'; pc.beginPath(); pc.moveTo(-s * .6, 0); pc.lineTo(-s * 1.5, -s * .8); pc.lineTo(-s * 1.5, s * .8); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.arc(0, 0, s, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .6, -s * .1, s * .1);
+  } else if (type === 'jellyfish') {
+    pc.strokeStyle = _c1 + '44'; pc.lineWidth = s * .1;
+    for (let i = -3; i <= 3; i++) { pc.beginPath(); pc.moveTo(i * s * .15, -s * .2); pc.quadraticCurveTo(i * s * .4, s * .5, i * s * .2, s * 1.8); pc.stroke(); }
+    pc.fillStyle = _c2 + '88'; pc.beginPath();
+    pc.moveTo(-s * .7, -s * .2); pc.bezierCurveTo(-s * .7, -s * 1, s * .7, -s * 1, s * .7, -s * .2);
+    pc.quadraticCurveTo(0, 0, -s * .7, -s * .2); pc.fill();
+  } else if (type === 'octopus') {
+    pc.strokeStyle = bg; pc.lineCap = 'round';
+    for (let i = 0; i < 4; i++) { pc.lineWidth = s * .2; const a = (i / 3) * Math.PI * .8 - Math.PI * .4;
+      pc.beginPath(); pc.moveTo(0, s * .2); pc.quadraticCurveTo(Math.cos(a) * s, s, Math.cos(a) * s * 1.2, s * 1.8); pc.stroke(); }
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(-s * .3, -s * .2, s * .8, s * .6, -Math.PI / 12, 0, Math.PI * 2); pc.fill();
+    pc.beginPath(); pc.ellipse(s * .3, 0, s * .5, s * .4, Math.PI / 12, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .5, -s * .1, s * .08);
+  } else if (type === 'turtle') {
+    pc.fillStyle = _c1; pc.beginPath(); pc.ellipse(s * .9, 0, s * .35, s * .25, 0, 0, Math.PI * 2); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, s * .1, s * .95, s * .5, 0, Math.PI, Math.PI * 2); pc.closePath(); pc.fill();
+    pc.fillStyle = _c2 + 'ee'; pc.beginPath(); pc.ellipse(0, s * .1, s * .9, s * .2, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * 1.0, -s * .05, s * .06);
+  } else if (type === 'whaleshark') {
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 2, s * .8, 0, 0, Math.PI * 2); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * 1.5, 0); pc.lineTo(-s * 2.2, -s * .6); pc.lineTo(-s * 2.2, s * .6); pc.closePath(); pc.fill();
+    drawEye(pc, s * 1.8, -s * .2, s * .05);
+  } else if (type === 'narwhal') {
+    pc.fillStyle = bg; pc.beginPath();
+    pc.moveTo(-s * 1.5, 0); pc.bezierCurveTo(-s, -s * .8, s * .8, -s * .8, s * 1.4, -s * .2);
+    pc.quadraticCurveTo(s * 1.5, s * .1, s * 1.2, s * .3);
+    pc.bezierCurveTo(s * .5, s * .6, -s, s * .5, -s * 1.5, 0); pc.fill();
+    pc.strokeStyle = '#f8fafc'; pc.lineWidth = s * .08; pc.lineCap = 'round';
+    pc.beginPath(); pc.moveTo(s * 1.4, -s * .1); pc.lineTo(s * 3.2, -s * .3); pc.stroke();
+    drawEye(pc, s * 1.1, -s * .05, s * .05);
+  } else if (type === 'lionfish') {
+    pc.strokeStyle = _c1; pc.lineCap = 'round';
+    for (let i = 0; i < 9; i++) { const a = -Math.PI / 2 + (i / 8) * Math.PI; const r = s * 1.5;
+      pc.lineWidth = 4; pc.strokeStyle = _c1;
+      pc.beginPath(); pc.moveTo(0, 0); pc.lineTo(Math.cos(a) * r, Math.sin(a) * r); pc.stroke(); }
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .9, s * .5, 0, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .5, -s * .15, s * .1);
+  } else if (type === 'idol') {
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .8, s, 0, 0, Math.PI * 2); pc.fill();
+    pc.save(); pc.beginPath(); pc.ellipse(0, 0, s * .8, s, 0, 0, Math.PI * 2); pc.clip();
+    pc.fillStyle = _c2; pc.fillRect(-s * .3, -s, s * .25, s * 2); pc.fillRect(s * .2, -s, s * .15, s * 2);
+    pc.restore();
+    drawEye(pc, s * .4, -s * .3, s * .08);
+  } else if (type === 'betta') {
+    pc.fillStyle = _c2 + '77'; pc.beginPath(); pc.moveTo(s * .2, -s * .1);
+    pc.bezierCurveTo(-s * .5, -s * 2.5, -s * 2, -s * 1.5, -s * 1.8, -s * .5); pc.fill();
+    pc.beginPath(); pc.moveTo(s * .2, s * .1);
+    pc.bezierCurveTo(-s * .5, s * 2.5, -s * 2, s * 1.5, -s * 1.8, s * .5); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * .7, 0);
+    pc.quadraticCurveTo(0, -s * .4, s * .7, -s * .2);
+    pc.quadraticCurveTo(s * .8, -s * .3, s * .9, -s * .2);
+    pc.lineTo(s * .8, s * .1);
+    pc.quadraticCurveTo(s * .6, s * .4, 0, s * .4);
+    pc.quadraticCurveTo(-s * .5, s * .3, -s * .7, 0); pc.fill();
+    drawEye(pc, s * .5, -s * .1, s * .08);
+  }
+
+  pc.restore();
+  return cvs;
+}
+
 function buildAquapedia() {
   const el = document.getElementById('aqlist');
 
@@ -3605,46 +4172,57 @@ function buildAquapedia() {
   const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
   const totalBands = COLOR_BANDS.length;
 
-  // ── Cover ──
-  let html = `
-  <div style="border-bottom:2px double #c8a870;padding:22px 18px 16px;text-align:center;">
-    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:3px;color:#8a7050;text-transform:uppercase;margin-bottom:5px;">The Grand</div>
-    <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#6a4020;letter-spacing:2px;line-height:1;">Aquapedia</div>
-    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:2px;color:#a08060;margin-top:4px;text-transform:uppercase;">Ocean Records &amp; Chromatic Registry</div>
-    <div style="width:50px;height:1px;background:linear-gradient(90deg,transparent,#c8a870,transparent);margin:10px auto 8px;"></div>
-    <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">"Let all hues be known before the Prismatic may swim."</div>
-  </div>`;
+  _bookPages = [];
 
-  // ── Species entries ──
-  let cardIdx = 0;
+  // ── Page 0: Cover ──
+  _bookPages.push(`
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:24px 18px;">
+    <div class="aq-page-item" style="animation-delay:0ms;">
+      <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:3px;color:#8a7050;text-transform:uppercase;margin-bottom:5px;">The Grand</div>
+      <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#6a4020;letter-spacing:2px;line-height:1.1;">Aquapedia</div>
+      <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:2px;color:#a08060;margin-top:6px;text-transform:uppercase;">Ocean Records &amp; Chromatic Registry</div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:80ms;">
+      <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#c8a870,transparent);margin:14px auto 10px;"></div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:160ms;">
+      <div class="aq-wax-seal"><span>ZA</span></div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:240ms;">
+      <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;margin-top:10px;max-width:220px;line-height:1.5;">"Let all hues be known before the Prismatic may swim."</div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:320ms;">
+      <div style="margin-top:18px;font-family:Georgia,serif;font-size:8px;color:#b09070;letter-spacing:1.5px;">${Object.keys(TYPES).length} Species Catalogued</div>
+    </div>
+  </div>`);
+
+  // ── Species pages (one per type) ──
+  let pageIdx = 1;
   for(const [key, def] of Object.entries(TYPES)) {
     const seen = sm.aqSeen?.[key] || [];
     const prismaticUnlocked = hasPrismaticUnlocked(key);
     const seenCount = seen.length;
     const discovered = def.req <= playerLevel;
-    const delay = (cardIdx * 40) + 'ms';
-    cardIdx++;
 
-    // progress bar: use scaleX so no layout reflow
     const scaleX = (seenCount / totalBands).toFixed(3);
     const barColor = prismaticUnlocked ? '#c0905a' : (seenCount >= nonPrismaticCount && seenCount > 0 ? '#8a6c40' : '#4a3010');
 
-    // Band stamps — staggered pop for seen ones
+    // Band stamps — circular ink seals with embossed look
     const stamps = COLOR_BANDS.map((b, si) => {
       const isSeen = seen.includes(b.name);
       const ink = BAND_INK[b.name];
       const sym = BAND_SYM[b.name] || '●';
       const isPrismatic = b.name === 'Prismatic';
       const locked = isPrismatic && !prismaticUnlocked;
-      const stampDelay = (si * 35) + 'ms';
+      const stampDelay = (si * 40) + 'ms';
       if(locked && !isSeen) {
-        return `<div class="aq-stamp" title="Prismatic — locked" style="width:30px;height:30px;border-radius:5px;background:rgba(0,0,0,0.06);border:1px dashed rgba(160,140,110,0.4);display:flex;align-items:center;justify-content:center;opacity:0.4;flex-shrink:0;">
+        return `<div class="aq-stamp-seal" title="Prismatic — locked" style="background:rgba(0,0,0,0.06);border:1px dashed rgba(160,140,110,0.4);opacity:0.4;">
           <div style="width:12px;height:12px;color:#b09070;">${ICONS.lock}</div></div>`;
       }
-      return `<div class="aq-stamp${isSeen?' seen':''} ${isSeen?'aq-stamp-pop':''}" title="${b.name}"
-        style="width:30px;height:30px;border-radius:5px;background:${isSeen?ink.bg:'rgba(0,0,0,0.06)'};border:1px solid ${isSeen?ink.border:'rgba(160,140,110,0.25)'};
-        display:flex;align-items:center;justify-content:center;flex-shrink:0;
-        ${isSeen?'':'opacity:0.35;'}animation-delay:${isSeen?stampDelay:'0ms'};">
+      return `<div class="aq-stamp-seal${isSeen?' seen':''} aq-page-item" title="${b.name}"
+        style="background:${isSeen?ink.bg:'rgba(0,0,0,0.06)'};border:1.5px solid ${isSeen?ink.border:'rgba(160,140,110,0.25)'};
+        ${isSeen?'box-shadow:inset 0 1px 3px rgba(0,0,0,0.4),0 1px 1px rgba(255,255,255,0.15);':'opacity:0.35;'}animation-delay:${stampDelay};">
+        ${isSeen?'<div class="aq-seal-ring"></div>':''}
         <span style="font-size:13px;line-height:1;color:${isSeen?ink.label:'rgba(160,140,110,0.4)'};">${sym}</span>
       </div>`;
     }).join('');
@@ -3655,52 +4233,90 @@ function buildAquapedia() {
       return `<span style="font-family:Georgia,serif;font-size:8px;padding:1px 6px;background:${ink.bg};color:${ink.label};border:1px solid ${ink.border};border-radius:2px;font-style:italic;letter-spacing:0.3px;">${n}</span>`;
     }).join('');
 
-    html += `
-    <div class="aq-card" style="border-bottom:1px solid rgba(180,160,130,0.3);${!discovered?'opacity:0.4;':''}animation-delay:${delay};">
-      <div style="padding:13px 15px 11px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
-          <div style="width:2px;align-self:stretch;background:linear-gradient(180deg,${prismaticUnlocked?'#b07840':'#c8a870'},transparent);border-radius:1px;flex-shrink:0;"></div>
-          <span style="font-size:22px;">${def.icon}</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-family:Georgia,serif;font-weight:700;font-size:13px;color:#5a3818;letter-spacing:0.4px;">${def.name}</div>
-            <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
-          </div>
+    // Determine fish preview colors from seen data or defaults
+    const _pf = seen.length > 0 ? fishList.find(f => f.type === key) : null;
+    const previewC1 = _pf ? _pf.genes.c1[0] : def.c1;
+    const previewC2 = _pf ? _pf.genes.c2[0] : def.c2;
+
+    _bookPages.push(`
+    <div style="padding:16px 18px 10px;${!discovered?'opacity:0.45;':''}overflow-y:auto;height:100%;box-sizing:border-box;">
+      <!-- Ink blot behind name -->
+      <div style="position:relative;text-align:center;margin-bottom:6px;">
+        <div class="aq-ink-blot" style="background:radial-gradient(ellipse,${def.c1}88,transparent 70%);"></div>
+        <div class="aq-page-item" style="animation-delay:0ms;position:relative;z-index:1;">
+          <span style="font-size:24px;vertical-align:middle;">${def.icon}</span>
+          <div style="font-family:Georgia,serif;font-weight:700;font-size:16px;color:#5a3818;letter-spacing:0.5px;margin-top:2px;">${def.name}</div>
+        </div>
+      </div>
+
+      <!-- Fish preview canvas placeholder -->
+      <div class="aq-page-item" style="animation-delay:60ms;text-align:center;">
+        <canvas class="aq-fish-preview" data-fish-type="${key}" data-c1="${previewC1}" data-c2="${previewC2}" width="240" height="120" style="width:120px;height:60px;"></canvas>
+      </div>
+
+      <!-- Status -->
+      <div class="aq-page-item" style="animation-delay:120ms;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 6px;">
+          <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
           ${prismaticUnlocked
             ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
             : (seenCount >= nonPrismaticCount && seenCount > 0
                 ? `<div style="font-family:Georgia,serif;font-size:9px;color:#8a6830;background:rgba(180,140,60,0.1);border:1px solid rgba(180,140,60,0.3);padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
                 : '')}
         </div>
+      </div>
 
-        <div style="display:flex;gap:4px;align-items:center;">${stamps}</div>
+      <!-- Band stamps -->
+      <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:center;margin:6px 0;">${stamps}</div>
 
-        ${seenLabels ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;">${seenLabels}</div>` : ''}
+      ${seenLabels ? `<div class="aq-page-item" style="animation-delay:200ms;display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;justify-content:center;">${seenLabels}</div>` : ''}
 
-        <div style="margin-top:9px;height:3px;background:rgba(180,160,130,0.2);border-radius:2px;overflow:hidden;">
+      <!-- Progress bar -->
+      <div class="aq-page-item" style="animation-delay:280ms;">
+        <div style="margin-top:12px;height:3px;background:rgba(180,160,130,0.2);border-radius:2px;overflow:hidden;">
           <div style="height:100%;transform-origin:left;transform:scaleX(${scaleX});background:linear-gradient(90deg,#c8a870,${barColor});border-radius:2px;transition:transform .55s cubic-bezier(.22,1,.36,1);"></div>
         </div>
       </div>
-    </div>`;
+    </div>`);
+    pageIdx++;
   }
 
-  html += `<div style="padding:14px;text-align:center;border-top:2px double rgba(180,160,130,0.4);">
-    <span style="font-family:Georgia,serif;font-size:8px;color:#b09070;letter-spacing:2px;">— Finis —</span>
+  // Initialize to first page
+  _bookPage = 0;
+  _renderBookPage();
+}
+
+function _renderBookPage() {
+  const content = document.getElementById('book-content');
+  if(!content) return;
+  const totalPages = _bookPages.length;
+  content.innerHTML = `<div id="aqlist" class="book-page-fade-in" style="height:100%;position:relative;">
+    ${_bookPages[_bookPage]}
+    <div class="book-page-corner"></div>
   </div>`;
 
-  el.innerHTML = html;
-  // Initialize book page navigation
-  _bookPage = 0;
-  const content = document.getElementById('book-content');
-  if(content) {
-    content.scrollTop = 0;
-    setTimeout(()=>{
-      const pageH = content.clientHeight;
-      const totalPages = Math.max(1, Math.ceil(content.scrollHeight / pageH));
-      document.getElementById('book-page-num').textContent = `Page 1 of ${totalPages}`;
-      document.getElementById('book-prev').disabled = true;
-      document.getElementById('book-next').disabled = (totalPages <= 1);
-    }, 50);
-  }
+  // Draw fish preview canvases on species pages
+  _drawBookPreviews(content);
+
+  // Update page number (roman numerals)
+  const pageNum = document.getElementById('book-page-num');
+  if(pageNum) pageNum.innerHTML = `<span class="aq-page-num">${_toRoman(_bookPage + 1)}</span>`;
+
+  // Update nav buttons
+  document.getElementById('book-prev').disabled = (_bookPage <= 0);
+  document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+}
+
+function _drawBookPreviews(container) {
+  container.querySelectorAll('canvas.aq-fish-preview').forEach(cvs => {
+    const type = cvs.dataset.fishType;
+    const c1 = cvs.dataset.c1;
+    const c2 = cvs.dataset.c2;
+    const preview = drawFishPreview(type, c1, c2, 120, 60);
+    const pc = cvs.getContext('2d');
+    pc.clearRect(0, 0, cvs.width, cvs.height);
+    pc.drawImage(preview, 0, 0);
+  });
 }
 
 function closeAll(){
@@ -3739,22 +4355,56 @@ document.addEventListener('keydown', e => {
     const ov = document.getElementById('book-overlay');
     if(ov && !ov.classList.contains('book-closed')) toggleBook();
   }
+  // Arrow key navigation for book
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    const ov = document.getElementById('book-overlay');
+    if(ov && !ov.classList.contains('book-closed')) { bookFlip(1); e.preventDefault(); }
+  }
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    const ov = document.getElementById('book-overlay');
+    if(ov && !ov.classList.contains('book-closed')) { bookFlip(-1); e.preventDefault(); }
+  }
 });
 
-let _bookPage = 0;
+let _bookFlipping = false;
 function bookFlip(dir){
-  const cards = document.querySelectorAll('#aqlist .aq-card, #aqlist > div');
-  if(!cards.length) return;
-  // Simple page system: each page shows all content, scroll to section
+  if(_bookFlipping) return;
+  const totalPages = _bookPages.length;
+  if(!totalPages) return;
+  const newPage = _bookPage + dir;
+  if(newPage < 0 || newPage >= totalPages) return;
+
+  _bookFlipping = true;
   const content = document.getElementById('book-content');
-  const pageH = content.clientHeight;
-  const maxScroll = content.scrollHeight - pageH;
-  const totalPages = Math.max(1, Math.ceil(content.scrollHeight / pageH));
-  _bookPage = Math.max(0, Math.min(totalPages - 1, _bookPage + dir));
-  content.scrollTo({top: _bookPage * pageH, behavior:'smooth'});
-  document.getElementById('book-page-num').textContent = `Page ${_bookPage+1} of ${totalPages}`;
-  document.getElementById('book-prev').disabled = (_bookPage <= 0);
-  document.getElementById('book-next').disabled = (_bookPage >= totalPages-1);
+  const aqlist = document.getElementById('aqlist');
+  if(!aqlist) { _bookFlipping = false; return; }
+
+  // Animate old page out
+  const outClass = dir > 0 ? 'book-page-flip-out-left' : 'book-page-flip-out-right';
+  aqlist.className = outClass;
+
+  setTimeout(() => {
+    _bookPage = newPage;
+    // Render new page with in animation
+    const inClass = dir > 0 ? 'book-page-flip-in-right' : 'book-page-flip-in-left';
+    content.innerHTML = `<div id="aqlist" class="${inClass} book-page-fade-in" style="height:100%;position:relative;">
+      ${_bookPages[_bookPage]}
+      <div class="book-page-corner"></div>
+    </div>`;
+
+    // Draw fish preview canvases
+    _drawBookPreviews(content);
+
+    // Update page number
+    const pageNum = document.getElementById('book-page-num');
+    if(pageNum) pageNum.innerHTML = `<span class="aq-page-num">${_toRoman(_bookPage + 1)}</span>`;
+
+    // Update nav buttons
+    document.getElementById('book-prev').disabled = (_bookPage <= 0);
+    document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+
+    _bookFlipping = false;
+  }, 300);
 }
 
 // ─── PANEL DRAG SYSTEM ────────────────────────────────────────────────────────
