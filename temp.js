@@ -217,18 +217,18 @@ function getFishPrice(type) {
 }
 
 const UPGRADES={
-  flakes:  {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,    info:'Double base coin value',          max:1,owned:0,req:2},
-  snail:   {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,    info:'Passive income + eats algae',      max:5,owned:0,req:1},
-  autofeed:{name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,   info:'Drops food automatically',          max:1,owned:0,req:3},
-  tank:    {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,   info:'+4 max fish capacity',              max:5,owned:0,req:4},
-  filter:  {name:'Power Filter',   icon:ICONS.filter, cost:8000,   info:'Auto-reduces algae',                max:1,owned:0,req:5},
-  nest:    {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,  info:'Adult fish naturally breed',        max:1,owned:0,req:3},
-  clam:    {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,  info:'Passive gold + filters water',     max:3,owned:0,req:6},
-  heater:  {name:'Water Heater',   icon:ICONS.gear,   cost:50000,  info:'+25% coin value for all fish',     max:1,owned:0,req:7},
-  kelp:    {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,  info:'Unlocks Purple Kelp in tank',      max:1,owned:0,req:3},
-  coral:   {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,  info:'Unlocks Red Fan Coral in tank',    max:1,owned:0,req:5},
-  oxygen:  {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,  info:'Fish hunger drains 20% slower',    max:1,owned:0,req:6},
-  uvlight: {name:'UV Light',       icon:ICONS.star,   cost:75000,  info:'Rare mutation chance +5%',         max:1,owned:0,req:7}
+  flakes:  {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,    info:'Double base coin value',          max:1,owned:0,era:0},
+  snail:   {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,    info:'Passive income + eats algae',      max:5,owned:0,era:0},
+  autofeed:{name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,   info:'Drops food automatically',          max:1,owned:0,era:0},
+  tank:    {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,   info:'+4 max fish capacity',              max:5,owned:0,era:0},
+  filter:  {name:'Power Filter',   icon:ICONS.filter, cost:8000,   info:'Auto-reduces algae',                max:1,owned:0,era:0},
+  nest:    {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,  info:'Adult fish naturally breed',        max:1,owned:0,era:0},
+  clam:    {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,  info:'Passive gold + filters water',     max:3,owned:0,era:0},
+  heater:  {name:'Water Heater',   icon:ICONS.gear,   cost:50000,  info:'+25% coin value for all fish',     max:1,owned:0,era:0},
+  kelp:    {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,  info:'Unlocks Purple Kelp in tank',      max:1,owned:0,era:0},
+  coral:   {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,  info:'Unlocks Red Fan Coral in tank',    max:1,owned:0,era:0},
+  oxygen:  {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,  info:'Fish hunger drains 20% slower',    max:1,owned:0,era:0},
+  uvlight: {name:'UV Light',       icon:ICONS.star,   cost:75000,  info:'Rare mutation chance +5%',         max:1,owned:0,era:0}
 };
 
 const THEMES={
