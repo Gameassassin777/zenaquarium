@@ -1833,7 +1833,7 @@ function updateFish(f){
   if(f.type === 'octopus'){
     // -- Octopus jet-propulsion burst-and-coast movement --
     // Lazy-init state
-    if(f._octoPhase === undefined){ f._octoPhase = 0; f._octoTimer = Math.floor(80 + Math.random()*80); f._octoBurstDir = {x:1, y:0}; }
+    if(f._octoPhase === undefined){ f._octoPhase = 0; f._octoTimer = Math.floor(80 + Math.random()*80); f._octoBurstDir = {x:1, y:0}; f._octoContractT = 0; }
 
     f._octoTimer--;
 
@@ -1850,6 +1850,8 @@ function updateFish(f){
       // Coasting: very slow drift, arms wave, heavy damping
       const damp = trait === 'lazy' ? 0.90 : 0.93;
       f.vx *= damp; f.vy *= damp;
+      // mantle slowly re-expands during coast
+      f._octoContractT = Math.max(0, f._octoContractT - 0.013);
       // gentle random wander every ~90 frames
       if(f.timer % 90 === 0){
         if(trait === 'lazy' && Math.random() < 0.55){ f.vx *= 0.2; f.vy *= 0.2; }
@@ -1876,7 +1878,8 @@ function updateFish(f){
         f._octoBurstDir = {x: Math.cos(ja), y: Math.sin(ja) * 0.75};
       }
     } else {
-      // Jetting: quick burst in chosen direction
+      // Jetting: quick burst in chosen direction — mantle contracts fast
+      f._octoContractT = Math.min(1, f._octoContractT + 0.07);
       const jetSpd = baseSpd * (trait === 'active' ? 4.5 : trait === 'lazy' ? 2.5 : 3.5);
       f.vx += f._octoBurstDir.x * jetSpd * 0.35;
       f.vy += f._octoBurstDir.y * jetSpd * 0.35;
@@ -2761,52 +2764,56 @@ function drawFish(f){
     }
   }
   else if(f.type==='octopus'){
-    // breathing pulse — faster during jet phase
-    const isJetting = f._octoPhase === 1;
-    const pulseRate = isJetting ? 1.8 : 0.45;
-    const opulse = 1 + Math.sin(f.phase * pulseRate) * (isJetting ? 0.09 : 0.04);
-    // mantle squishes when jetting
-    const msx = isJetting ? (1 - Math.abs(Math.sin(f.phase*pulseRate))*0.12) : 1;
-    const msy = isJetting ? (1 + Math.abs(Math.sin(f.phase*pulseRate))*0.16) : 1;
+    // Smooth contraction state: 0 = fully relaxed, 1 = peak contraction (jetting)
+    const contractT = f._octoContractT !== undefined ? f._octoContractT : 0;
+    // Gentle breathing when relaxed — suppressed at peak contraction
+    const breathe = Math.sin(f.phase * 0.42) * 0.035 * (1 - contractT);
+    const opulse = 1 + breathe + contractT * 0.03;
+    // Mantle squish: narrows horizontally, elongates vertically during contraction
+    const msx = (1 - contractT * 0.42 + breathe * 0.5) * opulse;
+    const msy = (1 + contractT * 0.34 - breathe * 0.5) * opulse;
 
     ctx.lineCap='round'; ctx.lineJoin='round';
 
-    // -- Webbing between arm bases --
+    // -- Webbing between arm bases — pulls inward during contraction --
+    const webScale = 1 - contractT * 0.28;
     ctx.fillStyle = _c1 + '44';
     ctx.beginPath();
-    ctx.moveTo(-s*0.55, s*0.18);
-    ctx.bezierCurveTo(-s*0.7, s*0.55, -s*0.35, s*0.7, 0, s*0.62);
-    ctx.bezierCurveTo(s*0.35, s*0.7, s*0.7, s*0.55, s*0.55, s*0.18);
-    ctx.quadraticCurveTo(0, s*0.4, -s*0.55, s*0.18);
+    ctx.moveTo(-s*0.55*msx, s*0.18*webScale);
+    ctx.bezierCurveTo(-s*0.7*msx, s*0.55*webScale, -s*0.35*msx, s*0.7*webScale, 0, s*0.62*webScale);
+    ctx.bezierCurveTo(s*0.35*msx, s*0.7*webScale, s*0.7*msx, s*0.55*webScale, s*0.55*msx, s*0.18*webScale);
+    ctx.quadraticCurveTo(0, s*0.4*webScale, -s*0.55*msx, s*0.18*webScale);
     ctx.fill();
 
     // -- 8 Arms --
     for(let i=0; i<8; i++){
       // fan arms from -80 to +80 degrees beneath the mantle
       const baseAngle = (i/7 - 0.5) * Math.PI * 1.1 + Math.PI*0.5;
-      const bx = Math.cos(baseAngle) * s * 0.42;
-      const by = Math.sin(baseAngle) * s * 0.38 + s*0.28;
+      const bx = Math.cos(baseAngle) * s * 0.42 * msx;
+      const by = Math.sin(baseAngle) * s * 0.38 * webScale + s*0.28*msy;
 
       // independent phase per arm using f.id and arm index
       const ph1 = f.phase + i * 0.72 + (f.id % 7) * 0.4;
       const ph2 = f.phase * 1.25 + i * 0.55 + (f.id % 5) * 0.6;
       const ph3 = f.phase * 0.85 + i * 0.9 + (f.id % 11) * 0.3;
 
-      // during jetting arms trail behind, otherwise wave organically
-      const jetDamp = isJetting ? 0.25 : 1.0;
+      // during contraction arms trail behind, otherwise wave organically
+      const jetDamp = 1 - contractT * 0.78;
       const w1 = Math.sin(ph1) * s * 0.28 * jetDamp;
       const w2 = Math.sin(ph2) * s * 0.22 * jetDamp;
       const w3 = Math.sin(ph3) * s * 0.16 * jetDamp;
 
-      // front arms curl inward, back arms trail
+      // front arms curl inward, back arms trail — curl reduced during contraction
       const sideSign = (i < 4) ? -1 : 1;
-      const curlX = sideSign * s * 0.2 * (isJetting ? 0.2 : 1);
+      const curlX = sideSign * s * 0.2 * (1 - contractT * 0.85);
+      // tentacles lean backward (negative X in local space) during contraction
+      const leanX = -contractT * s * 0.38;
 
-      // 3-segment bezier S-curve control points
-      const cp1x = bx * 0.6 + w1 * 0.5,  cp1y = by + s * 0.45 + w1 * 0.4;
-      const cp2x = bx * 0.9 + w2,         cp2y = by + s * 0.95 + w2 * 0.6;
-      const cp3x = bx * 0.8 + w3 + curlX, cp3y = by + s * 1.55 + w3 * 0.5;
-      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5;
+      // 3-segment bezier S-curve control points with backward lean during contraction
+      const cp1x = bx * 0.6 + w1 * 0.5 + leanX * 0.25,  cp1y = by + s * 0.45 + w1 * 0.4;
+      const cp2x = bx * 0.9 + w2 + leanX * 0.6,           cp2y = by + s * 0.95 + w2 * 0.6;
+      const cp3x = bx * 0.8 + w3 + curlX + leanX,          cp3y = by + s * 1.55 + w3 * 0.5;
+      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5 + leanX * 1.3;
       const endy  = by + s * 2.1  + w3 * 0.3;
 
       // thick arm (body color, wide at base)
@@ -2851,23 +2858,23 @@ function drawFish(f){
     }
 
     // -- Mantle (bulbous dome teardrop shape) --
-    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72*opulse);
+    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72);
     mg.addColorStop(0, _c1);
     mg.addColorStop(0.6, _c1);
     mg.addColorStop(1, _c2);
     ctx.fillStyle = mg;
     ctx.beginPath();
     // teardrop: wide dome top, narrowing at base
-    ctx.moveTo(0, s*0.32*msy*opulse);
+    ctx.moveTo(0, s*0.32*msy);
     ctx.bezierCurveTo(
-      -s*0.72*msx*opulse, s*0.28*msy,
-      -s*0.78*msx*opulse, -s*0.62*msy,
-       0,                 -s*0.92*msy*opulse
+      -s*0.72*msx, s*0.28*msy,
+      -s*0.78*msx, -s*0.62*msy,
+       0,          -s*0.92*msy
     );
     ctx.bezierCurveTo(
-       s*0.78*msx*opulse, -s*0.62*msy,
-       s*0.72*msx*opulse,  s*0.28*msy,
-       0,                  s*0.32*msy*opulse
+       s*0.78*msx, -s*0.62*msy,
+       s*0.72*msx,  s*0.28*msy,
+       0,           s*0.32*msy
     );
     ctx.closePath();
     ctx.fill();
@@ -2875,9 +2882,9 @@ function drawFish(f){
     // mantle shading overlay
     ctx.fillStyle = _c2 + '33';
     ctx.beginPath();
-    ctx.moveTo(0, s*0.32*msy*opulse);
-    ctx.bezierCurveTo(-s*0.72*msx*opulse, s*0.28*msy, -s*0.78*msx*opulse, -s*0.62*msy, 0, -s*0.92*msy*opulse);
-    ctx.bezierCurveTo(s*0.78*msx*opulse, -s*0.62*msy, s*0.72*msx*opulse, s*0.28*msy, 0, s*0.32*msy*opulse);
+    ctx.moveTo(0, s*0.32*msy);
+    ctx.bezierCurveTo(-s*0.72*msx, s*0.28*msy, -s*0.78*msx, -s*0.62*msy, 0, -s*0.92*msy);
+    ctx.bezierCurveTo(s*0.78*msx, -s*0.62*msy, s*0.72*msx, s*0.28*msy, 0, s*0.32*msy);
     ctx.closePath();
     ctx.fill();
 
@@ -2894,20 +2901,20 @@ function drawFish(f){
       ctx.fill();
     }
 
-    // -- Siphon (funnel below eye, points backward) --
+    // -- Siphon (funnel below eye, points backward) — scales with mantle --
     ctx.fillStyle = _c2 + 'cc';
     ctx.beginPath();
-    ctx.moveTo(s*0.22, s*0.02);
-    ctx.bezierCurveTo(s*0.38, s*0.06, s*0.45, s*0.14, s*0.38, s*0.22);
-    ctx.bezierCurveTo(s*0.3, s*0.3, s*0.18, s*0.28, s*0.15, s*0.2);
+    ctx.moveTo(s*0.22*msx, s*0.02*msy);
+    ctx.bezierCurveTo(s*0.38*msx, s*0.06*msy, s*0.45*msx, s*0.14*msy, s*0.38*msx, s*0.22*msy);
+    ctx.bezierCurveTo(s*0.3*msx, s*0.3*msy, s*0.18*msx, s*0.28*msy, s*0.15*msx, s*0.2*msy);
     ctx.closePath();
     ctx.fill();
     // siphon opening tip
     ctx.strokeStyle = _c2; ctx.lineWidth = s * 0.04;
-    ctx.beginPath(); ctx.moveTo(s*0.38, s*0.22); ctx.lineTo(s*0.48, s*0.28); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*0.38*msx, s*0.22*msy); ctx.lineTo(s*0.48*msx, s*0.28*msy); ctx.stroke();
 
-    // -- Large expressive octopus eye (custom, not drawEye helper) --
-    const ex = s * 0.35, ey = -s * 0.18;
+    // -- Large expressive octopus eye — tracks mantle surface --
+    const ex = s * 0.35 * msx, ey = -s * 0.18 * msy;
     const er = s * 0.16; // sclera radius
     // sclera (white)
     ctx.fillStyle = '#ffffffee';
