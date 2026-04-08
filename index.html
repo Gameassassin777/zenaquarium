@@ -1499,6 +1499,9 @@ function updateHUD(){
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const eraEl = document.getElementById('era-val');
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
+
+  const bookFab = document.getElementById('book-fab');
+  if(bookFab) bookFab.style.display = (playerLevel >= 3) ? 'flex' : 'none';
 }
 
 function calcOffline(s){
@@ -4681,6 +4684,7 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH, time) {
     genes: {
       c1: [c1 || def.c1, c1 || def.c1],
       c2: [c2 || def.c2],
+      trait: ['normal', 'normal'],
       szMod: 1,
     },
     hunger: 100,
@@ -4705,16 +4709,17 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH, time) {
 function buildAquapedia() {
   const el = document.getElementById('aqlist');
 
-  const BAND_INK = {
+    const BAND_INK = {
     Crimson:  { bg:'#5a1414', border:'#8a2828', label:'#e8a0a0' },
     Ember:    { bg:'#5a2c0a', border:'#904814', label:'#f0b878' },
     Solar:    { bg:'#504400', border:'#847000', label:'#e8d87a' },
     Verdant:  { bg:'#143a22', border:'#226038', label:'#80cfa0' },
-    Abyssal:  { bg:'#082e3c', border:'#0e5268', label:'#72c8e8' },
-    Void:     { bg:'#22143e', border:'#4a2e80', label:'#c0a0e8' },
+    Cerulean: { bg:'#082e3c', border:'#0e5268', label:'#72c8e8' },
+    Abyssal:  { bg:'#0f172a', border:'#1e293b', label:'#94a3b8' },
+    Amethyst: { bg:'#2e1035', border:'#4c1d95', label:'#c084fc' },
     Prismatic:{ bg:'#3a1028', border:'#7a2852', label:'#f0a8d0' },
   };
-  const BAND_SYM = { Crimson:'C', Ember:'E', Solar:'S', Verdant:'V', Abyssal:'A', Void:'O', Prismatic:'P' };
+  const BAND_SYM = { Crimson:'C', Ember:'E', Solar:'S', Verdant:'V', Cerulean:'B', Abyssal:'A', Amethyst:'M', Prismatic:'P' };;
   const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
   const totalBands = COLOR_BANDS.length;
 
@@ -4756,7 +4761,7 @@ function buildAquapedia() {
     // Band stamps — circular ink seals with embossed look
     const stamps = COLOR_BANDS.map((b, si) => {
       const isSeen = seen.includes(b.name);
-      const ink = BAND_INK[b.name];
+      const ink = BAND_INK[b.name] || { bg:'#333', border:'#555', label:'#aaa' };
       const sym = BAND_SYM[b.name] || '●';
       const isPrismatic = b.name === 'Prismatic';
       const locked = isPrismatic && !prismaticUnlocked;
