@@ -484,6 +484,14 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #sw-tip{position:absolute;pointer-events:none;background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f8fafc;max-width:200px;display:none;z-index:52;}
 .sw-open-btn{display:flex;align-items:center;gap:6px;background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);color:#67e8f9;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;width:100%;justify-content:center;margin-bottom:10px;flex-shrink:0;}
 .sw-open-btn:hover{background:rgba(103,232,249,0.2);}
+#sw-node-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(2,8,18,0.97);border-top:1px solid rgba(255,255,255,0.12);border-radius:22px 22px 0 0;padding:20px 20px max(20px,env(safe-area-inset-bottom,0px));z-index:54;transition:transform .35s cubic-bezier(.16,1,.3,1);transform:translateY(105%);max-height:65vh;overflow-y:auto;-webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px);}
+#sw-node-panel.open{transform:translateY(0);}
+#sw-node-panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;}
+.sw-np-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:#64748b;}
+.sw-np-buy{width:100%;padding:15px;border:none;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .1s;margin-top:12px;}
+.sw-np-buy:not(:disabled):active{transform:scale(.97);}
+.sw-np-buy:disabled{background:rgba(255,255,255,.06);color:#475569;cursor:default;}
+.sw-np-req{font-size:11px;padding:2px 0;display:flex;align-items:center;gap:5px;}
 </style>
 </head>
 <body>
@@ -523,6 +531,9 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div id="sw-era"></div>
   <canvas id="sw-mini"></canvas>
   <div id="sw-tip"></div>
+  <div id="sw-node-panel">
+    <div id="sw-np-inner"></div>
+  </div>
 </div>
 
 <div id="sov" onclick="closeAll()"></div>
@@ -558,7 +569,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="socpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.1.38</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <div class="ph"><span class="pt" id="ph-social">Social &amp; Data v2.2.0</span><button class="xbtn" onclick="closeAll()"></button></div>
   <div class="pscroll" id="socdiv" style="padding:15px 15px 150px 15px;"></div>
 </div>
 
@@ -619,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.0.1';
+const CUR_VER = '2.2.0';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -819,6 +830,8 @@ let _waterGrad=null, _waterGradAlgae=-1, _waterGradTheme='';
 let _rayGrads=null, _rayW=0, _rayH=0;
 let _loopRunning=true;
 let combo=0,comboTimer=0,maxCT=180;
+function getMaxCT(){ return 180 + (typeof swGetBonus==='function' && swGetBonus('overflow')>0 ? 300 : 0); }
+function getMaxFish(){ return baseMaxFish + UPGRADES.tank.owned*3 + (typeof swGetBonus==='function' ? swGetBonus('evt_hor')*10 : 0); }
 let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
@@ -847,8 +860,8 @@ const VISITOR_SPECIES = {
   scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:180, rarity:0.4 },
   frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:175, rarity:0.35 },
   vampiresquid:{ name:'Vampire Squid',   era:4, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25 },
-  oarfish:    { name:'Oarfish',          era:3, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15 },
-  sunfish:    { name:'Ocean Sunfish',    era:3, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2 },
+  glassfish:  { name:'Glass Catfish',    era:3, c1:'#e0f2fe', c2:'#bae6fd', sz:22, spd:1.0, trustTime:190, rarity:0.3 },
+  ribbonfish: { name:'Ribbon Eel',       era:3, c1:'#818cf8', c2:'#4338ca', sz:40, spd:0.9, trustTime:200, rarity:0.25 },
   lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:240, rarity:0.12, abyssal:true },
   velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:270, rarity:0.08, abyssal:true },
   glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:250, rarity:0.10, abyssal:true },
@@ -960,7 +973,13 @@ const UPGRADES={
   magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:3000000,    info:'+50% coin value during Harmony',               max:1,owned:0,req:13},
   ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:5000000,    info:'Eggs hatch 35% faster',                        max:1,owned:0,req:13},
   singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:10000000,   info:'+100% income from all fish',                   max:1,owned:0,req:14},
-  prism:     {name:'Prism Lens',     icon:ICONS.crystal,cost:15000000,   info:'Daily quest rerolls are free',                 max:1,owned:0,req:14}
+  prism:        {name:'Prism Lens',      icon:ICONS.crystal,cost:15000000,   info:'Daily quest rerolls are free',            max:1,owned:0,req:14},
+  // ── Skill Web purchasable upgrades ──
+  tidalcurrent: {name:'Swift Current',   icon:ICONS.drop,   cost:80000,     info:'Fish swim 30% faster',                    max:1,owned:0},
+  symbiotic:    {name:'Symbiosis',       icon:ICONS.reef,   cost:200000,    info:'+10% coins when water quality is high',   max:1,owned:0},
+  obelisk:      {name:'Obelisk',         icon:ICONS.crystal,cost:400000,    info:'+2% coins per unique species owned',      max:1,owned:0},
+  resonance:    {name:'Resonance',       icon:ICONS.star,   cost:600000,    info:'Combo multiplier cap raised to 3.5×',     max:1,owned:0},
+  primordialspark:{name:'Primordial Spark',icon:ICONS.star, cost:5000000,   info:'×3 income multiplier on all fish',        max:1,owned:0}
 };
 
 const THEMES={
@@ -1152,6 +1171,12 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   let c1 = inherit(momGenes.c1, dadGenes.c1);
   let c2 = inherit(momGenes.c2, dadGenes.c2);
   let trait = inherit(momGenes.trait, dadGenes.trait);
+  // gene_splice: baby inherits the better trait from each parent
+  if(swGetBonus('gene_splice') > 0) {
+    const allTraits = [...momGenes.trait, ...dadGenes.trait];
+    const bestTrait = allTraits.reduce((a,b) => (TRAIT_MARKET_MULT[a]||1) >= (TRAIT_MARKET_MULT[b]||1) ? a : b, allTraits[0]);
+    trait = [bestTrait, bestTrait];
+  }
   
   // ── Breeding color drift: each allele shifts slightly from parent ──
   // Small drift on every offspring (natural variation)
@@ -1357,7 +1382,7 @@ function loadSave(){
 }
 
 function applyState(s){
-  coins=(s.coins!==undefined?s.coins:100);totalCoins=(s.totalCoins!==undefined?s.totalCoins:coins);playerLevel=(s.playerLevel!==undefined?s.playerLevel:1);algae=(s.algae!==undefined?s.algae:0);
+  coins=(s.coins!==undefined?s.coins:100);totalCoins=(s.totalCoins!==undefined?s.totalCoins:coins);playerLevel=(s.playerLevel!==undefined?s.playerLevel:1);algae=(s.algae!==undefined?s.algae:0);baseMaxFish=(s.baseMaxFish!==undefined?s.baseMaxFish:6);
   playerXP=s.playerXP!==undefined?s.playerXP:XP_THRESHOLDS[Math.min((s.playerLevel||1)-1,49)];
   dailyStreak=(s.dailyStreak!==undefined?s.dailyStreak:0);lastDailyTs=(s.lastDailyTs!==undefined?s.lastDailyTs:0);completedOrders=(s.completedOrders!==undefined?s.completedOrders:0);codesRedeemed=(s.codesRedeemed!==undefined?s.codesRedeemed:0);
   claimedCodes=new Set(s.claimedCodes || []);
@@ -1436,7 +1461,7 @@ function updateHUD(){
   document.getElementById('cv').textContent = formatCoins(coins);
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
-  const mF = baseMaxFish + (UPGRADES.tank.owned*3);
+  const mF = getMaxFish();
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let rawPct=100, xpBarColor='', xpBarShadow='';
@@ -1719,7 +1744,7 @@ function updateEco(){
 
   if(comboTimer>0){
     comboTimer--;
-    document.getElementById('cfill').style.transform=`scaleX(${comboTimer/maxCT})`;
+    document.getElementById('cfill').style.transform=`scaleX(${comboTimer/getMaxCT()})`;
     if(comboTimer<=0){combo=0;document.getElementById('combo-ui').classList.remove('on');}
   }
 
@@ -1747,6 +1772,12 @@ function updateEco(){
       const loopAmt = Math.ceil(coins * 0.01);
       if(loopAmt > 0) addCoins(loopAmt, W/2, H/3, false);
     }
+    // phil_stone: convert algae to coins (5 coins per algae point, then clear algae)
+    if(swGetBonus('phil_stone') > 0 && algae > 5) {
+      const stoneCoins = Math.floor(algae * 5);
+      algae = 0; _substrateDirty = true;
+      if(stoneCoins > 0) addCoins(stoneCoins, W/2, H/3, false);
+    }
   }
 
   // Passive coin loss for dirty tanks (WQ < 10% / Algae > 90)
@@ -1769,7 +1800,7 @@ function triggerEat(f,fd,def){
   fd.eaten=true;f.hunger=100;f.eat=18;sm.feeds++;
   _lastActiveFeed=Date.now();
   giveXP(isHarmony?2:1);
-  combo++;comboTimer=maxCT;
+  combo++;comboTimer=getMaxCT();
   sm.comboTaps = (sm.comboTaps||0) + 1;
   sm.maxCombo = Math.max(sm.maxCombo||0, combo);
   
@@ -1816,7 +1847,11 @@ function triggerEat(f,fd,def){
   const primordialMult = (UPGRADES.primordialspark && UPGRADES.primordialspark.owned > 0) ? 3 : 1;
   let feedBonus = 1.0;
   if(f._colorBonus?.bonus === 'feedMult') feedBonus = f._colorBonus.val;
-  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * singMult * primordialMult);
+  // prism_lock: doubles the comboMult bonus from Prismatic band fish
+  const prismBonus = (f._colorBonus?.bonus === 'comboMult') ? (f._colorBonus.val * (swGetBonus('prism_lock') > 0 ? 2 : 1)) : 1;
+  // coin_mag: +50% passive coins earned on feed (compensates for no tap-range system)
+  const coinMagMult = swGetBonus('coin_mag') > 0 ? 1.5 : 1;
+  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * primordialMult);
   if (total > 0) {
     if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
@@ -1853,7 +1888,7 @@ function updateFish(f){
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
-  const mF = baseMaxFish + (UPGRADES.tank.owned*3);
+  const mF = getMaxFish();
   
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
@@ -3210,6 +3245,11 @@ try {
     time++;
     updateEco();
     for(const f of fishList) updateFish(f);
+    // q_entangle: all fish share the highest hunger level
+    if(swGetBonus('q_entangle') > 0 && fishList.length > 1) {
+      const maxH = Math.max(...fishList.map(f => f.hunger));
+      for(const f of fishList) f.hunger = maxH;
+    }
     if(time%60===0) { checkMilestones(); updateEliteTimerUI(); }
     // plankton: passive XP drip once per minute
     if(time%3600===0) { const planktonStacks = swGetBonus('plankton'); if(planktonStacks > 0) giveXP(5 * planktonStacks); }
@@ -4210,7 +4250,7 @@ function updateVisitors() {
 function tameVisitor(idx) {
   const v = visitorList[idx];
   const def = v.def;
-  const mF = baseMaxFish + (UPGRADES.tank.owned * 3);
+  const mF = getMaxFish();
   if((fishList.length + eggs.length) >= mF) {
     toast('Tank full! ' + def.name + ' could not join.', '#ef4444');
     visitorList.splice(idx, 1);
@@ -5093,7 +5133,7 @@ function buySpawnEgg(type) {
 }
 
 function buildShop(){
-  const mF = baseMaxFish + (Object.values(UPGRADES).find(u=>u.name==='Tank Expansion').owned * 3);
+  const mF = getMaxFish();
   const lc=document.getElementById('fcards');lc.innerHTML='';
   for(let id in TYPES){
     const u=TYPES[id]; if(u.req>playerLevel)continue;
@@ -5168,7 +5208,7 @@ function redeemCode(raw){
     const fData = decodeFish(code);
     if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
     if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
-    const mF = baseMaxFish + (UPGRADES.tank.owned*3);
+    const mF = getMaxFish();
     if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
     
     claimedCodes.add(code); codesRedeemed++;
@@ -5788,7 +5828,8 @@ const SW_CLUSTERS = [
   {
     id: 'deep', name: 'Shallows', req: 5, cx: 350, cy: -250, color: '#3b82f6',
     nodes: [
-      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',     angle: 0,   dist: 110 },
+      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',       angle: 0,   dist: 110 },
+      { id: 'd_swift',    name: 'Swift Current',     desc: 'Fish swim 30% faster',              cost: 80000,    max: 1, req: ['d_tidal'],    effect: 'tidalcurrent', angle: 22, dist: 110 },
       { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', angle: 40,  dist: 110 },
       { id: 'd_kelp',     name: 'Purple Kelp',         desc: 'Unlocks Purple Kelp in tank',    cost: 15000,    max: 1, req: ['d_tidal'],    effect: 'kelp',     angle: 80, dist: 110 },
       { id: 'd_coral',    name: 'Fan Coral',           desc: 'Unlocks Fan Coral in tank',      cost: 35000,    max: 1, req: ['d_kelp'],     effect: 'coral',    angle: 120, dist: 110 },
@@ -5815,9 +5856,11 @@ const SW_CLUSTERS = [
   {
     id: 'alch', name: 'Alchemy', req: 24, cx: -350, cy: -250, color: '#fbbf24',
     nodes: [
-      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight', angle: 0,   dist: 110 },
+      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight',  angle: 0,   dist: 110 },
       { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    angle: 45,  dist: 110 },
-      { id: 'a_magnet',   name: 'Coin Magnet',         desc: 'Collect range +50%',               cost: 80000,    max: 1, req: ['a_arb'],     effect: 'coin_mag',   angle: 90,  dist: 110 },
+      { id: 'a_symb',     name: 'Symbiosis',           desc: '+10% coins when water quality is high', cost: 200000, max: 1, req: ['a_arb'], effect: 'symbiotic',  angle: 67,  dist: 110 },
+      { id: 'a_magnet',   name: 'Coin Magnet',         desc: '+50% coins earned per feed',       cost: 80000,    max: 1, req: ['a_arb'],     effect: 'coin_mag',   angle: 90,  dist: 110 },
+      { id: 'a_obelisk',  name: 'Obelisk',             desc: '+2% coins per unique species',     cost: 400000,   max: 1, req: ['a_magnet'],  effect: 'obelisk',    angle: 112, dist: 110 },
       { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5s',                  cost: 200000,   max: 1, req: ['a_magnet'],  effect: 'overflow',   angle: 135, dist: 110 },
       { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All sales +10%',                   cost: 600000,   max: 1, req: ['a_overflow'], effect: 'gold_cat',  angle: 180, dist: 110 },
       { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Convert algae to coins',           cost: 1500000,  max: 1, req: ['a_gold'],    effect: 'phil_stone', angle: 225, dist: 110 },
@@ -5828,7 +5871,8 @@ const SW_CLUSTERS = [
   {
     id: 'sing', name: 'Singularity', req: 32, cx: -350, cy: 250, color: '#a855f7',
     nodes: [
-      { id: 's_quantum', name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 0,   dist: 100 },
+      { id: 's_quantum',   name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 0,   dist: 100 },
+      { id: 's_resonance', name: 'Resonance',           desc: 'Combo cap raised to 3.5×',            cost: 600000,  max: 1, req: ['s_quantum'], effect: 'resonance', angle: 30, dist: 100 },
       { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  angle: 60,  dist: 100 },
       { id: 's_horizon', name: 'Event Horizon',        desc: 'Tank capacity +10 permanently',       cost: 300000,  max: 1, req: ['s_dark'],    effect: 'evt_hor',   angle: 120, dist: 100 },
       { id: 's_anti',    name: 'Antimatter',           desc: 'All negative events reversed',        cost: 900000,  max: 1, req: ['s_horizon'], effect: 'antimatter', angle: 180, dist: 100 },
@@ -5843,7 +5887,8 @@ const SW_CLUSTERS = [
       { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', angle: 72,  dist: 100 },
       { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated background flowers',               cost: 1000000,  max: 1, req: ['p_chron'], effect: 'etrnl_bloom', angle: 144, dist: 100 },
       { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'Rainbow wave animation on water surface',   cost: 5000000,  max: 1, req: ['p_bloom'], effect: 'cosmic_tide', angle: 216, dist: 100 },
-      { id: 'p_omega',   name: 'Omega Key',       desc: 'Unlock all cosmetic variants permanently',  cost: 25000000, max: 1, req: ['p_cosmic'], effect: 'omega_key',  angle: 288, dist: 100 }
+      { id: 'p_omega',      name: 'Omega Key',        desc: 'Unlock all cosmetic variants permanently',  cost: 25000000, max: 1, req: ['p_cosmic'],  effect: 'omega_key',      angle: 288, dist: 100 },
+      { id: 'p_primordial', name: 'Primordial Spark', desc: '×3 income multiplier on all fish',          cost: 5000000,  max: 1, req: ['p_bloom'],   effect: 'primordialspark', angle: 180, dist: 100 }
     ]
   }
 ];
@@ -6000,7 +6045,7 @@ function openSkillWeb() {
   document.getElementById('skill-web-overlay').classList.add('open');
   closeAll(); // close shop panel
   // Update era badge
-  const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const eraEl = document.getElementById('sw-era');
   if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES_SW[currentEra] || ERA_NAMES_SW[0]);
   // Center on Core cluster (world origin)
@@ -6136,20 +6181,41 @@ function swBuyNode(nd) {
 
   if (!swNodeMaxed(nd)) {
     SW_NODE_OWNED[nd.id] = (SW_NODE_OWNED[nd.id] || 0) + 1;
-    // Sync Core cluster nodes with UPGRADES
-    if (cl.id === 'core' && nd.effect && UPGRADES[nd.effect] !== undefined) {
+    // Sync ALL nodes with UPGRADES if a matching key exists
+    if (nd.effect && UPGRADES[nd.effect] !== undefined) {
       UPGRADES[nd.effect].owned = Math.max(UPGRADES[nd.effect].owned || 0, SW_NODE_OWNED[nd.id]);
     }
-    // Sync Shallows cluster kelp/coral nodes with UPGRADES and flora
-    if (nd.effect === 'kelp' && UPGRADES.kelp) {
-      UPGRADES.kelp.owned = 1;
-      if (!ownedFlora.includes('kelp')) ownedFlora.push('kelp');
+    // Flora unlocks
+    if (nd.effect === 'kelp') {
+      if (!ownedFlora.includes('kelp')) { ownedFlora.push('kelp'); initDecor(); }
       if (!activeFlora.includes('kelp')) activeFlora.push('kelp');
     }
-    if (nd.effect === 'coral' && UPGRADES.coral) {
-      UPGRADES.coral.owned = 1;
-      if (!ownedFlora.includes('coral')) ownedFlora.push('coral');
+    if (nd.effect === 'coral') {
+      if (!ownedFlora.includes('coral')) { ownedFlora.push('coral'); initDecor(); }
       if (!activeFlora.includes('coral')) activeFlora.push('coral');
+    }
+    // snail: spawn a physical snail when purchased
+    if (nd.effect === 'snail') {
+      snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+    }
+    // clam: spawn a physical clam
+    if (nd.effect === 'clam') {
+      clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+    }
+    // transcend: one random fish becomes rare/legendary on purchase
+    if (nd.effect === 'transcend' && fishList.length > 0) {
+      const t = fishList[Math.floor(Math.random() * fishList.length)];
+      const def = TYPES[t.type];
+      if (def) { t.isRare = true; t.genes.c1[0] = def.rare.c1; computeColorBonus(t); }
+      swShowToast('A fish has been transcended!');
+    }
+    // omega_key: unlock all cosmetics
+    if (nd.effect === 'omega_key') {
+      Object.keys(THEMES).forEach(k => { if(!ownedThemes.includes(k)) ownedThemes.push(k); });
+      Object.keys(FLOORS).forEach(k => { if(!ownedFloors.includes(k)) ownedFloors.push(k); });
+      Object.keys(BUBBLES).forEach(k => { if(!ownedBubbles.includes(k)) ownedBubbles.push(k); });
+      Object.keys(BORDERS).forEach(k => { if(!ownedBorders.includes(k)) ownedBorders.push(k); });
+      swShowToast('All cosmetics unlocked!');
     }
   } else {
     // Buying mastery level
@@ -6817,12 +6883,13 @@ function swInitEvents() {
       const dist = Math.hypot(e.clientX - sw_dragSX, e.clientY - sw_dragSY);
       sw_dragging = false;
       if (dist < 5) {
-        // Click — buy node
         const rect = cvs.getBoundingClientRect();
         const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
         const hit = swHitNode(sx, sy);
-        if (hit && sw_revealed.has(hit.cl.id)) {
-          swBuyNode(hit.nd);
+        if (hit) {
+          swShowNodePanel(hit.nd, hit.cl);
+        } else {
+          swCloseNodePanel();
         }
       }
     }
@@ -6879,13 +6946,13 @@ function swInitEvents() {
       const dy = (prev[0].clientY - sw_dragSY);
       sw_dragging = false;
       if (Math.hypot(dx, dy) < 8) {
-        // Tap — buy node
         const rect = cvs.getBoundingClientRect();
         const sx = prev[0].clientX - rect.left, sy = prev[0].clientY - rect.top;
         const hit = swHitNode(sx, sy);
-        if (hit && sw_revealed.has(hit.cl.id)) {
-          swBuyNode(hit.nd);
-          swShowTip(hit.nd, hit.cl, sx, sy);
+        if (hit) {
+          swShowNodePanel(hit.nd, hit.cl);
+        } else {
+          swCloseNodePanel();
         }
       }
     }
@@ -6913,17 +6980,17 @@ function swInitEvents() {
 
 // ── Save / Load hooks ─────────────────────────────────────────────────
 // These are called from buildSave / applyState below via the main functions.
-// Sync Core nodes from UPGRADES on load
+// Sync all nodes from UPGRADES on load
 function swSyncCoreFromUpgrades() {
-  const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
-  if (!coreCl) return;
-  coreCl.nodes.forEach(nd => {
-    if (nd.effect && UPGRADES[nd.effect] !== undefined) {
-      const upOwned = UPGRADES[nd.effect].owned || 0;
-      if (upOwned > (SW_NODE_OWNED[nd.id] || 0)) {
-        SW_NODE_OWNED[nd.id] = upOwned;
+  SW_CLUSTERS.forEach(cl => {
+    cl.nodes.forEach(nd => {
+      if (nd.effect && UPGRADES[nd.effect] !== undefined) {
+        const upOwned = UPGRADES[nd.effect].owned || 0;
+        if (upOwned > (SW_NODE_OWNED[nd.id] || 0)) {
+          SW_NODE_OWNED[nd.id] = upOwned;
+        }
       }
-    }
+    });
   });
 }
 
@@ -6942,6 +7009,87 @@ function swGetBonus(effect) {
     }
   }
   return 0;
+}
+
+// ── Node Detail Panel ────────────────────────────────────────────────
+function swShowNodePanel(nd, cl) {
+  const panel = document.getElementById('sw-node-panel');
+  if (!panel) return;
+  swHideTip();
+
+  const owned    = swOwned(nd.id);
+  const mastery  = swMastery(nd.id);
+  const cost     = swNodeCost(nd);
+  const canBuy   = swCanBuy(nd, cl);
+  const fullyDone = swNodeFullyDone(nd);
+  const revealed  = sw_revealed.has(cl.id);
+
+  // Requirements list
+  let reqHtml = '';
+  for (const reqId of nd.req) {
+    const reqNd = SW_NODE_MAP[reqId];
+    if (!reqNd) continue;
+    const met = swOwned(reqId) >= (reqNd.max || 1);
+    reqHtml += `<div class="sw-np-req" style="color:${met ? '#10b981' : '#ef4444'}">
+      <span style="font-size:14px">${met ? '✓' : '✗'}</span>
+      <span>${reqNd.name}</span>
+    </div>`;
+  }
+
+  // Status / action
+  let actionHtml = '';
+  if (!revealed) {
+    actionHtml = `<div style="text-align:center;padding:14px;color:#475569;font-size:13px;">Unlock ${cl.name} cluster (Level ${cl.req})</div>`;
+  } else if (fullyDone) {
+    actionHtml = `<div style="text-align:center;padding:14px;color:#a855f7;font-size:14px;font-weight:900;">✦ MASTERED ✦</div>`;
+  } else {
+    const label = swNodeMaxed(nd) ? `Mastery ${mastery + 1} — ${swFmtCost(cost)} coins` : `Purchase — ${swFmtCost(cost)} coins`;
+    const afford = coins >= cost;
+    const allReqMet = nd.req.every(r => { const rn = SW_NODE_MAP[r]; return rn && swOwned(r) >= (rn.max||1); });
+    const btnDisabled = !canBuy ? 'disabled' : '';
+    let reason = '';
+    if (!afford) reason = `<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:4px">Need ${swFmtCost(cost - coins)} more coins</div>`;
+    else if (!allReqMet) reason = `<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:4px">Complete required nodes first</div>`;
+    actionHtml = `<button class="sw-np-buy" id="sw-buy-btn" ${btnDisabled}
+      style="background:${canBuy ? `linear-gradient(135deg,${cl.color}cc,${cl.color}66)` : 'rgba(255,255,255,0.04)'};
+             color:${canBuy ? '#fff' : '#475569'};"
+      onclick="swBuyAndRefresh()">${label}</button>${reason}`;
+  }
+
+  const mastLabel = mastery > 0 ? `<span style="color:#a855f7;font-size:12px;margin-left:6px">M${mastery}</span>` : '';
+
+  document.getElementById('sw-np-inner').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-top:8px">
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#f8fafc">${nd.name}${mastLabel}</div>
+        <div style="font-size:11px;font-weight:700;color:${cl.color};text-transform:uppercase;letter-spacing:1.2px;margin-top:3px">${cl.name}</div>
+      </div>
+      <button onclick="swCloseNodePanel()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;font-size:18px;cursor:pointer;padding:4px 10px;border-radius:8px;line-height:1">×</button>
+    </div>
+    <div style="color:#94a3b8;font-size:13px;line-height:1.55;margin-top:10px">${nd.desc}</div>
+    ${reqHtml ? `<div style="margin-top:10px;display:flex;flex-direction:column;gap:3px">${reqHtml}</div>` : ''}
+    <div class="sw-np-row">
+      <span>${owned} / ${nd.max} owned</span>
+      <span style="color:${coins >= cost ? '#fbbf24' : '#ef4444'};font-weight:800">${fullyDone ? '' : swFmtCost(cost) + ' coins'}</span>
+    </div>
+    ${actionHtml}
+  `;
+
+  panel._nd = nd;
+  panel._cl = cl;
+  panel.classList.add('open');
+}
+
+function swBuyAndRefresh() {
+  const panel = document.getElementById('sw-node-panel');
+  if (!panel || !panel._nd || !panel._cl) return;
+  swBuyNode(panel._nd);
+  swShowNodePanel(panel._nd, panel._cl);
+}
+
+function swCloseNodePanel() {
+  const p = document.getElementById('sw-node-panel');
+  if (p) p.classList.remove('open');
 }
 
 // ═══════════════════════════════════════════════════════════════════
