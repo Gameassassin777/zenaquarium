@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.2.1';
+const CUR_VER = '2.2.2';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -3229,7 +3229,9 @@ function _drawThemeBackground(ctx, w, h, t) {
   const th = typeof curTheme !== 'undefined' ? curTheme : 'default';
   const s = Math.min(w/800, 1.5);
   
-  // Helper for linear gradient
+  // Master fade to keep backgrounds strictly behind the focal layer
+  ctx.globalAlpha = 0.65;
+  
   const lGrad = (x1,y1,x2,y2, c1, c2) => {
     let g = ctx.createLinearGradient(x1,y1,x2,y2);
     g.addColorStop(0, c1); g.addColorStop(1, c2);
@@ -3238,273 +3240,242 @@ function _drawThemeBackground(ctx, w, h, t) {
   
   switch(th) {
     case 'default': {
-      // High Detail Ocean: Parallax rocks & multi-layered kelp
-      for(let j=0; j<3; j++) {
-        let op = 0.2 + j*0.1;
-        ctx.fillStyle = lGrad(0, h-300*s, 0, h, `rgba(3,105,161,${op})`, `rgba(8,47,73,${op*1.5})`);
+      // Realistic Ocean: Fine, branching kelp forests & soft distant silhouetted ridges
+      for(let j=0; j<4; j++) {
+        ctx.fillStyle = lGrad(0, h-300*s, 0, h, `rgba(3,105,161,${0.1 + j*0.05})`, `rgba(8,47,73,${0.2})`);
         ctx.beginPath();
-        for(let i=0; i<=w; i+=40*s) {
-          let y = h - (120*s) + Math.sin(i*0.01 + j*10 + t*0.002)*30*s - j*50*s;
+        for(let i=0; i<=w; i+=20*s) {
+          let y = h - (100*s) - j*30*s + Math.sin(i*0.02 + j*5 + t*0.001)*20*s + Math.cos(i*0.05)*5*s;
           i===0 ? ctx.moveTo(i, h) : null;
           ctx.lineTo(i, y);
         }
         ctx.lineTo(w, h); ctx.fill();
-        // Glassy edge highlight
-        ctx.strokeStyle = `rgba(255,255,255,${0.1 + j*0.08})`; ctx.lineWidth = Math.max(1, 2*s);
-        ctx.stroke();
       }
-      for(let i=0; i<12; i++) {
+      ctx.lineWidth = 1.5*s;
+      for(let i=0; i<35; i++) {
         let isFront = i%2===0;
-        let p = isFront ? 1 : 0.6;
-        let lx = w * (i/12) + 30*s + Math.sin(t*0.01 + i)*20*s;
-        ctx.strokeStyle = lGrad(lx, h, lx, h-400*s, `rgba(16,185,129,${isFront?0.25:0.15})`, `rgba(52,211,153,${isFront?0.35:0.25})`);
-        ctx.lineWidth = (16*s - (i%3)*3) * p;
-        ctx.lineCap = 'round';
+        let lx = w * (i/35) + 10*s + Math.sin(t*0.005 + i)*15*s;
+        let height = h - 180*s - (i%5)*70*s;
+        
+        ctx.strokeStyle = `rgba(16,185,129,${isFront?0.2:0.1})`;
         ctx.beginPath();
-        let sway1 = Math.sin(t*0.015+i)*40*s*p;
-        let sway2 = Math.sin(t*0.025+i)*70*s*p;
+        let sway = Math.sin(t*0.01+i)*25*s;
         ctx.moveTo(lx, h);
-        ctx.quadraticCurveTo(lx + sway1, h-150*s*p, lx + sway2, h-350*s*p - (i%2)*100*s*p);
+        ctx.quadraticCurveTo(lx + sway, h-(h-height)/2, lx + sway*1.2, height);
         ctx.stroke();
+        
+        // Fine leaves
+        ctx.fillStyle = `rgba(52,211,153,${isFront?0.12:0.06})`;
+        for(let ly=h; ly>height; ly-=25*s) {
+           let lSway = lx + sway * (1 - (ly-height)/(h-height));
+           let dir = ((i+ly)%2?1:-1);
+           ctx.beginPath(); 
+           ctx.ellipse(lSway + dir*4*s, ly, 6*s, 1.5*s, dir*0.3 + Math.sin(t*0.02+ly)*0.2, 0, Math.PI*2); 
+           ctx.fill();
+        }
       }
       break;
     }
     case 'reef': {
-      // Glossy Bubbly Corals with Specular Highlights
-      // Background layer
-      for(let i=0; i<8; i++) {
-        let cx = (w/8)*i + 40*s;
-        let cy = h - 30*s;
-        let throb = Math.sin(t*0.03 + i)*6;
-        let c1 = i%2===0 ? `rgba(244,114,182,0.15)` : `rgba(56,189,248,0.15)`;
-        let c2 = i%2===0 ? `rgba(190,24,93,0.18)` : `rgba(3,105,161,0.18)`;
-        ctx.fillStyle = lGrad(cx, cy-150*s, cx, cy, c1, c2);
-        ctx.beginPath();
-        ctx.arc(cx, cy, 90*s + throb, 0, Math.PI*2);
-        ctx.arc(cx-50*s, cy-70*s, 60*s + throb, 0, Math.PI*2);
-        ctx.arc(cx+60*s, cy-60*s, 50*s + throb, 0, Math.PI*2);
-        ctx.fill();
-        // Glassy specular highlights
-        ctx.strokeStyle = `rgba(255,255,255,0.12)`; ctx.lineWidth = 4*s; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.arc(cx-50*s, cy-70*s, 50*s+throb, Math.PI, Math.PI*1.5); ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx+60*s, cy-60*s, 40*s+throb, Math.PI*1.1, Math.PI*1.6); ctx.stroke();
-      }
-      // Floating ambient bubbles
-      ctx.fillStyle = 'rgba(255,255,255,0.1)';
-      for(let i=0; i<15; i++) {
-        let bx = ((i*123 + t*0.2) % (w+50)) - 25;
-        let by = h - ((t*0.5 + i*40) % (h*0.5));
-        ctx.beginPath(); ctx.arc(bx, by, (2+i%4)*s, 0, Math.PI*2); ctx.fill();
+      // Deep sea fans and fractal brain coral beds
+      for(let i=0; i<12; i++) {
+        let cx = (w/12)*i + 20*s;
+        let cy = h - 20*s;
+        
+        // Sea fan (fractal lines)
+        ctx.strokeStyle = `rgba(190,24,93,${0.15 - (i%2)*0.05})`;
+        ctx.lineWidth = 1;
+        for(let branch=0; branch<6; branch++) {
+           ctx.beginPath(); ctx.moveTo(cx, cy);
+           ctx.quadraticCurveTo(cx - 40*s + branch*16*s, cy-60*s, cx - 60*s + branch*24*s + Math.sin(t*0.01+i)*8*s, cy-100*s - (branch%3)*15*s);
+           ctx.stroke();
+        }
+        
+        // Brain coral porous mound
+        let r = 60*s - (i%3)*10*s;
+        let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grad.addColorStop(0, i%2===0 ? `rgba(244,114,182,0.2)` : `rgba(56,189,248,0.2)`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+        
+        ctx.strokeStyle = `rgba(255,255,255,0.04)`; ctx.lineWidth = 1;
+        for(let rz=10; rz<r; rz+=10*s) {
+           ctx.beginPath(); ctx.arc(cx, cy, rz, Math.PI, Math.PI*2); ctx.stroke();
+        }
       }
       break;
     }
     case 'sunset': {
-      // Layered silhouetted docks with warm glowing rims
-      let rays = lGrad(0,0, 0, h*0.6, 'rgba(251,191,36,0.18)', 'rgba(251,191,36,0)');
-      for(let i=0; i<5; i++) {
-        let xOff = Math.sin(t*0.005 + i*2)*150*s;
-        ctx.fillStyle = rays;
-        ctx.beginPath();
-        ctx.moveTo(w*0.25*i + xOff, 0); ctx.lineTo(w*0.25*i + xOff + 100*s, 0);
-        ctx.lineTo(w*0.25*i + xOff + 250*s, h*0.6); ctx.lineTo(w*0.25*i + xOff - 70*s, h*0.6); ctx.fill();
-      }
-      // Pillars: far, mid, near
-      for(let j=0; j<3; j++) {
-        let px = w*(0.1 + j*0.3);
-        let ph = 100*s + j*80*s;
-        ctx.fillStyle = lGrad(px, h-ph, px+w*0.15, h-ph, 'rgba(120,53,15,0.4)', 'rgba(67,20,7,0.7)');
-        ctx.fillRect(px, h-ph, w*0.15, ph);
-        // Bright rim light facing sunset
-        ctx.fillStyle = lGrad(px, h-ph, px+10*s, h-ph, 'rgba(245,158,11,0.25)', 'rgba(245,158,11,0)');
-        ctx.fillRect(px, h-ph, 30*s, ph);
+      // Atmospheric mountain ridges fading into distance and water ripples
+      for(let j=0; j<5; j++) {
+        let alpha = 0.08 + j*0.04;
+        ctx.fillStyle = lGrad(0, h*0.3, 0, h*0.65, `rgba(245,158,11,${alpha})`, `rgba(120,53,15,${alpha*1.5})`);
+        ctx.beginPath(); ctx.moveTo(0, h*0.65);
+        for(let x=0; x<=w; x+=20*s) {
+           ctx.lineTo(x, h*0.65 - 100*s + Math.sin(x*0.008 + j*13)*50*s + Math.sin(x*0.04)*12*s - j*30*s);
+        }
+        ctx.lineTo(w, h*0.65); ctx.fill();
+        
+        // Low horizon reflections
+        ctx.fillStyle = `rgba(251,191,36,${0.03 + j*0.01})`;
+        for(let r=0; r<4; r++) {
+           let ry = h*0.65 + r*15*s + j*10*s;
+           let shift = Math.sin(t*0.01 + r + j)*15*s;
+           ctx.fillRect(shift, ry, w, 2*s);
+        }
       }
       break;
     }
     case 'abyss': {
-      // Highly detailed jagged geometry & temporal paths
-      const peaks = [ [0, h-200*s], [w*0.1, h-280*s], [w*0.2, h-180*s], [w*0.35, h-300*s], [w*0.5, h-150*s], [w*0.7, h-320*s], [w*0.9, h-200*s], [w, h-250*s] ];
-      ctx.fillStyle = lGrad(0, h-300*s, 0, h, 'rgba(30,41,59,0.5)', 'rgba(2,6,23,0.8)');
-      ctx.beginPath(); ctx.moveTo(0, h);
-      peaks.forEach(p => ctx.lineTo(p[0], p[1]));
-      ctx.lineTo(w, h); ctx.fill();
-      // Temporal glowing edge
-      ctx.strokeStyle = `rgba(14,165,233,${0.15 + Math.sin(t*0.05)*0.05})`; ctx.lineWidth = 3*s;
-      ctx.stroke();
-
-      for(let i=0; i<6; i++) {
-        let oy = h - ((t*0.1 + i*200) % h);
-        let ox = w*0.2 + (i*143)%w + Math.sin(t*0.01+i)*50*s;
-        ctx.fillStyle = `rgba(103,232,249,${0.04 + Math.sin(t*0.05+i)*0.02})`;
-        ctx.beginPath(); ctx.arc(ox, oy, 50*s, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = `rgba(255,255,255,0.15)`;
-        ctx.beginPath(); ctx.arc(ox, oy, 8*s, 0, Math.PI*2); ctx.fill();
+      // Dark imposing sharp trenches with microscopic bioluminescent threads
+      ctx.fillStyle = lGrad(0, h-400*s, 0, h, 'rgba(15,23,42,0.4)', 'rgba(2,6,23,0.7)');
+      for(let j=0; j<3; j++) {
+        ctx.beginPath(); ctx.moveTo(0, h);
+        for(let x=0; x<=w; x+=30*s) {
+           let noise = (Math.sin(x*0.05)*10*s + Math.cos(x*0.13)*20*s);
+           ctx.lineTo(x, h - 180*s - j*80*s + noise);
+        }
+        ctx.lineTo(w, h); ctx.fill();
+      }
+      
+      // Extremely fine bioveins
+      ctx.strokeStyle = `rgba(103,232,249,0.06)`; ctx.lineWidth = 0.5*s;
+      for(let i=0; i<20; i++) {
+        let vx = (i*47)%w;
+        let vy = h - ((i*19 + t*0.05)%200)*s;
+        ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + Math.sin(vy*0.05)*15*s, vy - 40*s); ctx.stroke();
       }
       break;
     }
     case 'aurora': {
-      // Layered intersecting aurora waves with Screen blending
-      ctx.globalCompositeOperation = 'screen';
-      for(let i=0; i<4; i++) {
-        let clr = i%2===0 ? `rgba(52,211,153,${0.08+i*0.02})` : `rgba(56,189,248,${0.08+i*0.02})`;
-        ctx.fillStyle = lGrad(0, 0, 0, 200*s, clr, 'rgba(0,0,0,0)');
-        ctx.beginPath();
-        for(let x=0; x<=w; x+=40*s) {
-          let y = 80*s + Math.sin(x*0.005 + t*0.008 + i*2)*60*s + Math.cos(x*0.003 - t*0.005)*40*s;
-          x===0 ? ctx.moveTo(x, 0) : null;
-          ctx.lineTo(x, y);
-        }
-        ctx.lineTo(w, 0); ctx.lineTo(0, 0); ctx.fill();
+      // Faint vertical light rays that ripple horizontally
+      for(let i=0; i<60; i++) {
+        let ax = w*(i/60) + Math.sin(t*0.005 + i)*40*s;
+        let height = 150*s + Math.sin(t*0.01 + i*0.2)*80*s;
+        let clr = i%2===0 ? `rgba(52,211,153,0.05)` : `rgba(56,189,248,0.05)`;
+        ctx.fillStyle = lGrad(ax, 0, ax, height, clr, 'rgba(0,0,0,0)');
+        ctx.fillRect(ax, 0, 8*s, height);
       }
-      ctx.globalCompositeOperation = 'source-over';
-      // Ice shelf with specular edge
-      ctx.fillStyle = lGrad(0, h-60*s, 0, h, 'rgba(15,23,42,0.4)', 'rgba(2,6,23,0.7)');
-      ctx.fillRect(0, h-60*s, w, 60*s);
-      ctx.strokeStyle = 'rgba(103,232,249,0.3)'; ctx.lineWidth = 3*s;
-      ctx.beginPath(); ctx.moveTo(0, h-60*s); ctx.lineTo(w, h-60*s); ctx.stroke();
+      // Very soft dark ice shelf
+      ctx.fillStyle = 'rgba(2,6,23,0.4)';
+      ctx.beginPath(); ctx.moveTo(0, h);
+      for(let x=0; x<=w; x+=40*s) { ctx.lineTo(x, h-40*s + Math.sin(x*0.02)*10*s); }
+      ctx.lineTo(w, h); ctx.fill();
       break;
     }
     case 'lava': {
-      // Detailed vents with intense glowing radial centers
-      let px = w*0.5, py = h;
-      ctx.fillStyle = lGrad(px, py-200*s, px, py, 'rgba(69,26,3,0.5)', 'rgba(2,6,23,0.8)');
-      ctx.beginPath(); ctx.moveTo(px-250*s, py); ctx.lineTo(px, py-200*s); ctx.lineTo(px+250*s, py); ctx.fill();
-      let glow = 0.15 + Math.sin(t*0.08)*0.08;
-      // Glowing core
-      ctx.fillStyle = lGrad(px, py-180*s, px, py, `rgba(239,68,68,${glow+0.2})`, `rgba(239,68,68,0)`);
-      ctx.beginPath(); ctx.moveTo(px-50*s, py); ctx.lineTo(px, py-180*s); ctx.lineTo(px+50*s, py); ctx.fill();
-      // Highlight rims on rocks
-      ctx.strokeStyle = `rgba(245,158,11,${glow})`; ctx.lineWidth = 2*s;
-      ctx.beginPath(); ctx.moveTo(px-250*s, py); ctx.lineTo(px, py-200*s); ctx.stroke();
+      // Subdued crust plates with glowing thin cracks
+      ctx.fillStyle = 'rgba(20,10,5,0.6)';
+      ctx.fillRect(0, h-120*s, w, 120*s);
+      ctx.strokeStyle = `rgba(239,68,68,${0.15 + Math.sin(t*0.05)*0.05})`;
+      ctx.lineWidth = 1.5;
       
-      for(let i=0; i<25; i++) {
-        let ey = h - ((t*2.5 + i*80) % (300*s));
-        let ex = px - 120*s + (i*10) + Math.sin(t*0.1+i)*40*s;
-        ctx.fillStyle = `rgba(251,191,36,${glow + (i%2)*0.2})`;
-        ctx.beginPath(); ctx.arc(ex, ey, (1.5 + (i%3))*s, 0, Math.PI*2); ctx.fill();
+      for(let i=0; i<8; i++) {
+        let cx = w*(i/8);
+        ctx.beginPath(); ctx.moveTo(cx, h);
+        for(let y=h; y>h-120*s; y-=20*s) {
+           ctx.lineTo(cx + Math.sin(y*0.1 + i)*15*s, y);
+        }
+        ctx.stroke();
       }
       break;
     }
     case 'biolume': {
-      // Abstract cyan pods with glowing trails
-      for(let i=0; i<6; i++) {
-        let bx = w*0.1 + i*(w/6) + Math.sin(t*0.01+i)*20*s;
-        let by = h - 80*s + (i%2)*40*s;
-        let op = 0.08 + Math.sin(t*0.04 + i)*0.06;
+      // Hanging intricate glowing vines from canopy
+      for(let i=0; i<15; i++) {
+        let vx = w*(i/15) + 20*s;
+        let length = 100*s + Math.sin(i*1.7)*50*s;
         
-        ctx.fillStyle = lGrad(bx, by-120*s, bx, by, `rgba(103,232,249,${op})`, `rgba(103,232,249,0.01)`);
+        ctx.strokeStyle = `rgba(20,80,80,0.3)`; ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.ellipse(bx, by, 40*s, 100*s, Math.sin(t*0.01+i)*0.2, 0, Math.PI*2);
-        ctx.fill();
+        let currentX = vx;
+        for(let y=0; y<length; y+=10*s) {
+           currentX += Math.sin(t*0.01 + y*0.05 + i)*3*s;
+           y===0 ? ctx.moveTo(currentX, 0) : ctx.lineTo(currentX, y);
+        }
+        ctx.stroke();
         
-        // Inner glowing core
-        ctx.shadowBlur = 10*s; ctx.shadowColor = '#67e8f9';
-        ctx.fillStyle = `rgba(255,255,255,${op*1.5})`;
-        ctx.beginPath();
-        ctx.arc(bx + Math.sin(t*0.05+i)*10*s, by-70*s, 8*s, 0, Math.PI*2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        // Glowing tips
+        ctx.fillStyle = `rgba(103,232,249,${0.1 + Math.sin(t*0.03+i)*0.05})`;
+        ctx.beginPath(); ctx.arc(currentX, length, 4*s, 0, Math.PI*2); ctx.fill();
       }
       break;
     }
     case 'sakura': {
-      // Parallax drifting petals (Back, Mid, Front layers)
-      ctx.fillStyle = lGrad(0, h-100*s, 0, h, 'rgba(131,24,67,0.15)', 'rgba(67,20,7,0.4)'); 
-      ctx.beginPath(); ctx.arc(w*0.8, h+50*s, 250*s, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(w*0.2, h+100*s, 300*s, 0, Math.PI*2); ctx.fill();
-      // Glassy edge on mounds
-      ctx.strokeStyle = `rgba(244,114,182,0.1)`; ctx.lineWidth = 3*s;
-      ctx.beginPath(); ctx.arc(w*0.8, h+50*s, 250*s, Math.PI, Math.PI*1.5); ctx.stroke();
+      // Gnarly tree branch and numerous tiny petals
+      ctx.strokeStyle = 'rgba(67,20,7,0.3)'; ctx.lineWidth = 8*s; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(w, h-250*s);
+      ctx.quadraticCurveTo(w*0.8, h-220*s, w*0.6, h-300*s); ctx.stroke();
+      ctx.lineWidth = 4*s;
+      ctx.beginPath(); ctx.moveTo(w*0.85, h-235*s); ctx.lineTo(w*0.75, h-180*s); ctx.stroke();
       
-      for(let i=0; i<35; i++) {
-        // layer: 0=back, 1=mid, 2=front
-        let layer = i%3; 
-        let speed = layer + 1;
-        let pSize = (layer + 1) * 3 * s;
-        let py = ((t*0.3*speed + i*40) % h);
-        let px = ((t*0.2*speed + i*70) % w);
-        ctx.fillStyle = `rgba(244,114,182,${0.04 + layer*0.04})`;
+      for(let i=0; i<60; i++) {
+        let py = ((t*0.2 + i*30) % h);
+        let px = ((t*0.1 + i*50) % w);
+        ctx.fillStyle = `rgba(244,114,182,0.06)`;
         ctx.beginPath();
-        ctx.ellipse(px, py, pSize*1.5, pSize, t*0.02 + i, 0, Math.PI*2);
+        ctx.ellipse(px, py, 3*s, 1.5*s, t*0.02 + i, 0, Math.PI*2);
         ctx.fill();
       }
       break;
     }
     case 'crystal': {
-      // 3D-like isometric amethyst shards
-      for(let i=0; i<8; i++) {
-        let cx = w/8 * i + 40*s;
-        let topY = h - 150*s - (i%4)*40*s;
-        let op = 0.15 + Math.sin(t*0.03 + i)*0.08; 
+      // Faded, overlapping wireframe/glass triangles for depth mapping
+      for(let i=0; i<15; i++) {
+        let cx = (w/15)*i;
+        let cy = h - 50*s - (i%5)*30*s;
+        let size = 60*s;
         
-        // Left facet
-        ctx.fillStyle = lGrad(cx, topY, cx, h, `rgba(216,180,254,${op+0.1})`, `rgba(126,34,206,${op})`);
-        ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(cx-30*s, h); ctx.lineTo(cx, h); ctx.fill();
-        
-        // Right facet (darker)
-        ctx.fillStyle = lGrad(cx, topY, cx, h, `rgba(168,85,247,${op})`, `rgba(88,28,135,${op-0.05})`);
-        ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(cx+30*s, h); ctx.lineTo(cx, h); ctx.fill();
-        
-        // Neon edge highlight
-        ctx.strokeStyle = `rgba(243,232,255,${op*1.5})`; ctx.lineWidth = 1.5*s;
-        ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(cx, h); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(cx-30*s, h); ctx.stroke();
+        ctx.fillStyle = `rgba(168,85,247,0.04)`;
+        ctx.strokeStyle = `rgba(216,180,254,0.08)`; ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx-size, h); ctx.lineTo(cx+size, h); ctx.closePath();
+        ctx.fill(); ctx.stroke();
       }
       break;
     }
     case 'cosmos': {
-      // Massive swirling nebula & 3-layer parallax starfield
+      // Very faint dust clouds and fine 1px star noise
       ctx.globalCompositeOperation = 'screen';
-      for(let i=0; i<3; i++) {
-        let op = 0.05 + Math.sin(t*0.01 + i)*0.03;
-        let swirlX = w*(0.2+i*0.3) + Math.sin(t*0.005 + i)*50*s;
-        let swirlY = h*0.5 + Math.cos(t*0.004 + i)*50*s;
-        
-        // Ensure radial gradient has positive radii to prevent DOMException
-        let r2 = Math.max(0.1, 300*s);
-        let nGrad = ctx.createRadialGradient(swirlX, swirlY, 0, swirlX, swirlY, r2);
-        nGrad.addColorStop(0, i%2===0 ? `rgba(139,92,246,${op})` : `rgba(56,189,248,${op})`);
-        nGrad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = nGrad;
-        ctx.beginPath();
-        ctx.arc(swirlX, swirlY, r2, 0, Math.PI*2);
-        ctx.fill();
+      for(let i=0; i<4; i++) {
+        let r = 250*s + i*50*s;
+        let cx = w*0.3 + i*200*s + Math.sin(t*0.002)*20*s;
+        let cy = h*0.5 + Math.cos(t*0.003)*20*s;
+        let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grad.addColorStop(0, i%2===0 ? `rgba(139,92,246,0.015)` : `rgba(56,189,248,0.015)`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';
-      for(let i=0; i<45; i++) {
-        let layer = i%3 + 1;
-        let sx = (i*421 + (t*0.02*layer)) % w;
-        let sy = (i*137 + (t*0.01*layer)) % h;
-        let op = 0.1 + Math.sin(t*0.05+i)*0.15 + (layer*0.05);
-        ctx.fillStyle = `rgba(255,255,255,${op})`;
-        ctx.fillRect(sx, sy, layer*1.5, layer*1.5);
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      for(let i=0; i<100; i++) {
+        let sx = (i*71 + t*0.01*(i%3+1)) % w;
+        let sy = (i*83 + Math.sin(t*0.005)*10) % h;
+        ctx.fillRect(sx, sy, 1, 1);
       }
       break;
     }
     case 'eden': {
-      // Golden fluted pillars & glowing vines
-      let pColor = lGrad(0, h-300*s, 0, h, 'rgba(251,191,36,0.12)', 'rgba(180,83,9,0.3)');
-      [w*0.15, w*0.8].forEach((px, i) => {
-        let ph = 250*s + i*50*s;
-        ctx.fillStyle = pColor;
-        ctx.fillRect(px, h-ph, 40*s, ph);
-        // Column fluting
-        ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2*s;
-        ctx.beginPath(); ctx.moveTo(px+10*s, h-ph); ctx.lineTo(px+10*s, h); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(px+30*s, h-ph); ctx.lineTo(px+30*s, h); ctx.stroke();
+      // Overgrown broken masonry stretching horizontally
+      ctx.fillStyle = 'rgba(251,191,36,0.05)';
+      ctx.fillRect(0, h-100*s, w, 100*s);
+      
+      // Vertical ruined columns
+      for(let i=0; i<6; i++) {
+        let cx = w*(i/6) + 40*s;
+        let height = 150*s + (i%3)*40*s;
+        ctx.fillRect(cx, h-height, 20*s, height);
         
-        // Swaying glassy vine
-        let sway = Math.sin(t*0.015 + i)*12*s;
-        ctx.strokeStyle = lGrad(px, h-ph, px, h, 'rgba(16,185,129,0.2)', 'rgba(6,78,59,0.3)');
-        ctx.lineWidth = 6*s; ctx.lineCap='round';
-        ctx.beginPath(); 
-        ctx.moveTo(px-10*s, h-ph); 
-        ctx.quadraticCurveTo(px + 30*s + sway, h-(ph*0.6), px-10*s, h-(ph*0.3));
-        ctx.quadraticCurveTo(px + 40*s - sway, h-(ph*0.1), px+20*s, h);
+        // Fine Ivy
+        ctx.strokeStyle = `rgba(16,185,129,0.15)`; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(let y=h; y>h-height; y-=10*s) {
+           let vx = cx + 10*s + Math.sin(y*0.1)*5*s;
+           y===h ? ctx.moveTo(vx, y) : ctx.lineTo(vx, y);
+        }
         ctx.stroke();
-        // Vine highlight
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5*s;
-        ctx.stroke();
-      });
+      }
       break;
     }
   }
