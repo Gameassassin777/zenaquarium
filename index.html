@@ -385,7 +385,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 </div>
 
 <div id="apanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-aqua">📖 Aquapedia</span><button class="xbtn" onclick="closeAll()">✕</button></div>
+  <div class="ph"><span class="pt" id="ph-aqua">📖 Aquapedia</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="alist"></div>
 </div>
 
@@ -1143,6 +1143,7 @@ function applyState(s){
   sm.homozyBred = sm.homozyBred || 0;
   // New fields: nav unlock tracking, onboarding, aquapedia discovery
   _navSeen = s.navSeen || {};
+  // 99 = onboarding complete; returning saves (s.v exists) skip onboarding, new saves start at step 0
   _onboardStep = s.onboardStep !== undefined ? s.onboardStep : (s.v ? 99 : 0);
   sm.discovered = s.aquaDiscovered || s.sm?.discovered || {};
   questStreak = s.questStreak || 0;
@@ -3176,7 +3177,10 @@ function checkLevel(){
       8: ['• Octopus Available'],
       9: ['🕳 Abyss era (after taming a visitor)'],
     };
-    document.getElementById('lvlunlocks').innerHTML = (LEVEL_UNLOCKS[playerLevel] || ['✦ Keep leveling up to unlock more!']).map(s => s.startsWith('•') ? `<div style="padding:4px 0;">${s}</div>` : `<div style="padding:4px 0;">✦ ${s}</div>`).join('');
+    const unlockItems = LEVEL_UNLOCKS[playerLevel] || ['✦ Keep leveling up to unlock more!'];
+    document.getElementById('lvlunlocks').innerHTML = unlockItems.map(s =>
+      s.startsWith('•') ? `<div style="padding:4px 0;">${s}</div>` : `<div style="padding:4px 0;">✦ ${s}</div>`
+    ).join('');
     document.getElementById('lvlnum').textContent = playerLevel;
     document.getElementById('lvlmodal').classList.add('show');
   }
