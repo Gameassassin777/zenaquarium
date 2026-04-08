@@ -1845,36 +1845,107 @@ function updateFish(f){
   if(trait === 'active') baseSpd *= 1.15;
   if(trait === 'lazy') baseSpd *= 0.75;
 
-  if(best){
-    const dx=best.x-f.x,dy=best.y-f.y,d=Math.max(1,Math.hypot(dx,dy));
-    f.vx+=(dx/d)*.8;f.vy+=(dy/d)*.6;
-    const sp=Math.hypot(f.vx,f.vy),cap=baseSpd*3*sm2;
-    if(sp>cap){f.vx*=cap/sp;f.vy*=cap/sp;}
-    if(d<35*f.scale)triggerEat(f,best,def);
-  }else{
-    if(f.timer%120===0){
-      if(trait === 'lazy' && Math.random() < 0.5) { f.vx *= 0.3; f.vy *= 0.3; }
-      else { f.vx+=(Math.random()-.5)*baseSpd*2; f.vy+=(Math.random()-.5)*baseSpd; }
-    }
-    
-    if(trait === 'shy') {
-       for(const other of fishList) {
-          if(other === f) continue;
-          const od = Math.hypot(other.x - f.x, other.y - f.y);
-          if(od < 60) { f.vx -= (other.x - f.x) * 0.002; f.vy -= (other.y - f.y) * 0.002; }
-       }
+  if(f.type === 'octopus'){
+    // -- Octopus jet-propulsion burst-and-coast movement --
+    // Lazy-init state
+    if(f._octoPhase === undefined){ f._octoPhase = 0; f._octoTimer = Math.floor(80 + Math.random()*80); f._octoBurstDir = {x:1, y:0}; }
+
+    f._octoTimer--;
+
+    if(best){
+      // Food nearby: immediately jet toward it
+      const dx=best.x-f.x, dy=best.y-f.y, d=Math.max(1,Math.hypot(dx,dy));
+      f._octoPhase = 1;
+      f._octoTimer = 20 + Math.floor(Math.random()*20);
+      f._octoBurstDir = {x: dx/d, y: dy/d};
+      if(d<35*f.scale) triggerEat(f,best,def);
     }
 
-    if(Math.abs(f.vx)<baseSpd*.3)f.vx+=(f.vx>=0?.2:-.2);
+    if(f._octoPhase === 0){
+      // Coasting: very slow drift, arms wave, heavy damping
+      const damp = trait === 'lazy' ? 0.90 : 0.93;
+      f.vx *= damp; f.vy *= damp;
+      // gentle random wander every ~90 frames
+      if(f.timer % 90 === 0){
+        if(trait === 'lazy' && Math.random() < 0.55){ f.vx *= 0.2; f.vy *= 0.2; }
+        else {
+          const wa = Math.random() * Math.PI * 2;
+          f.vx += Math.cos(wa) * baseSpd * 0.5;
+          f.vy += Math.sin(wa) * baseSpd * 0.35;
+        }
+      }
+      // Shy trait — avoid nearby fish
+      if(trait === 'shy'){
+        for(const other of fishList){
+          if(other === f) continue;
+          const od = Math.hypot(other.x - f.x, other.y - f.y);
+          if(od < 60){ f.vx -= (other.x - f.x) * 0.0015; f.vy -= (other.y - f.y) * 0.0015; }
+        }
+      }
+      if(f._octoTimer <= 0){
+        // Transition to jet phase
+        f._octoPhase = 1;
+        const jLen = 30 + Math.floor(Math.random()*30);
+        f._octoTimer = jLen;
+        const ja = Math.random() * Math.PI * 2;
+        f._octoBurstDir = {x: Math.cos(ja), y: Math.sin(ja) * 0.75};
+      }
+    } else {
+      // Jetting: quick burst in chosen direction
+      const jetSpd = baseSpd * (trait === 'active' ? 4.5 : trait === 'lazy' ? 2.5 : 3.5);
+      f.vx += f._octoBurstDir.x * jetSpd * 0.35;
+      f.vy += f._octoBurstDir.y * jetSpd * 0.35;
+      // cap jet speed
+      const sp = Math.hypot(f.vx, f.vy), cap = jetSpd * sm2;
+      if(sp > cap){ f.vx *= cap/sp; f.vy *= cap/sp; }
+      f.vx *= 0.96; f.vy *= 0.96;
+      if(f._octoTimer <= 0){
+        // Transition to coast phase
+        f._octoPhase = 0;
+        const coastLen = (trait === 'lazy' ? 160 : trait === 'active' ? 100 : 130) + Math.floor(Math.random()*70);
+        f._octoTimer = coastLen;
+      }
+    }
+
+    f.x += f.vx * sm2; f.y += f.vy * sm2;
+    const mx=40, ty=90, by=SWIM_BOT();
+    // gentle boundary push-off
+    if(f.x < mx){ f.x = mx; f.vx = Math.abs(f.vx) * 0.5 + 0.1; f._octoPhase = 0; f._octoTimer = 10; }
+    if(f.x > W-mx){ f.x = W-mx; f.vx = -(Math.abs(f.vx) * 0.5 + 0.1); f._octoPhase = 0; f._octoTimer = 10; }
+    if(f.y < ty){ f.y = ty; f.vy = Math.abs(f.vy) * 0.5 + 0.1; f._octoPhase = 0; f._octoTimer = 10; }
+    if(f.y > by){ f.y = by; f.vy = -(Math.abs(f.vy) * 0.5 + 0.1); f._octoPhase = 0; f._octoTimer = 10; }
+  } else {
+    if(best){
+      const dx=best.x-f.x,dy=best.y-f.y,d=Math.max(1,Math.hypot(dx,dy));
+      f.vx+=(dx/d)*.8;f.vy+=(dy/d)*.6;
+      const sp=Math.hypot(f.vx,f.vy),cap=baseSpd*3*sm2;
+      if(sp>cap){f.vx*=cap/sp;f.vy*=cap/sp;}
+      if(d<35*f.scale)triggerEat(f,best,def);
+    }else{
+      if(f.timer%120===0){
+        if(trait === 'lazy' && Math.random() < 0.5) { f.vx *= 0.3; f.vy *= 0.3; }
+        else { f.vx+=(Math.random()-.5)*baseSpd*2; f.vy+=(Math.random()-.5)*baseSpd; }
+      }
+      
+      if(trait === 'shy') {
+         for(const other of fishList) {
+            if(other === f) continue;
+            const od = Math.hypot(other.x - f.x, other.y - f.y);
+            if(od < 60) { f.vx -= (other.x - f.x) * 0.002; f.vy -= (other.y - f.y) * 0.002; }
+         }
+      }
+
+      if(Math.abs(f.vx)<baseSpd*.3)f.vx+=(f.vx>=0?.2:-.2);
+    }
+    
+    f.vx*=.95;f.vy*=.95;f.x+=f.vx*sm2;f.y+=f.vy*sm2;
+    const mx=40,ty=90,by=SWIM_BOT();
+    
+    if(f.x<mx){f.x=mx;f.vx=(Math.abs(f.vx)+0.2)*0.9;}
+    if(f.x>W-mx){f.x=W-mx;f.vx=-(Math.abs(f.vx)+0.2)*0.9;}
+    if(f.y<ty){f.y=ty;f.vy=(Math.abs(f.vy)+0.1)*0.9;}
+    if(f.y>by){f.y=by;f.vy=-(Math.abs(f.vy)+0.1)*0.9;}
   }
-  
-  f.vx*=.95;f.vy*=.95;f.x+=f.vx*sm2;f.y+=f.vy*sm2;
-  const mx=40,ty=90,by=SWIM_BOT();
-  
-  if(f.x<mx){f.x=mx;f.vx=(Math.abs(f.vx)+0.2)*0.9;}
-  if(f.x>W-mx){f.x=W-mx;f.vx=-(Math.abs(f.vx)+0.2)*0.9;}
-  if(f.y<ty){f.y=ty;f.vy=(Math.abs(f.vy)+0.1)*0.9;}
-  if(f.y>by){f.y=by;f.vy=-(Math.abs(f.vy)+0.1)*0.9;}
 }
 
 // VISUALS
@@ -2705,36 +2776,169 @@ function drawFish(f){
     }
   }
   else if(f.type==='octopus'){
-    const opulse = 1 + Math.sin(f.phase * 0.4) * 0.04;
+    // breathing pulse — faster during jet phase
+    const isJetting = f._octoPhase === 1;
+    const pulseRate = isJetting ? 1.8 : 0.45;
+    const opulse = 1 + Math.sin(f.phase * pulseRate) * (isJetting ? 0.09 : 0.04);
+    // mantle squishes when jetting
+    const msx = isJetting ? (1 - Math.abs(Math.sin(f.phase*pulseRate))*0.12) : 1;
+    const msy = isJetting ? (1 + Math.abs(Math.sin(f.phase*pulseRate))*0.16) : 1;
+
     ctx.lineCap='round'; ctx.lineJoin='round';
+
+    // -- Webbing between arm bases --
+    ctx.fillStyle = _c1 + '44';
+    ctx.beginPath();
+    ctx.moveTo(-s*0.55, s*0.18);
+    ctx.bezierCurveTo(-s*0.7, s*0.55, -s*0.35, s*0.7, 0, s*0.62);
+    ctx.bezierCurveTo(s*0.35, s*0.7, s*0.7, s*0.55, s*0.55, s*0.18);
+    ctx.quadraticCurveTo(0, s*0.4, -s*0.55, s*0.18);
+    ctx.fill();
+
+    // -- 8 Arms --
     for(let i=0; i<8; i++){
-      const spread = (i/7 - 0.5) * s * 1.2;
-      const wave = Math.sin(f.phase + i * Math.PI/4) * s * 0.35;
-      const wave2 = Math.sin(f.phase * 1.3 + i * Math.PI/4 + 1.2) * s * 0.22;
-      ctx.lineWidth = s * 0.16;
+      // fan arms from -80 to +80 degrees beneath the mantle
+      const baseAngle = (i/7 - 0.5) * Math.PI * 1.1 + Math.PI*0.5;
+      const bx = Math.cos(baseAngle) * s * 0.42;
+      const by = Math.sin(baseAngle) * s * 0.38 + s*0.28;
+
+      // independent phase per arm using f.id and arm index
+      const ph1 = f.phase + i * 0.72 + (f.id % 7) * 0.4;
+      const ph2 = f.phase * 1.25 + i * 0.55 + (f.id % 5) * 0.6;
+      const ph3 = f.phase * 0.85 + i * 0.9 + (f.id % 11) * 0.3;
+
+      // during jetting arms trail behind, otherwise wave organically
+      const jetDamp = isJetting ? 0.25 : 1.0;
+      const w1 = Math.sin(ph1) * s * 0.28 * jetDamp;
+      const w2 = Math.sin(ph2) * s * 0.22 * jetDamp;
+      const w3 = Math.sin(ph3) * s * 0.16 * jetDamp;
+
+      // front arms curl inward, back arms trail
+      const sideSign = (i < 4) ? -1 : 1;
+      const curlX = sideSign * s * 0.2 * (isJetting ? 0.2 : 1);
+
+      // 3-segment bezier S-curve control points
+      const cp1x = bx * 0.6 + w1 * 0.5,  cp1y = by + s * 0.45 + w1 * 0.4;
+      const cp2x = bx * 0.9 + w2,         cp2y = by + s * 0.95 + w2 * 0.6;
+      const cp3x = bx * 0.8 + w3 + curlX, cp3y = by + s * 1.55 + w3 * 0.5;
+      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5;
+      const endy  = by + s * 2.1  + w3 * 0.3;
+
+      // thick arm (body color, wide at base)
+      ctx.lineWidth = s * 0.2;
       ctx.strokeStyle = bg;
       ctx.beginPath();
-      ctx.moveTo(spread * 0.3, s * 0.28);
-      ctx.bezierCurveTo(
-        spread * 0.7 + wave * 0.4, s * 0.75 + wave,
-        spread * 1.0 + wave2, s * 1.35 + wave2,
-        spread * 0.9 + wave * 0.3, s * 1.9 + wave * 0.25
-      );
+      ctx.moveTo(bx, by);
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
       ctx.stroke();
-      ctx.fillStyle = _c2 + 'cc';
-      for(let j=1; j<=3; j++){
-        const t = j/4;
-        const scx = spread*(0.3+t*0.6) + wave*t*0.35;
-        const scy = s*0.28 + s*1.62*t + wave2*t*0.3;
-        ctx.beginPath(); ctx.arc(scx, scy, s*0.028, 0, Math.PI*2); ctx.fill();
+      // taper: mid segment
+      ctx.lineWidth = s * 0.13;
+      ctx.beginPath();
+      ctx.moveTo(cp2x, cp2y);
+      ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
+      ctx.stroke();
+
+      // color overlay on arm
+      ctx.lineWidth = s * 0.16;
+      ctx.strokeStyle = _c1 + 'dd';
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
+      ctx.stroke();
+      ctx.lineWidth = s * 0.09;
+      ctx.strokeStyle = _c1 + 'bb';
+      ctx.beginPath();
+      ctx.moveTo(cp2x, cp2y);
+      ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
+      ctx.stroke();
+
+      // suckers (5 dots per arm along inner curve, shrinking toward tip)
+      ctx.strokeStyle = _c2 + 'cc';
+      for(let j=1; j<=5; j++){
+        const t = j / 5.5;
+        const sx = bx*(1-t) + (cp1x*(1-t)*t + cp2x*t*(1-t) + cp3x*t*t)*3 + endx*t*t*t;
+        const sy = by*(1-t) + (cp1y*(1-t)*t + cp2y*t*(1-t) + cp3y*t*t)*3 + endy*t*t*t;
+        const sr = s * 0.032 * (1 - t * 0.55);
+        ctx.lineWidth = sr * 0.5;
+        ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
+        ctx.stroke();
       }
     }
-    ctx.fillStyle = bg;
+
+    // -- Mantle (bulbous dome teardrop shape) --
+    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72*opulse);
+    mg.addColorStop(0, _c1);
+    mg.addColorStop(0.6, _c1);
+    mg.addColorStop(1, _c2);
+    ctx.fillStyle = mg;
     ctx.beginPath();
-    ctx.ellipse(0, -s*0.18, s*0.62*opulse, s*0.5*opulse, 0, 0, Math.PI*2);
+    // teardrop: wide dome top, narrowing at base
+    ctx.moveTo(0, s*0.32*msy*opulse);
+    ctx.bezierCurveTo(
+      -s*0.72*msx*opulse, s*0.28*msy,
+      -s*0.78*msx*opulse, -s*0.62*msy,
+       0,                 -s*0.92*msy*opulse
+    );
+    ctx.bezierCurveTo(
+       s*0.78*msx*opulse, -s*0.62*msy,
+       s*0.72*msx*opulse,  s*0.28*msy,
+       0,                  s*0.32*msy*opulse
+    );
+    ctx.closePath();
     ctx.fill();
-    drawEye(ctx, s*0.28, -s*0.28, s*0.09);
-    drawEye(ctx, -s*0.28, -s*0.28, s*0.09);
+
+    // mantle shading overlay
+    ctx.fillStyle = _c2 + '33';
+    ctx.beginPath();
+    ctx.moveTo(0, s*0.32*msy*opulse);
+    ctx.bezierCurveTo(-s*0.72*msx*opulse, s*0.28*msy, -s*0.78*msx*opulse, -s*0.62*msy, 0, -s*0.92*msy*opulse);
+    ctx.bezierCurveTo(s*0.78*msx*opulse, -s*0.62*msy, s*0.72*msx*opulse, s*0.28*msy, 0, s*0.32*msy*opulse);
+    ctx.closePath();
+    ctx.fill();
+
+    // chromatophore spots on mantle (3-5 spots)
+    const spotCount = 4 + (f.id % 2);
+    for(let sp=0; sp<spotCount; sp++){
+      const sa = (sp / spotCount) * Math.PI * 1.6 - Math.PI * 0.8;
+      const sr = s * (0.15 + (sp % 3) * 0.08);
+      const spx = Math.cos(sa) * s * 0.28 * msx;
+      const spy = Math.sin(sa) * s * 0.24 * msy - s * 0.32;
+      const spotPulse = 0.7 + Math.sin(f.phase * 0.6 + sp * 1.4) * 0.3;
+      ctx.fillStyle = (sp % 2 === 0 ? _c2 : _c1) + Math.floor(spotPulse * 80 + 40).toString(16).padStart(2,'0');
+      ctx.beginPath(); ctx.ellipse(spx, spy, sr * spotPulse, sr * 0.7 * spotPulse, sa * 0.3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // -- Siphon (funnel below eye, points backward) --
+    ctx.fillStyle = _c2 + 'cc';
+    ctx.beginPath();
+    ctx.moveTo(s*0.22, s*0.02);
+    ctx.bezierCurveTo(s*0.38, s*0.06, s*0.45, s*0.14, s*0.38, s*0.22);
+    ctx.bezierCurveTo(s*0.3, s*0.3, s*0.18, s*0.28, s*0.15, s*0.2);
+    ctx.closePath();
+    ctx.fill();
+    // siphon opening tip
+    ctx.strokeStyle = _c2; ctx.lineWidth = s * 0.04;
+    ctx.beginPath(); ctx.moveTo(s*0.38, s*0.22); ctx.lineTo(s*0.48, s*0.28); ctx.stroke();
+
+    // -- Large expressive octopus eye (custom, not drawEye helper) --
+    const ex = s * 0.35, ey = -s * 0.18;
+    const er = s * 0.16; // sclera radius
+    // sclera (white)
+    ctx.fillStyle = '#ffffffee';
+    ctx.beginPath(); ctx.ellipse(ex, ey, er, er*0.9, 0, 0, Math.PI*2); ctx.fill();
+    // dark iris
+    ctx.fillStyle = _c2 + 'ee';
+    ctx.beginPath(); ctx.ellipse(ex, ey, er*0.72, er*0.65, 0, 0, Math.PI*2); ctx.fill();
+    // horizontal slit pupil
+    ctx.fillStyle = '#111111ee';
+    ctx.beginPath(); ctx.ellipse(ex, ey, er*0.55, er*0.22, 0, 0, Math.PI*2); ctx.fill();
+    // pupil highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.ellipse(ex - er*0.18, ey - er*0.22, er*0.14, er*0.1, -Math.PI/5, 0, Math.PI*2); ctx.fill();
+    // eye ring
+    ctx.strokeStyle = '#000000aa'; ctx.lineWidth = s * 0.025;
+    ctx.beginPath(); ctx.ellipse(ex, ey, er, er*0.9, 0, 0, Math.PI*2); ctx.stroke();
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.05;
