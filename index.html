@@ -1720,8 +1720,8 @@ function updateEco(){
   if(isHarmony)sm.harmonySec+=1/60;
 
   if(UPGRADES.autofeed.owned>0&&time%240===0&&foodList.length<fishList.length){
-    const hf=fishList.find(f=>f.hunger<50);
-    if(hf)foodList.push({x:hf.x+(Math.random()*40-20),y:20,vy:0,vx:(Math.random()-.5)*.5,life:1,eaten:false});
+    // Drop food at random horizontal points to disperse fish evenly
+    foodList.push({x:W*0.1 + Math.random()*(W*0.8), y:20, vy:0, vx:(Math.random()-.5)*.5, life:1, eaten:false});
   }
   
   const now = Date.now();
