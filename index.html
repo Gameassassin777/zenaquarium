@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.2.2';
+const CUR_VER = '2.2.3';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -842,13 +842,14 @@ let visitorList = [];
 let _lastVisitorCheck = 0;
 
 const COLOR_BANDS = [
-  { name: 'Crimson',   hueMin: 340, hueMax: 20,  bonus: 'sellMult',    bonusVal: 1.25, desc: '+25% sell value' },
-  { name: 'Ember',     hueMin: 20,  hueMax: 50,  bonus: 'xpMult',      bonusVal: 1.2,  desc: '+20% XP gain' },
-  { name: 'Solar',     hueMin: 50,  hueMax: 80,  bonus: 'feedMult',    bonusVal: 1.3,  desc: '+30% feed coins' },
-  { name: 'Verdant',   hueMin: 80,  hueMax: 170, bonus: 'algaeClean',  bonusVal: 0.85, desc: 'Tank stays cleaner' },
-  { name: 'Abyssal',   hueMin: 170, hueMax: 250, bonus: 'offlineBonus',bonusVal: 1.4,  desc: '+40% offline earnings' },
-  { name: 'Void',      hueMin: 250, hueMax: 310, bonus: 'rareMult',    bonusVal: 1.15, desc: '+15% rare mutation chance' },
-  { name: 'Prismatic', hueMin: 310, hueMax: 340, bonus: 'comboMult',   bonusVal: 1.2,  desc: '+20% combo multiplier' },
+  { name: 'Crimson',   hueMin: 345, hueMax: 15,  bonus: 'sellMult',    bonusVal: 1.25, desc: '+25% sell value' },
+  { name: 'Ember',     hueMin: 15,  hueMax: 45,  bonus: 'xpMult',      bonusVal: 1.2,  desc: '+20% XP gain' },
+  { name: 'Solar',     hueMin: 45,  hueMax: 70,  bonus: 'feedMult',    bonusVal: 1.3,  desc: '+30% feed coins' },
+  { name: 'Verdant',   hueMin: 70,  hueMax: 165, bonus: 'algaeClean',  bonusVal: 0.85, desc: 'Tank stays cleaner' },
+  { name: 'Cerulean',  hueMin: 165, hueMax: 235, bonus: 'offlineBonus',bonusVal: 1.4,  desc: '+40% offline earnings' },
+  { name: 'Abyssal',   hueMin: 235, hueMax: 275, bonus: 'speedMult',   bonusVal: 1.2,  desc: '+20% swim speed' },
+  { name: 'Amethyst',  hueMin: 275, hueMax: 325, bonus: 'rareMult',    bonusVal: 1.15, desc: '+15% rare mutation chance' },
+  { name: 'Prismatic', hueMin: 325, hueMax: 345, bonus: 'comboMult',   bonusVal: 1.2,  desc: '+20% combo multiplier' },
 ];
 
 const VISITOR_SPECIES = {
@@ -6539,26 +6540,26 @@ function swDrawAll() {
   const dt = now - (sw_lastFrame || now);
   sw_lastFrame = now;
 
-  // ── Background ──
+  // ── Organic Aquatic Background ──
   ctx2.clearRect(0, 0, W2, H2);
   const bg = ctx2.createRadialGradient(W2/2, H2/2, 0, W2/2, H2/2, Math.max(W2,H2)*0.9);
-  bg.addColorStop(0, '#0a0e1a');
-  bg.addColorStop(0.5, '#060a14');
-  bg.addColorStop(1, '#020408');
+  bg.addColorStop(0, '#010f17');
+  bg.addColorStop(0.5, '#01050a');
+  bg.addColorStop(1, '#000102');
   ctx2.fillStyle = bg;
   ctx2.fillRect(0, 0, W2, H2);
 
-  // ── Nebula clouds ──
+  // ── Bioluminescent Algae Clouds ──
   sw_nebulae.forEach((neb, i) => {
-    const drift = now * 0.00003;
-    const nx = neb.x + Math.sin(drift + i * 1.5) * 50;
-    const ny = neb.y + Math.cos(drift * 0.7 + i * 2.1) * 40;
+    const drift = now * 0.00002;
+    const nx = neb.x + Math.sin(drift + i * 1.4) * 40;
+    const ny = neb.y + Math.cos(drift * 0.6 + i * 1.8) * 30;
     const spos = swWorldToScreen(nx, ny);
-    const radius = neb.r * sw_zoom;
+    const radius = neb.r * sw_zoom * 1.2;
     const [nr,ng,nb] = swHexRgb(neb.color);
     const grad = ctx2.createRadialGradient(spos.x, spos.y, 0, spos.x, spos.y, radius);
-    grad.addColorStop(0, `rgba(${nr},${ng},${nb},0.07)`);
-    grad.addColorStop(0.4, `rgba(${nr},${ng},${nb},0.03)`);
+    grad.addColorStop(0, `rgba(${nr},${ng},${nb},0.08)`);
+    grad.addColorStop(0.5, `rgba(${nr},${ng},${nb},0.03)`);
     grad.addColorStop(1, `rgba(${nr},${ng},${nb},0)`);
     ctx2.fillStyle = grad;
     ctx2.beginPath();
@@ -6566,65 +6567,49 @@ function swDrawAll() {
     ctx2.fill();
   });
 
-  // ── Star field with twinkling ──
+  // ── Drifting Spores / Plankton ──
   for (let i = 0; i < sw_stars.length; i++) {
-    const star = sw_stars[i];
-    const px = star.x * star.parallax;
-    const py = star.y * star.parallax;
+    const spore = sw_stars[i];
+    const px = spore.x * spore.parallax;
+    const py = spore.y * spore.parallax - (now * 0.01 * spore.parallax) % 1000;
     const spos = swWorldToScreen(px, py);
     if (spos.x < -20 || spos.x > W2 + 20 || spos.y < -20 || spos.y > H2 + 20) continue;
-    const twinkle = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(now * star.twinkleSpeed + star.twinklePhase));
-    const alpha = star.alpha * twinkle;
+    const sway = Math.sin(now * 0.001 + spore.twinklePhase) * 10 * sw_zoom;
+    spos.x += sway;
+    const alpha = spore.alpha * (0.4 + 0.6 * Math.sin(now * spore.twinkleSpeed));
     ctx2.beginPath();
-    ctx2.arc(spos.x, spos.y, Math.max(0.4, star.size * sw_zoom), 0, Math.PI * 2);
-    ctx2.fillStyle = `rgba(${star.cr},${star.cg},${star.cb},${alpha.toFixed(2)})`;
+    ctx2.arc(spos.x, spos.y, Math.max(1, spore.size * 1.5 * sw_zoom), 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(${spore.cr},${Math.min(255, spore.cg+50)},${spore.cb},${alpha.toFixed(2)})`;
     ctx2.fill();
-    if (star.size > 1.4 && alpha > 0.45) {
-      ctx2.globalAlpha = alpha * 0.25;
-      ctx2.strokeStyle = `rgba(${star.cr},${star.cg},${star.cb},1)`;
-      ctx2.lineWidth = 0.5;
-      const fl = star.size * 4 * sw_zoom;
-      ctx2.beginPath();
-      ctx2.moveTo(spos.x - fl, spos.y); ctx2.lineTo(spos.x + fl, spos.y);
-      ctx2.moveTo(spos.x, spos.y - fl); ctx2.lineTo(spos.x, spos.y + fl);
-      ctx2.stroke();
-      ctx2.globalAlpha = 1;
-    }
   }
 
-  // ── Inter-cluster curved connectors ──
+  // ── Central Neural Trunks ──
   SW_CLUSTERS.forEach(cl => {
     if (cl.id === 'core') return;
     const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
     if (!coreCl) return;
     const a = swWorldToScreen(cl.cx, cl.cy);
     const b = swWorldToScreen(coreCl.cx, coreCl.cy);
-    const perpX = -(a.y - b.y) * 0.15;
-    const perpY = (a.x - b.x) * 0.15;
+    const perpX = -(a.y - b.y) * 0.2;
+    const perpY = (a.x - b.x) * 0.2;
     const midX = (a.x + b.x) / 2;
     const midY = (a.y + b.y) / 2;
-    // Glow layer
     ctx2.beginPath();
     ctx2.moveTo(a.x, a.y);
-    ctx2.quadraticCurveTo(midX + perpX, midY + perpY, b.x, b.y);
+    ctx2.bezierCurveTo(midX + perpX, midY + perpY, midX - perpX, midY - perpY, b.x, b.y);
     ctx2.strokeStyle = cl.color;
-    ctx2.globalAlpha = 0.06;
-    ctx2.lineWidth = 8 * sw_zoom;
+    ctx2.globalAlpha = 0.15;
+    ctx2.lineCap = 'round';
+    ctx2.lineWidth = 14 * sw_zoom;
     ctx2.stroke();
-    // Thin dashed line
-    ctx2.beginPath();
-    ctx2.moveTo(a.x, a.y);
-    ctx2.quadraticCurveTo(midX + perpX, midY + perpY, b.x, b.y);
-    ctx2.strokeStyle = cl.color;
-    ctx2.globalAlpha = 0.12;
-    ctx2.lineWidth = 1.2;
-    ctx2.setLineDash([4, 6]);
+    // Inner pulse
+    ctx2.globalAlpha = 0.05 + 0.05*Math.sin(now * 0.001);
+    ctx2.lineWidth = 6 * sw_zoom;
     ctx2.stroke();
-    ctx2.setLineDash([]);
     ctx2.globalAlpha = 1;
   });
 
-  // ── Node connector lines (bezier curves) ──
+  // ── Branching Neural Pathways ──
   SW_CLUSTERS.forEach(cl => {
     const revealed = sw_revealed.has(cl.id);
     cl.nodes.forEach(nd => {
@@ -6636,8 +6621,8 @@ function swDrawAll() {
         const posA = swWorldToScreen(swNodePos(nd, cl).x, swNodePos(nd, cl).y);
         const posB = swWorldToScreen(swNodePos(reqNd, reqCl).x, swNodePos(reqNd, reqCl).y);
         const bothOwned = swOwned(nd.id) > 0 && swOwned(reqNd.id) > 0;
-        const perpX2 = -(posA.y - posB.y) * 0.12;
-        const perpY2 = (posA.x - posB.x) * 0.12;
+        const perpX2 = -(posA.y - posB.y) * 0.15;
+        const perpY2 = (posA.x - posB.x) * 0.15;
         const midX2 = (posA.x + posB.x) / 2;
         const midY2 = (posA.y + posB.y) / 2;
 
@@ -6645,37 +6630,24 @@ function swDrawAll() {
           ctx2.beginPath();
           ctx2.moveTo(posA.x, posA.y);
           ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
-          ctx2.strokeStyle = 'rgba(255,255,255,0.04)';
-          ctx2.lineWidth = 1;
+          ctx2.strokeStyle = 'rgba(255,255,255,0.06)';
+          ctx2.lineWidth = 1.5;
           ctx2.stroke();
         } else {
-          // Wide glow for owned connections
-          if (bothOwned) {
-            ctx2.beginPath();
-            ctx2.moveTo(posA.x, posA.y);
-            ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
-            ctx2.strokeStyle = cl.color;
-            ctx2.globalAlpha = 0.12;
-            ctx2.lineWidth = Math.max(3, 6 * sw_zoom);
-            ctx2.stroke();
-            ctx2.globalAlpha = 1;
-          }
-          // Main line
           ctx2.beginPath();
           ctx2.moveTo(posA.x, posA.y);
           ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
+          ctx2.lineCap = 'round';
           if (bothOwned) {
             ctx2.strokeStyle = cl.color;
-            ctx2.globalAlpha = 0.8;
-            ctx2.lineWidth = 2;
+            ctx2.globalAlpha = 0.6;
+            ctx2.lineWidth = Math.max(3, 8 * sw_zoom); // Thick activated tendrils
           } else {
             ctx2.strokeStyle = cl.color;
-            ctx2.globalAlpha = 0.2;
-            ctx2.lineWidth = 1.2;
-            ctx2.setLineDash([3, 5]);
+            ctx2.globalAlpha = 0.25;
+            ctx2.lineWidth = Math.max(2, 4 * sw_zoom); // Dull unactivated tendrils
           }
           ctx2.stroke();
-          ctx2.setLineDash([]);
           ctx2.globalAlpha = 1;
         }
       });
@@ -6882,65 +6854,65 @@ function swDrawAll() {
         ctx2.fill();
       }
 
-      // Node fill (radial gradient for 3D look)
+      // ── Organic Node Polyps ──
       const [cr,cg,cb] = swHexRgb(cl.color);
-      const nodeGrad = ctx2.createRadialGradient(
-        spos.x - r * 0.25, spos.y - r * 0.25, 0,
-        spos.x, spos.y, r
-      );
-      if (owned > 0 || maxed) {
-        nodeGrad.addColorStop(0, `rgba(${Math.min(255,cr+70)},${Math.min(255,cg+70)},${Math.min(255,cb+70)},1)`);
-        nodeGrad.addColorStop(1, cl.color);
-      } else {
-        nodeGrad.addColorStop(0, `rgba(${cr},${cg},${cb},0.4)`);
-        nodeGrad.addColorStop(1, `rgba(${cr},${cg},${cb},0.18)`);
-      }
-      ctx2.beginPath();
-      ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
-      ctx2.fillStyle = nodeGrad;
-      ctx2.fill();
+      const pulseTime = now * 0.002 + nd.id.charCodeAt(0) + nd.id.charCodeAt(nd.id.length-1);
+      const wobbleR = r + Math.sin(pulseTime) * r * 0.08;
 
-      // Mastery rings
-      if (mastery >= 3) {
-        ctx2.shadowColor = '#ffffff';
-        ctx2.shadowBlur = Math.max(8, 20 * sw_zoom);
-        ctx2.strokeStyle = '#ffffff';
-        ctx2.lineWidth = 2.5;
+      if (owned > 0 || maxed) {
+        // Outer translucent sac
+        ctx2.fillStyle = `rgba(${cr},${cg},${cb},0.3)`;
         ctx2.beginPath();
-        ctx2.arc(spos.x, spos.y, r + 2, 0, Math.PI * 2);
+        ctx2.arc(spos.x, spos.y, wobbleR * 1.25, 0, Math.PI * 2);
+        ctx2.fill();
+        // Inner glowing core
+        const coreGrad = ctx2.createRadialGradient(spos.x, spos.y, 0, spos.x, spos.y, r * 0.85);
+        coreGrad.addColorStop(0, '#ffffff');
+        coreGrad.addColorStop(0.3, `rgba(${Math.min(255,cr+80)},${Math.min(255,cg+80)},${Math.min(255,cb+80)},0.9)`);
+        coreGrad.addColorStop(1, cl.color);
+        ctx2.fillStyle = coreGrad;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, r * 0.85, 0, Math.PI * 2);
+        ctx2.fill();
+      } else {
+        // Unowned dormant bud
+        ctx2.fillStyle = `rgba(${cr},${cg},${cb},0.15)`;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, wobbleR, 0, Math.PI * 2);
+        ctx2.fill();
+        ctx2.strokeStyle = `rgba(${cr},${cg},${cb},0.4)`;
+        ctx2.lineWidth = 1 + Math.sin(pulseTime)*0.5;
         ctx2.stroke();
-        // Orbiting particles
-        for (let k = 0; k < 4; k++) {
-          const a2 = (now * 0.002 + k * Math.PI / 2) % (Math.PI * 2);
-          const px2 = spos.x + Math.cos(a2) * (r + 6);
-          const py2 = spos.y + Math.sin(a2) * (r + 6);
-          ctx2.beginPath();
-          ctx2.arc(px2, py2, Math.max(1, 1.5 * sw_zoom), 0, Math.PI * 2);
-          ctx2.fillStyle = '#ffffff';
-          ctx2.fill();
-        }
-        ctx2.shadowBlur = 0;
-      } else if (mastery === 2) {
-        const h2 = (now / 500) % 360;
-        ctx2.strokeStyle = `hsl(${h2},100%,65%)`;
-        ctx2.lineWidth = 2.5;
+      }
+
+      // Mastery indicating rings
+      if (mastery >= 3) {
+        // Flourished blossom shape
+        ctx2.strokeStyle = '#ffffff';
+        ctx2.lineWidth = 2 * sw_zoom;
+        ctx2.globalAlpha = 0.8 + 0.2*Math.sin(now*0.005);
         ctx2.beginPath();
-        ctx2.arc(spos.x, spos.y, r + 1, 0, Math.PI * 2);
+        for(let a=0; a<Math.PI*2; a+=0.1) {
+          const petal = Math.sin(a*6)*3*sw_zoom;
+          ctx2.lineTo(spos.x + Math.cos(a)*(r+4+petal), spos.y + Math.sin(a)*(r+4+petal));
+        }
+        ctx2.closePath();
+        ctx2.stroke();
+        ctx2.globalAlpha = 1;
+      } else if (mastery === 2) {
+        // Inner vivid membrane
+        const h2 = (now / 500) % 360;
+        ctx2.strokeStyle = `hsla(${h2},100%,65%,0.8)`;
+        ctx2.lineWidth = 3 * sw_zoom;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, wobbleR * 1.4, 0, Math.PI * 2);
         ctx2.stroke();
       } else if (mastery === 1) {
-        ctx2.strokeStyle = '#fbbf24';
-        ctx2.lineWidth = 2.5;
-        ctx2.shadowColor = '#fbbf24';
-        ctx2.shadowBlur = 8;
+        // Golden budding ring
+        ctx2.strokeStyle = 'rgba(251,191,36,0.9)';
+        ctx2.lineWidth = 2 * sw_zoom;
         ctx2.beginPath();
-        ctx2.arc(spos.x, spos.y, r + 1, 0, Math.PI * 2);
-        ctx2.stroke();
-        ctx2.shadowBlur = 0;
-      } else {
-        ctx2.strokeStyle = (owned > 0) ? cl.color : `rgba(${cr},${cg},${cb},0.5)`;
-        ctx2.lineWidth = 1.5;
-        ctx2.beginPath();
-        ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
+        ctx2.arc(spos.x, spos.y, wobbleR * 1.35, 0, Math.PI * 2);
         ctx2.stroke();
       }
 
