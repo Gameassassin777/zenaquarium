@@ -568,6 +568,7 @@ document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
+document.getElementById('ic-nav-aqua').innerHTML = ICONS.book;
 
 document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
@@ -1789,7 +1790,7 @@ function drawHeart(ctx, x, y, size, color) {
 }
 
 function drawFish(f){
-  if(!f.genes || !f.genes.c1 || !f.genes.c2) return;
+  if(!f.genes || !f.genes.c1?.[0] || !f.genes.c2?.[0]) return;
   const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
   // Use accumulated phase to prevent flickering (Ground logic speed)
   const wag = Math.sin(f.phase) * (s * 0.35);
@@ -3316,7 +3317,7 @@ function setTab(t){
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    // Hide book button when any panel is open
+    // Hide book button when non-aqua panels are open
     const bookBtn = document.getElementById('nb-aqua');
     if(bookBtn && t !== 'aqua') bookBtn.style.display = 'none';
     ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>{
