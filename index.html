@@ -333,6 +333,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
+  <button class="nb" id="nb-aqua"   onclick="setTab('aqua')"><span class="ni" id="ic-nav-aqua"></span>Book</button>
 </nav>
 <div id="sov" onclick="closeAll()"></div>
 
@@ -381,6 +382,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="fpanel" class="panel">
   <div class="ph"><span class="pt" id="ph-finder">Fish Finder</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="flist"></div>
+</div>
+
+<div id="aqpanel" class="panel">
+  <div class="ph"><span class="pt">Aquapedia</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
+  <div class="pscroll" id="aqlist"></div>
 </div>
 
 <div id="wmodal" class="modal">
@@ -533,6 +539,7 @@ const ICONS = {
   warning: svg('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="17" r="1" fill="currentColor"/>'),
   eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>'),
   palette: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><circle cx="14" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="11.5" r="1.5" fill="currentColor"/><circle cx="15" cy="16" r="1.5" fill="currentColor"/><circle cx="10" cy="17" r="1.5" fill="currentColor"/><path d="M12 12 c2 0 4 2 4 4" fill="none" stroke="currentColor" stroke-width="1.5"/>'),
+  book: svg('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none" stroke="currentColor" stroke-width="2"/>'),
   open_ocean: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 12 h20 M12 2 A10 10 0 0 1 12 22 M12 2 A10 10 0 0 0 12 22" fill="none" stroke="currentColor" stroke-width="1.5"/>'),
   abyss_hole: svg('<circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="5" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="rgba(255,255,255,0.1)"/>')
 };
@@ -637,20 +644,20 @@ const COLOR_BANDS = [
 ];
 
 const VISITOR_SPECIES = {
-  seahare:    { name:'Sea Hare',         era:0, c1:'#7c3aed', c2:'#4c1d95', sz:20, spd:0.6, trustTime:45, rarity:0.7 },
-  mantisshrimp:{ name:'Mantis Shrimp',   era:1, c1:'#06b6d4', c2:'#0e7490', sz:18, spd:1.2, trustTime:35, rarity:0.5 },
-  nudibranch: { name:'Dorid Nudibranch', era:1, c1:'#f97316', c2:'#7c3aed', sz:12, spd:0.4, trustTime:50, rarity:0.6 },
-  scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:60, rarity:0.4 },
-  frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:55, rarity:0.35 },
-  vampiresquid:{ name:'Vampire Squid',   era:3, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:70, rarity:0.25 },
-  oarfish:    { name:'Oarfish',          era:4, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:90, rarity:0.15 },
-  sunfish:    { name:'Ocean Sunfish',    era:4, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:80, rarity:0.2 },
-  lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:120, rarity:0.12, abyssal:true },
-  velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:150, rarity:0.08, abyssal:true },
-  glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:130, rarity:0.10, abyssal:true },
-  abyssalbloomer:{ name:'Abyssal Bloomer',era:5, c1:'#4a044e', c2:'#701a75', sz:22, spd:0.3, trustTime:140, rarity:0.07, abyssal:true },
-  starback:   { name:'Starback',         era:5, c1:'#fef9c3', c2:'#fbbf24', sz:18, spd:1.3, trustTime:160, rarity:0.06, abyssal:true },
-  theecho:    { name:'The Echo',         era:5, c1:'#f8fafc', c2:'#e2e8f0', sz:0,  spd:1.5, trustTime:200, rarity:0.02, abyssal:true, isEcho:true },
+  seahare:    { name:'Sea Hare',         era:0, c1:'#7c3aed', c2:'#4c1d95', sz:20, spd:0.6, trustTime:150, rarity:0.7 },
+  mantisshrimp:{ name:'Mantis Shrimp',   era:1, c1:'#06b6d4', c2:'#0e7490', sz:18, spd:1.2, trustTime:130, rarity:0.5 },
+  nudibranch: { name:'Dorid Nudibranch', era:1, c1:'#f97316', c2:'#7c3aed', sz:12, spd:0.4, trustTime:160, rarity:0.6 },
+  scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:180, rarity:0.4 },
+  frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:175, rarity:0.35 },
+  vampiresquid:{ name:'Vampire Squid',   era:3, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25 },
+  oarfish:    { name:'Oarfish',          era:4, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15 },
+  sunfish:    { name:'Ocean Sunfish',    era:4, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2 },
+  lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:240, rarity:0.12, abyssal:true },
+  velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:270, rarity:0.08, abyssal:true },
+  glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:250, rarity:0.10, abyssal:true },
+  abyssalbloomer:{ name:'Abyssal Bloomer',era:5, c1:'#4a044e', c2:'#701a75', sz:22, spd:0.3, trustTime:260, rarity:0.07, abyssal:true },
+  starback:   { name:'Starback',         era:5, c1:'#fef9c3', c2:'#fbbf24', sz:18, spd:1.3, trustTime:280, rarity:0.06, abyssal:true },
+  theecho:    { name:'The Echo',         era:5, c1:'#f8fafc', c2:'#e2e8f0', sz:0,  spd:1.5, trustTime:300, rarity:0.02, abyssal:true, isEcho:true },
 };
 
 const ABYSSAL_EFFECTS = {
@@ -877,6 +884,30 @@ function computeColorBonus(f) {
   }
 }
 
+// ── Aquapedia helpers ──
+function recordAqEntry(f) {
+  if(!f.type || !TYPES[f.type]) return;
+  const band = getColorBand(f.genes?.c1?.[0]);
+  if(!band) return;
+  if(!sm.aqSeen[f.type]) sm.aqSeen[f.type] = [];
+  if(!sm.aqSeen[f.type].includes(band.name)) {
+    sm.aqSeen[f.type].push(band.name);
+    spawnJuice(W/2, H/4-30, ICONS.book+' '+TYPES[f.type].name+' ('+band.name+')', '#34d399', 1.2);
+  }
+}
+
+function hasPrismaticUnlocked(type) {
+  const seen = sm.aqSeen?.[type] || [];
+  const allBands = COLOR_BANDS.map(b => b.name);
+  const nonPrismatic = allBands.filter(n => n !== 'Prismatic');
+  return nonPrismatic.every(n => seen.includes(n));
+}
+
+function isPrismaticBand(hex) {
+  const b = getColorBand(hex);
+  return b && b.name === 'Prismatic';
+}
+
 function generateRandomGenes(type, isShop=false) {
   const def = TYPES[type];
   const t1 = TRAITS[Math.floor(Math.random()*TRAITS.length)];
@@ -888,7 +919,15 @@ function generateRandomGenes(type, isShop=false) {
   const c1b = _shiftColor(def.c1, hJitter, jitter, jitter);
   const c2a = _shiftColor(def.c2, hJitter, jitter, jitter);
   const c2b = _shiftColor(def.c2, hJitter, jitter, jitter);
-  return { c1: [c1a, c1b], c2: [c2a, c2b], trait: [t1, t2], szMod: 0.95 + Math.random()*0.15 };
+  const genes = { c1: [c1a, c1b], c2: [c2a, c2b], trait: [t1, t2], szMod: 0.95 + Math.random()*0.15 };
+  // Reroll c1 alleles if they land on Prismatic and it's not yet unlocked for this type
+  if(!hasPrismaticUnlocked(type)) {
+    for(let slot=0;slot<2;slot++) {
+      let attempts=0;
+      while(isPrismaticBand(genes.c1[slot]) && attempts++<20) genes.c1[slot]=_shiftColor(def.c1,hJitter,jitter,jitter);
+    }
+  }
+  return genes;
 }
 
 function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
@@ -937,6 +976,14 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   // Inherit size variation from parents with slight drift
   const momSz = momGenes.szMod || 1, dadSz = dadGenes.szMod || 1;
   const szMod = Math.max(0.6, Math.min(1.4, (momSz + dadSz) / 2 + (Math.random()-0.5)*0.15));
+  // Guard: if Prismatic not yet unlocked for this species, re-roll alleles off Prismatic
+  const typeKey = Object.keys(TYPES).find(k => TYPES[k] === typeDef);
+  if(typeKey && !hasPrismaticUnlocked(typeKey)) {
+    for(let slot=0;slot<2;slot++) {
+      let attempts=0;
+      while(isPrismaticBand(c1[slot]) && attempts++<20) c1[slot]=_shiftColor(typeDef.c1,12,0.08,0.06);
+    }
+  }
   return { c1, c2, trait, isRareMut, szMod };
 }
 
@@ -1113,6 +1160,7 @@ function applyState(s){
   sm.visitorsTamed = sm.visitorsTamed || 0;
   sm.abyssalTamed = sm.abyssalTamed || 0;
   sm.homozyBred = sm.homozyBred || 0;
+  sm.aqSeen = sm.aqSeen || {};
   questStreak = s.questStreak || 0;
   // Migrate old orders that lack tier info — regenerate them
   currentOrders=(s.currentOrders&&s.currentOrders.length)?s.currentOrders:[];
@@ -1415,6 +1463,7 @@ function updateEco(){
       fishList.push({id:fid++,type:e.type,x:e.x,y:e.y-10,vx:(Math.random()-.5),vy:-1,phase:0,timer:0,eat:0,hunger:100,age:0,scale:.3,bcd:3000,genes:e.genes,isRare:e.isRareMut,bonded:0,birthTime:Date.now()});
       const _hf = fishList[fishList.length-1];
       computeColorBonus(_hf);
+      recordAqEntry(_hf);
       if(_hf._colorBonus?.full) sm.homozyBred = (sm.homozyBred||0) + 1;
       sm.hatched++;if(e.isRareMut)sm.rares++;
       giveXP(e.isRareMut?50:10);
@@ -3101,15 +3150,15 @@ function hexToHue_safe(hex) {
 
 function tickVisitor() {
   const now = Date.now();
-  if(now - _lastVisitorCheck < 60000) return;
+  if(now - _lastVisitorCheck < 3600000) return; // check once per hour
   _lastVisitorCheck = now;
   if(visitorList.length > 0) return;
   if(fishList.length === 0) return;
   const eligible = Object.entries(VISITOR_SPECIES).filter(([k,v]) => v.era <= currentEra);
   if(!eligible.length) return;
-  const roll = Math.random();
-  const baseChance = 0.05 + currentEra * 0.03;
-  if(roll > baseChance) return;
+  // Per-hour chance: 2% era0, scaling up to 10% at era5 (hard cap)
+  const baseChance = Math.min(0.10, 0.02 + currentEra * 0.016);
+  if(Math.random() > baseChance) return;
   const weights = eligible.map(([k,v]) => v.rarity);
   const total = weights.reduce((a,b)=>a+b,0);
   let r = Math.random() * total;
@@ -3211,6 +3260,7 @@ function tameVisitor(idx) {
     name: def.name, isAbyssal: def.abyssal || false, isEcho: def.isEcho || false,
   };
   computeColorBonus(newFish);
+  recordAqEntry(newFish);
   fishList.push(newFish);
   visitorList.splice(idx, 1);
   sm.visitorsTamed = (sm.visitorsTamed || 0) + 1;
@@ -3248,11 +3298,11 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel'}[t]);
+    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel', aqua:'aqpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['market','decor','orders','shop','social','finder'].forEach(id=>{
+    ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
@@ -3269,6 +3319,7 @@ function buildPanel(t){
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
   if(t==='finder') buildFishFinder();
+  if(t==='aqua') buildAquapedia();
 }
 
 function getPersonality(f) {
@@ -3339,11 +3390,56 @@ function buildFishFinder() {
 
     html += `
       <div class="f-row" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; gap:8px; justify-content:flex-end;">
+        <button class="cbtn2" style="padding:6px 10px; font-size:11px;" onclick="renameFish(${f.id})">${ICONS.pencil} Rename</button>
         ${f.isAbyssal ? `<span style="color:#a855f7;font-size:11px;font-weight:800;">${ICONS.lock} Unsellable</span>` : `<button class="cbtn2" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444; padding:6px 12px; font-size:11px;" onclick="sellFish(${f.id}, ${getPrice(f)})">Sell</button>`}
       </div>
     </div>`;
     return html;
   }).join('');
+}
+
+function buildAquapedia() {
+  const el = document.getElementById('aqlist');
+  const BAND_COLORS = {
+    Crimson:'#ef4444', Ember:'#f97316', Solar:'#eab308',
+    Verdant:'#22c55e', Abyssal:'#06b6d4', Void:'#a855f7', Prismatic:'#f472b6'
+  };
+  let html = '<div style="padding:12px 15px 8px;color:var(--text-dim);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Fish Collection — Color Band Progress</div>';
+  html += '<div style="padding:0 12px;font-size:10px;color:var(--text-dim);margin-bottom:12px;">Discover all 6 bands for a species to unlock its <span style="color:#f472b6;font-weight:700;">Prismatic</span> variant.</div>';
+
+  for(const [key, def] of Object.entries(TYPES)) {
+    const seen = sm.aqSeen?.[key] || [];
+    const prismaticUnlocked = hasPrismaticUnlocked(key);
+    const totalBands = COLOR_BANDS.length; // 7
+    const nonPrismatic = COLOR_BANDS.filter(b => b.name !== 'Prismatic');
+    const seenCount = seen.length;
+    const pct = Math.round(seenCount / totalBands * 100);
+
+    const dots = COLOR_BANDS.map(b => {
+      const isSeen = seen.includes(b.name);
+      const col = BAND_COLORS[b.name] || '#94a3b8';
+      const isPrismatic = b.name === 'Prismatic';
+      const locked = isPrismatic && !prismaticUnlocked;
+      return `<div title="${b.name}${locked?' (locked)':''}" style="width:18px;height:18px;border-radius:50%;background:${isSeen?col:'rgba(255,255,255,0.06)'};border:2px solid ${isSeen?col+88:'rgba(255,255,255,0.12)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ${locked&&!isSeen?`<div style="width:8px;height:8px;">${ICONS.lock}</div>`:''}
+      </div>`;
+    }).join('');
+
+    const isDiscovered = def.req <= playerLevel;
+    html += `<div style="margin:0 12px 10px;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;${!isDiscovered?'opacity:0.5;':''}" >
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:22px;">${def.icon}</span>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:13px;color:var(--card-text);">${def.name}</div>
+          <div style="font-size:10px;color:var(--text-dim);">${seenCount}/${totalBands} bands discovered</div>
+        </div>
+        ${prismaticUnlocked?`<span style="font-size:10px;color:#f472b6;font-weight:700;background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.3);padding:2px 6px;border-radius:10px;">PRISMATIC</span>`:''}
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">${dots}</div>
+      ${seen.length>0?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${seen.map(n=>`<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:${BAND_COLORS[n]||'#666'}22;color:${BAND_COLORS[n]||'#aaa'};border:1px solid ${BAND_COLORS[n]||'#666'}44;font-weight:700;">${n}</span>`).join('')}</div>`:''}
+    </div>`;
+  }
+  el.innerHTML = html;
 }
 
 function closeAll(){
@@ -3597,6 +3693,7 @@ function buySpawnBaby(type) {
     genes:g, isRare:g.isRareMut
   });
   computeColorBonus(fishList[fishList.length-1]);
+  recordAqEntry(fishList[fishList.length-1]);
   updateHUD();
 }
 
