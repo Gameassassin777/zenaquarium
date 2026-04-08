@@ -805,7 +805,7 @@ function initSwatches() {
 
 // CANVAS & GLOBALS
 // CANVAS & GLOBALS
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const cv=document.getElementById('c');let ctx=cv.getContext('2d');
 let W,H,lt=0;
 const maxLevel=50;
 
@@ -4728,26 +4728,28 @@ function bookFlip(dir){
   aqlist.className = outClass;
 
   setTimeout(() => {
-    _bookPage = newPage;
-    // Render new page with in animation
-    const inClass = dir > 0 ? 'book-page-flip-in-right' : 'book-page-flip-in-left';
-    content.innerHTML = `<div id="aqlist" class="${inClass} book-page-fade-in" style="height:100%;position:relative;">
-      ${_bookPages[_bookPage]}
-      <div class="book-page-corner"></div>
-    </div>`;
+    try {
+      _bookPage = newPage;
+      // Render new page with in animation
+      const inClass = dir > 0 ? 'book-page-flip-in-right' : 'book-page-flip-in-left';
+      content.innerHTML = `<div id="aqlist" class="${inClass} book-page-fade-in" style="height:100%;position:relative;">
+        ${_bookPages[_bookPage]}
+        <div class="book-page-corner"></div>
+      </div>`;
 
-    // Draw fish preview canvases
-    _drawBookPreviews(content);
+      // Draw fish preview canvases
+      _drawBookPreviews(content);
 
-    // Update page number
-    const pageNum = document.getElementById('book-page-num');
-    if(pageNum) pageNum.innerHTML = `<span class="aq-page-num">${_toRoman(_bookPage + 1)}</span>`;
+      // Update page number
+      const pageNum = document.getElementById('book-page-num');
+      if(pageNum) pageNum.innerHTML = `<span class="aq-page-num">${_toRoman(_bookPage + 1)}</span>`;
 
-    // Update nav buttons
-    document.getElementById('book-prev').disabled = (_bookPage <= 0);
-    document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
-
-    _bookFlipping = false;
+      // Update nav buttons
+      document.getElementById('book-prev').disabled = (_bookPage <= 0);
+      document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+    } finally {
+      _bookFlipping = false;
+    }
   }, 300);
 }
 
