@@ -959,7 +959,7 @@ const UPGRADES={
   flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,req:2},
   snail:     {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,        info:'Passive income + eats algae',                  max:5,owned:0,req:1},
   autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,req:3},
-  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+3 max fish capacity',                         max:5,owned:0,req:4},
+  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+3 max fish capacity',                         max:5,owned:0,req:4,hidden:true},
   filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,req:5},
   nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:3},
   clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,req:6},
@@ -975,12 +975,12 @@ const UPGRADES={
   ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:5000000,    info:'Eggs hatch 35% faster',                        max:1,owned:0,req:13},
   singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:10000000,   info:'+100% income from all fish',                   max:1,owned:0,req:14},
   prism:        {name:'Prism Lens',      icon:ICONS.crystal,cost:15000000,   info:'Daily quest rerolls are free',            max:1,owned:0,req:14},
-  // ── Skill Web purchasable upgrades ──
-  tidalcurrent: {name:'Swift Current',   icon:ICONS.drop,   cost:80000,     info:'Fish swim 30% faster',                    max:1,owned:0},
-  symbiotic:    {name:'Symbiosis',       icon:ICONS.reef,   cost:200000,    info:'+10% coins when water quality is high',   max:1,owned:0},
-  obelisk:      {name:'Obelisk',         icon:ICONS.crystal,cost:400000,    info:'+2% coins per unique species owned',      max:1,owned:0},
-  resonance:    {name:'Resonance',       icon:ICONS.star,   cost:600000,    info:'Combo multiplier cap raised to 3.5×',     max:1,owned:0},
-  primordialspark:{name:'Primordial Spark',icon:ICONS.star, cost:5000000,   info:'×3 income multiplier on all fish',        max:1,owned:0}
+  // ── Skill Web purchasable upgrades (hidden from shop — unlocked only via skill tree) ──
+  tidalcurrent: {name:'Swift Current',   icon:ICONS.drop,   cost:80000,     info:'Fish swim 30% faster',                    max:1,owned:0,hidden:true},
+  symbiotic:    {name:'Symbiosis',       icon:ICONS.reef,   cost:200000,    info:'+10% coins when water quality is high',   max:1,owned:0,hidden:true},
+  obelisk:      {name:'Obelisk',         icon:ICONS.crystal,cost:400000,    info:'+2% coins per unique species owned',      max:1,owned:0,hidden:true},
+  resonance:    {name:'Resonance',       icon:ICONS.star,   cost:600000,    info:'Combo multiplier cap raised to 3.5×',     max:1,owned:0,hidden:true},
+  primordialspark:{name:'Primordial Spark',icon:ICONS.star, cost:5000000,   info:'×3 income multiplier on all fish',        max:1,owned:0,hidden:true}
 };
 
 const THEMES={
@@ -1233,28 +1233,28 @@ const TIER_META={
 // ── QUEST POOL (Elite Audit) ──
 const ORDER_POOL=[
   // ═ EASY ═
-  {id:'e0a', tier:'easy', icon:ICONS.shop,   desc:'Upgrade Local Tech', howTo:'Tap the Shop button, switch to Supplies, and purchase any 2 permanent upgrades.', metric:'upgrades_owned', isState:true, target:2, reward:300, minLvl:1},
-  {id:'e0b', tier:'easy', icon:ICONS.coin,   desc:'Expansion Budget', howTo:'Tap the Market or Shop and spend coins on anything—fish, food, or items—to hit this budget.', metric:'coinsSpent', isState:false, target:2000, reward:400, minLvl:2},
-  {id:'e1', tier:'easy',  icon:ICONS.flakes, desc:'Feeding Routine', howTo:'Tap the Feed button at the top of the screen to drop food. Fish must swim up and eat it to count!', metric:'feeds',       isState:false,target:10,  reward:120, minLvl:1},
-  {id:'e2', tier:'easy',  icon:ICONS.flakes, desc:'Plentiful Harvest', howTo:'Keep tapping the Feed button to drop 25 portions of food. Overfeeding is okay for this quest!', metric:'feeds',       isState:false,target:25,  reward:200, minLvl:1},
-  {id:'e3', tier:'easy',  icon:ICONS.clean,  desc:'Glass Scrubber', howTo:'Tap the Feed/Clean button to switch to Cleaning mode, then tap on any green algae spots in the water.', metric:'cleaned',     isState:false,target:15,  reward:140, minLvl:1},
-  {id:'e4', tier:'easy',  icon:ICONS.star,   desc:'Harmony Seeker', howTo:'Keep your Harmony bar (at the top) full by feeding hungry fish and cleaning all algae promptly.', metric:'harmonySec',  isState:false,target:60,  reward:200, minLvl:1},
-  {id:'e5', tier:'easy',  icon:ICONS.tank,   desc:'Small School', howTo:'Open the Shop and buy fish or hatch eggs until you have 3 fish swimming in the tank at the same time.', metric:'fish_total',  isState:true, target:3,   reward:150, minLvl:1},
-  {id:'e6', tier:'easy',  icon:ICONS.market, desc:'First Payday', howTo:'Tap Market, then Finder, tap a fish you own, and press Sell to earn back your investment plus profit.', metric:'marketSales', isState:false,target:1,   reward:320, minLvl:1},
-  {id:'e7', tier:'easy',  icon:ICONS.egg,    desc:'Life Bringer', howTo:'Wait for a glowing egg to hatch. Keep water clean and Harmony high to speed up the process!', metric:'hatched',     isState:false,target:1,   reward:260, minLvl:2},
-  {id:'e8', tier:'easy',  icon:ICONS.social, desc:'Fish Whisperer', howTo:'Tap directly on any of your swimming fish repeatedly to build a bond and earn extra coins and trust.', metric:'bonded',      isState:false,target:3,   reward:160, minLvl:1},
-  {id:'e9', tier:'easy',  icon:ICONS.tank,   desc:'Growing Pains', howTo:'Wait for a newly hatched or bought baby fish to grow up. It takes about 5 minutes of tank time.',  metric:'adults',      isState:true, target:1,   reward:220, minLvl:2},
+  {id:'e0a', tier:'easy', icon:ICONS.shop,   desc:'Upgrade Local Tech', howTo:'Tap the Shop button, switch to Supplies, and purchase any 2 permanent upgrades.', metric:'upgrades_owned', isState:true, target:2, reward:60, minLvl:1},
+  {id:'e0b', tier:'easy', icon:ICONS.coin,   desc:'Expansion Budget', howTo:'Tap the Market or Shop and spend coins on anything—fish, food, or items—to hit this budget.', metric:'coinsSpent', isState:false, target:2000, reward:80, minLvl:2},
+  {id:'e1', tier:'easy',  icon:ICONS.flakes, desc:'Feeding Routine', howTo:'Tap the Feed button at the top of the screen to drop food. Fish must swim up and eat it to count!', metric:'feeds',       isState:false,target:10,  reward:25, minLvl:1},
+  {id:'e2', tier:'easy',  icon:ICONS.flakes, desc:'Plentiful Harvest', howTo:'Keep tapping the Feed button to drop 25 portions of food. Overfeeding is okay for this quest!', metric:'feeds',       isState:false,target:25,  reward:40, minLvl:1},
+  {id:'e3', tier:'easy',  icon:ICONS.clean,  desc:'Glass Scrubber', howTo:'Tap the Feed/Clean button to switch to Cleaning mode, then tap on any green algae spots in the water.', metric:'cleaned',     isState:false,target:15,  reward:30, minLvl:1},
+  {id:'e4', tier:'easy',  icon:ICONS.star,   desc:'Harmony Seeker', howTo:'Keep your Harmony bar (at the top) full by feeding hungry fish and cleaning all algae promptly.', metric:'harmonySec',  isState:false,target:60,  reward:40, minLvl:1},
+  {id:'e5', tier:'easy',  icon:ICONS.tank,   desc:'Small School', howTo:'Open the Shop and buy fish or hatch eggs until you have 3 fish swimming in the tank at the same time.', metric:'fish_total',  isState:true, target:3,   reward:30, minLvl:1},
+  {id:'e6', tier:'easy',  icon:ICONS.market, desc:'First Payday', howTo:'Tap Market, then Finder, tap a fish you own, and press Sell to earn back your investment plus profit.', metric:'marketSales', isState:false,target:1,   reward:65, minLvl:1},
+  {id:'e7', tier:'easy',  icon:ICONS.egg,    desc:'Life Bringer', howTo:'Wait for a glowing egg to hatch. Keep water clean and Harmony high to speed up the process!', metric:'hatched',     isState:false,target:1,   reward:50, minLvl:2},
+  {id:'e8', tier:'easy',  icon:ICONS.social, desc:'Fish Whisperer', howTo:'Tap directly on any of your swimming fish repeatedly to build a bond and earn extra coins and trust.', metric:'bonded',      isState:false,target:3,   reward:35, minLvl:1},
+  {id:'e9', tier:'easy',  icon:ICONS.tank,   desc:'Growing Pains', howTo:'Wait for a newly hatched or bought baby fish to grow up. It takes about 5 minutes of tank time.',  metric:'adults',      isState:true, target:1,   reward:45, minLvl:2},
 
   // ═ MEDIUM ═
-  {id:'m0a', tier:'med',  icon:ICONS.decor,  desc:'Aquascape Artist', howTo:'Open the Decor menu and purchase new water themes, floors, or borders to customize your tank.', metric:'decor_owned', isState:true, target:2, reward:600, minLvl:3},
-  {id:'m0b', tier:'med',  icon:ICONS.coin,   desc:'High Roller', howTo:'Spend a total of 20,000 coins anywhere in the Shop or Decor menus.',  metric:'coinsSpent', isState:false, target:20000, reward:1500, minLvl:3},
-  {id:'m1', tier:'med',   icon:ICONS.flakes, desc:'Dedicated Feeder', howTo:'Tap the Feed button 50 times to drop food. Make sure you have enough hungry fish to eat it all!', metric:'feeds',       isState:false,target:50,  reward:440, minLvl:3},
-  {id:'m3', tier:'med',   icon:ICONS.star,   desc:'Inner Peace', howTo:'Keep the top Harmony bar at 100% (gold) for 5 minutes total by constantly cleaning and feeding.',    metric:'harmonySec',  isState:false,target:300, reward:550, minLvl:3},
-  {id:'m4', tier:'med',   icon:ICONS.market, desc:'Merchant Entry', howTo:'Open the Market and Finder menus to sell 4 different adult fish you no longer need.',     metric:'marketSales', isState:false,target:4,   reward:700, minLvl:3},
-  {id:'m5', tier:'med',   icon:ICONS.egg,    desc:'Breeder Basics', howTo:'Wait for 3 separate eggs to hatch. Buy fish or complete quests to get more eggs.',                  metric:'hatched',     isState:false,target:3,   reward:620, minLvl:3},
-  {id:'m8', tier:'med',   icon:ICONS.market, desc:'Betta Delivery', howTo:'Buy or breed a Royal Betta, wait until it is fully grown, then press Hand In on this specific quest card.', metric:'combo_trade',ftypereq:'betta',isTrade:true,reqAmt:1,isState:true,target:1,reward:520,minLvl:4},
-  {id:'m9', tier:'med',   icon:ICONS.star,   desc:'Genetic Breakthrough', howTo:'Hatch eggs until you get lucky with a sparking Rare mutant! Upgrading UV Lights increases odds.', metric:'rares',       isState:false,target:1,   reward:850, minLvl:3},
-  {id:'m13',tier:'med',   icon:ICONS.market, desc:'Goldfish Trade', howTo:'Buy or breed a Goldfish, wait for it to grow up, then press Hand In on this specific quest card.',            metric:'combo_trade',ftypereq:'goldfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:400,minLvl:3},
+  {id:'m0a', tier:'med',  icon:ICONS.decor,  desc:'Aquascape Artist', howTo:'Open the Decor menu and purchase new water themes, floors, or borders to customize your tank.', metric:'decor_owned', isState:true, target:2, reward:200, minLvl:3},
+  {id:'m0b', tier:'med',  icon:ICONS.coin,   desc:'High Roller', howTo:'Spend a total of 20,000 coins anywhere in the Shop or Decor menus.',  metric:'coinsSpent', isState:false, target:20000, reward:500, minLvl:3},
+  {id:'m1', tier:'med',   icon:ICONS.flakes, desc:'Dedicated Feeder', howTo:'Tap the Feed button 50 times to drop food. Make sure you have enough hungry fish to eat it all!', metric:'feeds',       isState:false,target:50,  reward:150, minLvl:3},
+  {id:'m3', tier:'med',   icon:ICONS.star,   desc:'Inner Peace', howTo:'Keep the top Harmony bar at 100% (gold) for 5 minutes total by constantly cleaning and feeding.',    metric:'harmonySec',  isState:false,target:300, reward:180, minLvl:3},
+  {id:'m4', tier:'med',   icon:ICONS.market, desc:'Merchant Entry', howTo:'Open the Market and Finder menus to sell 4 different adult fish you no longer need.',     metric:'marketSales', isState:false,target:4,   reward:240, minLvl:3},
+  {id:'m5', tier:'med',   icon:ICONS.egg,    desc:'Breeder Basics', howTo:'Wait for 3 separate eggs to hatch. Buy fish or complete quests to get more eggs.',                  metric:'hatched',     isState:false,target:3,   reward:200, minLvl:3},
+  {id:'m8', tier:'med',   icon:ICONS.market, desc:'Betta Delivery', howTo:'Buy or breed a Royal Betta, wait until it is fully grown, then press Hand In on this specific quest card.', metric:'combo_trade',ftypereq:'betta',isTrade:true,reqAmt:1,isState:true,target:1,reward:175,minLvl:4},
+  {id:'m9', tier:'med',   icon:ICONS.star,   desc:'Genetic Breakthrough', howTo:'Hatch eggs until you get lucky with a sparking Rare mutant! Upgrading UV Lights increases odds.', metric:'rares',       isState:false,target:1,   reward:280, minLvl:3},
+  {id:'m13',tier:'med',   icon:ICONS.market, desc:'Goldfish Trade', howTo:'Buy or breed a Goldfish, wait for it to grow up, then press Hand In on this specific quest card.',            metric:'combo_trade',ftypereq:'goldfish',isTrade:true,reqAmt:1,isState:true,target:1,reward:130,minLvl:3},
   
   // ═ HARD ═
   {id:'h0a', tier:'hard', icon:ICONS.shop,   desc:'Industrialized', howTo:'Open the Shop, switch to Supplies, and purchase 6 permanent tank upgrades like Auto-Feeders.', metric:'upgrades_owned', isState:true, target:6, reward:3500, minLvl:5},
@@ -1306,7 +1306,7 @@ const TIERS = ['easy','med','hard','legend'];
 let gid = 0;
 for(const g of MATH_GEN) {
   let curT = g.baseT;
-  let curR = 300; // Base Reward
+  let curR = 60; // Base Reward (easy tier starts low)
   for(let i=0; i<4; i++) {
     // Add multiple permutations to pad out the pool size and variance
     ORDER_POOL.push({
@@ -1434,7 +1434,12 @@ function applyState(s){
       genes, isRare: (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2), name:f.name});
     computeColorBonus(fishList[fishList.length-1]);
   }
-  
+
+  // Pressure Dome: fish never lose hunger offline — restore all to full on load
+  if (s.sw_owned && s.sw_owned['d_dome'] > 0) {
+    for (const f of fishList) f.hunger = 100;
+  }
+
   for(let i=0;i<UPGRADES.snail.owned;i++)
     snails.push({x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
   for(let i=0;i<(s.clams || 0);i++)
@@ -1938,6 +1943,7 @@ function updateFish(f){
   if(trait === 'greedy' && f.hunger < 50) baseSpd *= 1.2;
   if(trait === 'active') baseSpd *= 1.15;
   if(trait === 'lazy') baseSpd *= 0.75;
+  if(f._colorBonus?.bonus === 'speedMult') baseSpd *= f._colorBonus.val;
 
   if(f.type === 'octopus'){
     // -- Octopus jet-propulsion burst-and-coast movement --
@@ -2959,7 +2965,7 @@ function drawFish(f){
 
     const sg = ctx.createRadialGradient(-s*.2, -s*.25, s*.05, 0, s*.1, s*.88);
     sg.addColorStop(0, _c2+'ff');
-    sg.addColorStop(0.5, bg);
+    sg.addColorStop(0.5, _c1+'88');
     sg.addColorStop(1, _c1+'dd');
     ctx.fillStyle=sg;
     ctx.beginPath();ctx.ellipse(0, s*.1, s*.85, s*.48, 0, Math.PI, Math.PI*2);
@@ -4243,7 +4249,10 @@ function checkLevel(){
   if(playerLevel>old){
     document.getElementById('lvl').textContent=playerLevel;
     spawnJuice(W/2,H/4,ICONS.star+' LEVEL UP!','var(--ui-accent)',2);
-    document.getElementById('nb-supplies').classList.add('notify');
+    // Only notify when a new skill web cluster unlocks (levels 1, 8, 16, 24, 32, 40)
+    if ([1, 8, 16, 24, 32, 40].includes(playerLevel)) {
+      document.getElementById('nb-supplies').classList.add('notify');
+    }
     checkMilestones();
     
     // Auto-Theme Swap for Eras
@@ -5314,6 +5323,7 @@ function buildSupplies(){
   // Group upgrades by era
   const byEra = {};
   for(const[id,u] of Object.entries(UPGRADES)){
+    if(u.hidden) continue; // skill-web-only upgrades — not purchasable in shop
     const e = u.era || 0;
     if(!byEra[e]) byEra[e] = [];
     byEra[e].push([id,u]);
@@ -5972,7 +5982,7 @@ const SW_CLUSTERS = [
       { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: 'Double base coin value',             cost: 500,      max: 1, req: [], effect: 'flakes',   x: -60, y: 0 },
       { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income + eats algae',        cost: 350,      max: 5, req: [], effect: 'snail',    x: 120,  y: -50 },
       { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food automatically',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', x: -150, y: -90 },
-      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity',               cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    x: 150,  y: -140 },
+      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity (cost ×20 per stack)',  cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    x: 150,  y: -140 },
       { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', x: -90, y: -190 },
       { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  x: 120,  y: -240 },
       { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Passive gold + filters water',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', x: -120, y: -290 },
@@ -6263,7 +6273,14 @@ function swNodeMaxed(nd) {
 function swNodeCost(nd) {
   const base = nd.cost;
   const m = swMastery(nd.id);
-  if (!swNodeMaxed(nd)) return base;
+  if (!swNodeMaxed(nd)) {
+    // Tank Expansion scales 20x per stack owned
+    if (nd.id === 'c_tank') {
+      const owned = swOwned(nd.id) || 0;
+      return Math.floor(base * Math.pow(20, owned));
+    }
+    return base;
+  }
   if (m === 0) return base * 5;   // M1
   if (m === 1) return base * 25;  // M2
   if (m === 2) return base * 125; // M3
