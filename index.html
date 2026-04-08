@@ -3150,14 +3150,15 @@ function hexToHue_safe(hex) {
 
 function tickVisitor() {
   const now = Date.now();
-  if(now - _lastVisitorCheck < 3600000) return; // check once per hour
+  if(now - _lastVisitorCheck < 60000) return; // check every 60 s
   _lastVisitorCheck = now;
   if(visitorList.length > 0) return;
   if(fishList.length === 0) return;
   const eligible = Object.entries(VISITOR_SPECIES).filter(([k,v]) => v.era <= currentEra);
   if(!eligible.length) return;
-  // Per-hour chance: 2% era0, scaling up to 10% at era5 (hard cap)
-  const baseChance = Math.min(0.10, 0.02 + currentEra * 0.016);
+  // Per-check chance = hourlyRate / 60, so average rate caps at 10 %/hr at era 5
+  const hourlyRate = Math.min(0.10, 0.02 + currentEra * 0.016);
+  const baseChance = hourlyRate / 60;
   if(Math.random() > baseChance) return;
   const weights = eligible.map(([k,v]) => v.rarity);
   const total = weights.reduce((a,b)=>a+b,0);
@@ -3400,45 +3401,110 @@ function buildFishFinder() {
 
 function buildAquapedia() {
   const el = document.getElementById('aqlist');
-  const BAND_COLORS = {
-    Crimson:'#ef4444', Ember:'#f97316', Solar:'#eab308',
-    Verdant:'#22c55e', Abyssal:'#06b6d4', Void:'#a855f7', Prismatic:'#f472b6'
-  };
-  let html = '<div style="padding:12px 15px 8px;color:var(--text-dim);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Fish Collection — Color Band Progress</div>';
-  html += '<div style="padding:0 12px;font-size:10px;color:var(--text-dim);margin-bottom:12px;">Discover all 6 bands for a species to unlock its <span style="color:#f472b6;font-weight:700;">Prismatic</span> variant.</div>';
 
+  // ── Band palette: ink-like tones matching parchment aesthetic ──
+  const BAND_INK = {
+    Crimson:  { bg:'#7a1c1c', border:'#a33030', label:'#e8a0a0' },
+    Ember:    { bg:'#7a3c10', border:'#b05a1a', label:'#f0b878' },
+    Solar:    { bg:'#6b5c00', border:'#a08800', label:'#e8d87a' },
+    Verdant:  { bg:'#1a4d2e', border:'#2a7a48', label:'#80cfa0' },
+    Abyssal:  { bg:'#0a3d50', border:'#1066880', label:'#72c8e8' },
+    Void:     { bg:'#2d1a52', border:'#5c3a9a', label:'#c0a0e8' },
+    Prismatic:{ bg:'#4a1a38', border:'#9a3a6a', label:'#f0a8d0' },
+  };
+  const BAND_SYMBOL = {
+    Crimson:'✦', Ember:'✶', Solar:'☀', Verdant:'✿', Abyssal:'〜', Void:'◈', Prismatic:'✧'
+  };
+
+  // ── Cover / title block ──
+  let html = `
+  <div style="background:linear-gradient(180deg,#1a110a 0%,#2c1c10 60%,#1a110a 100%);border-bottom:3px double #7a5c30;padding:20px 18px 16px;text-align:center;position:relative;">
+    <div style="font-family:Georgia,serif;font-size:9px;letter-spacing:3px;color:#8a6c40;text-transform:uppercase;margin-bottom:4px;">The Grand</div>
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#e8c87a;letter-spacing:2px;text-shadow:0 0 18px #b8943066;line-height:1.1;">Aquapedia</div>
+    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:2px;color:#7a5c30;margin-top:3px;text-transform:uppercase;">Ocean Records &amp; Chromatic Registry</div>
+    <div style="margin:10px auto 0;width:60px;height:1px;background:linear-gradient(90deg,transparent,#7a5c30,transparent);"></div>
+    <div style="font-family:Georgia,serif;font-size:9px;color:#5a4020;margin-top:6px;font-style:italic;">
+      "Let all hues be known before the Prismatic may swim."
+    </div>
+  </div>
+  <div style="background:#1e130a;padding:8px 16px 6px;border-bottom:1px solid #4a3010;">
+    <div style="font-family:Georgia,serif;font-size:10px;color:#8a6c40;font-style:italic;text-align:center;">
+      Record every colour band of a species to awaken its Prismatic form.
+    </div>
+  </div>`;
+
+  // ── Per-species entries ──
   for(const [key, def] of Object.entries(TYPES)) {
     const seen = sm.aqSeen?.[key] || [];
     const prismaticUnlocked = hasPrismaticUnlocked(key);
-    const totalBands = COLOR_BANDS.length; // 7
-    const nonPrismatic = COLOR_BANDS.filter(b => b.name !== 'Prismatic');
+    const totalBands = COLOR_BANDS.length;
+    const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
     const seenCount = seen.length;
-    const pct = Math.round(seenCount / totalBands * 100);
+    const discovered = def.req <= playerLevel;
 
-    const dots = COLOR_BANDS.map(b => {
+    // Band stamp row
+    const stamps = COLOR_BANDS.map(b => {
       const isSeen = seen.includes(b.name);
-      const col = BAND_COLORS[b.name] || '#94a3b8';
+      const ink = BAND_INK[b.name] || { bg:'#333', border:'#555', label:'#aaa' };
+      const sym = BAND_SYMBOL[b.name] || '●';
       const isPrismatic = b.name === 'Prismatic';
       const locked = isPrismatic && !prismaticUnlocked;
-      return `<div title="${b.name}${locked?' (locked)':''}" style="width:18px;height:18px;border-radius:50%;background:${isSeen?col:'rgba(255,255,255,0.06)'};border:2px solid ${isSeen?col+88:'rgba(255,255,255,0.12)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        ${locked&&!isSeen?`<div style="width:8px;height:8px;">${ICONS.lock}</div>`:''}
-      </div>`;
+      if(locked && !isSeen) {
+        return `<div title="Prismatic — locked" style="width:28px;height:28px;border-radius:4px;background:#0e0a06;border:1px dashed #4a3010;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.5;">
+          <div style="width:11px;height:11px;opacity:0.7;">${ICONS.lock}</div>
+        </div>`;
+      }
+      return `<div title="${b.name}" style="width:28px;height:28px;border-radius:4px;background:${isSeen?ink.bg:'#0e0a06'};border:1px solid ${isSeen?ink.border:'#3a2510'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;${isSeen?'box-shadow:0 0 6px '+ink.border+'66;':'opacity:0.35;'}">
+          <span style="font-size:11px;color:${isSeen?ink.label:'#3a2510'};line-height:1;">${sym}</span>
+        </div>`;
     }).join('');
 
-    const isDiscovered = def.req <= playerLevel;
-    html += `<div style="margin:0 12px 10px;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;${!isDiscovered?'opacity:0.5;':''}" >
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <span style="font-size:22px;">${def.icon}</span>
-        <div style="flex:1;">
-          <div style="font-weight:800;font-size:13px;color:var(--card-text);">${def.name}</div>
-          <div style="font-size:10px;color:var(--text-dim);">${seenCount}/${totalBands} bands discovered</div>
+    // Seen band names as inked labels
+    const seenLabels = seen.length > 0
+      ? seen.map(n => {
+          const ink = BAND_INK[n] || { bg:'#333', border:'#555', label:'#aaa' };
+          return `<span style="font-family:Georgia,serif;font-size:8px;padding:1px 5px;background:${ink.bg};color:${ink.label};border:1px solid ${ink.border};border-radius:2px;font-style:italic;">${n}</span>`;
+        }).join('')
+      : '';
+
+    // Progress bar (sepia-toned, parchment style)
+    const pct = Math.round(seenCount / totalBands * 100);
+    const barFill = prismaticUnlocked ? '#c0905a' : (seenCount >= nonPrismaticCount ? '#8a6c40' : '#5a4020');
+
+    html += `
+    <div style="margin:0;border-bottom:1px solid #3a2010;background:${discovered?'linear-gradient(180deg,#1a110a,#160e08)':'#120a06'};${!discovered?'opacity:0.45;':''}">
+      <div style="padding:12px 16px 10px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:2px;height:36px;background:linear-gradient(180deg,${prismaticUnlocked?'#c0905a':'#5a4020'},transparent);flex-shrink:0;"></div>
+          <span style="font-size:24px;filter:sepia(0.5) brightness(0.85);">${def.icon}</span>
+          <div style="flex:1;">
+            <div style="font-family:Georgia,serif;font-weight:700;font-size:13px;color:#e0c090;letter-spacing:0.5px;">${def.name}</div>
+            <div style="font-family:Georgia,serif;font-size:9px;color:#7a5c30;font-style:italic;margin-top:1px;">${seenCount} of ${totalBands} chromatic bands recorded</div>
+          </div>
+          ${prismaticUnlocked
+            ? `<div style="font-family:Georgia,serif;font-size:9px;color:#f0a8d0;background:#2a0d1e;border:1px solid #7a2a52;padding:2px 6px;border-radius:2px;letter-spacing:1px;text-transform:uppercase;">✧ Prismatic</div>`
+            : (seenCount >= nonPrismaticCount && seenCount > 0
+                ? `<div style="font-family:Georgia,serif;font-size:9px;color:#e0c090;background:#1a1000;border:1px solid #6a5020;padding:2px 6px;border-radius:2px;font-style:italic;">Prismatic near...</div>`
+                : '')}
         </div>
-        ${prismaticUnlocked?`<span style="font-size:10px;color:#f472b6;font-weight:700;background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.3);padding:2px 6px;border-radius:10px;">PRISMATIC</span>`:''}
+
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:nowrap;">${stamps}</div>
+
+        ${seenLabels ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:7px;">${seenLabels}</div>` : ''}
+
+        <div style="margin-top:8px;height:3px;background:#1a0e06;border-radius:1px;overflow:hidden;border:1px solid #3a2010;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#5a4020,${barFill});transition:width 0.4s;"></div>
+        </div>
       </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;">${dots}</div>
-      ${seen.length>0?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${seen.map(n=>`<span style="font-size:9px;padding:2px 6px;border-radius:8px;background:${BAND_COLORS[n]||'#666'}22;color:${BAND_COLORS[n]||'#aaa'};border:1px solid ${BAND_COLORS[n]||'#666'}44;font-weight:700;">${n}</span>`).join('')}</div>`:''}
     </div>`;
   }
+
+  // ── Back-cover footer ──
+  html += `
+  <div style="background:#120a06;padding:14px 18px;text-align:center;border-top:3px double #4a3010;">
+    <div style="font-family:Georgia,serif;font-size:8px;color:#4a3010;letter-spacing:2px;text-transform:uppercase;">— Finis —</div>
+  </div>`;
+
   el.innerHTML = html;
 }
 
