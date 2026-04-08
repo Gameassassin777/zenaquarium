@@ -312,6 +312,111 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #c.border-gold{box-shadow:inset 0 0 80px rgba(251,191,36,0.55), 0 0 50px rgba(251,191,36,0.35)!important;}
 .ostreak{background:var(--streak-bg);border:1px solid rgba(var(--ui-accent-rgb),.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
 .q-total{color:var(--text-dim);font-size:10px;font-weight:700;text-align:center;padding:8px 0 4px;letter-spacing:.5px;}
+
+/* ── Aquapedia Book UI ── */
+#book-fab{
+  position:fixed;bottom:90px;right:16px;z-index:50;
+  width:48px;height:48px;border-radius:50%;border:2px solid rgba(224,184,90,0.5);
+  background:linear-gradient(145deg,rgba(30,18,8,0.92),rgba(50,30,12,0.95));
+  color:#e0b85a;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5),0 0 12px rgba(224,184,90,0.15);
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .15s,box-shadow .15s;
+}
+#book-fab:active{transform:scale(0.9);}
+#book-fab svg{width:22px;height:22px;}
+
+#book-overlay{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.6);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  transition:opacity .3s,visibility .3s;
+  opacity:1;visibility:visible;
+}
+#book-overlay.book-closed{opacity:0;visibility:hidden;pointer-events:none;}
+
+#book-container{
+  display:flex;width:min(420px,92vw);height:min(88vh,700px);
+  transform:perspective(1200px) rotateY(-2deg);
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+  filter:drop-shadow(0 8px 30px rgba(0,0,0,0.5));
+}
+#book-overlay.book-closed #book-container{transform:perspective(1200px) rotateY(-40deg);opacity:0;}
+
+#book-spine{
+  width:18px;flex-shrink:0;
+  background:linear-gradient(90deg,#2a1a0a,#3d2816 40%,#4a3020 70%,#3a2010);
+  border-radius:4px 0 0 4px;
+  box-shadow:inset -2px 0 6px rgba(0,0,0,0.4),2px 0 8px rgba(0,0,0,0.3);
+}
+
+#book-page{
+  flex:1;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#faf6ed,#f5f0e8 30%,#f0ebe0 70%,#ebe5d8);
+  border-radius:0 6px 6px 0;
+  position:relative;overflow:hidden;
+  box-shadow:4px 0 12px rgba(0,0,0,0.15),inset -1px 0 0 rgba(0,0,0,0.05);
+}
+/* Ruled lines on the page */
+#book-page::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,transparent,transparent 27px,rgba(180,160,130,0.18) 27px,rgba(180,160,130,0.18) 28px);
+  z-index:0;
+}
+/* Page curl shadow on right edge */
+#book-page::after{
+  content:'';position:absolute;top:0;right:0;bottom:0;width:20px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,0.06));
+  z-index:1;
+}
+
+.book-close{
+  position:absolute;top:10px;right:12px;z-index:5;
+  width:30px;height:30px;border:none;background:transparent;
+  font-size:22px;color:#8a7050;cursor:pointer;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.book-close:hover,.book-close:active{background:rgba(0,0,0,0.08);}
+
+#book-content{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:0;position:relative;z-index:2;
+  scrollbar-width:thin;scrollbar-color:rgba(160,140,110,0.3) transparent;
+  -webkit-overflow-scrolling:touch;
+}
+#book-content::-webkit-scrollbar{width:6px;}
+#book-content::-webkit-scrollbar-thumb{background:rgba(160,140,110,0.35);border-radius:3px;}
+
+/* Override aquapedia card styles for book context */
+#book-content .aq-card{background:transparent!important;border-bottom:1px solid rgba(180,160,130,0.25)!important;}
+#book-content .aq-card *{color:inherit;}
+/* Dark text overrides for parchment page */
+#book-content{color:#3a2a18;}
+#book-content .aq-card div[style*="color:#d8a860"]{color:#5a3c18!important;}
+#book-content .aq-card div[style*="color:#6a4c22"]{color:#8a7050!important;}
+#book-content .aq-card div[style*="color:#e0b85a"]{color:#6a4c22!important;}
+#book-content .aq-card div[style*="color:#5a3c18"]{color:#8a7050!important;}
+#book-content .aq-card div[style*="color:#4a3010"]{color:#a08060!important;}
+#book-content .aq-card div[style*="color:#3a2010"]{color:#b09070!important;}
+
+#book-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;border-top:1px solid rgba(180,160,130,0.3);
+  background:rgba(240,235,224,0.8);flex-shrink:0;z-index:2;
+}
+.book-nav-btn{
+  background:none;border:1px solid rgba(140,110,70,0.3);
+  color:#6a4c22;font-family:Georgia,serif;font-size:11px;
+  padding:5px 12px;border-radius:4px;cursor:pointer;
+  transition:background .15s;
+}
+.book-nav-btn:hover,.book-nav-btn:active{background:rgba(0,0,0,0.05);}
+.book-nav-btn:disabled{opacity:0.3;cursor:default;}
+
+@keyframes bookOpen{0%{transform:perspective(1200px) rotateY(-40deg);opacity:0;}100%{transform:perspective(1200px) rotateY(-2deg);opacity:1;}}
 </style>
 </head>
 <body>
@@ -344,7 +449,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
-  <button class="nb" id="nb-aqua"   onclick="setTab('aqua')"><span class="ni" id="ic-nav-aqua"></span>Book</button>
 </nav>
 <div id="sov" onclick="closeAll()"></div>
 
@@ -395,9 +499,23 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="pscroll" id="flist"></div>
 </div>
 
-<div id="aqpanel" class="panel">
-  <div class="ph"><span class="pt">Aquapedia</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="pscroll" id="aqlist"></div>
+<button id="book-fab" onclick="toggleBook()" title="Aquapedia"><span id="ic-book-fab"></span></button>
+
+<div id="book-overlay" class="book-closed" onclick="if(event.target===this)toggleBook()">
+  <div id="book-container">
+    <div id="book-spine"></div>
+    <div id="book-page">
+      <button class="book-close" onclick="toggleBook()">&times;</button>
+      <div id="book-content">
+        <div id="aqlist"></div>
+      </div>
+      <div id="book-nav">
+        <button class="book-nav-btn" id="book-prev" onclick="bookFlip(-1)">&#9664; Prev</button>
+        <span id="book-page-num" style="font-family:Georgia,serif;font-size:11px;color:#8a7050;"></span>
+        <button class="book-nav-btn" id="book-next" onclick="bookFlip(1)">Next &#9654;</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="wmodal" class="modal">
@@ -568,6 +686,7 @@ document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
+document.getElementById('ic-book-fab').innerHTML = ICONS.book;
 
 document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
@@ -3327,11 +3446,11 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel', aqua:'aqpanel'}[t]);
+    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>{
+    ['market','decor','orders','shop','social','finder'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
@@ -3348,7 +3467,6 @@ function buildPanel(t){
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
   if(t==='finder') buildFishFinder();
-  if(t==='aqua') buildAquapedia();
 }
 
 function getPersonality(f) {
@@ -3447,12 +3565,12 @@ function buildAquapedia() {
 
   // ── Cover ──
   let html = `
-  <div style="background:linear-gradient(180deg,#1a110a,#261608,#1a110a);border-bottom:3px double #6a4c22;padding:22px 18px 16px;text-align:center;">
-    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:3px;color:#6a4c22;text-transform:uppercase;margin-bottom:5px;">The Grand</div>
-    <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#e0b85a;letter-spacing:2px;line-height:1;">Aquapedia</div>
-    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:2px;color:#5a3c18;margin-top:4px;text-transform:uppercase;">Ocean Records &amp; Chromatic Registry</div>
-    <div style="width:50px;height:1px;background:linear-gradient(90deg,transparent,#6a4c22,transparent);margin:10px auto 8px;"></div>
-    <div style="font-family:Georgia,serif;font-size:9px;color:#4a3010;font-style:italic;">"Let all hues be known before the Prismatic may swim."</div>
+  <div style="border-bottom:2px double #c8a870;padding:22px 18px 16px;text-align:center;">
+    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:3px;color:#8a7050;text-transform:uppercase;margin-bottom:5px;">The Grand</div>
+    <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#6a4020;letter-spacing:2px;line-height:1;">Aquapedia</div>
+    <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:2px;color:#a08060;margin-top:4px;text-transform:uppercase;">Ocean Records &amp; Chromatic Registry</div>
+    <div style="width:50px;height:1px;background:linear-gradient(90deg,transparent,#c8a870,transparent);margin:10px auto 8px;"></div>
+    <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">"Let all hues be known before the Prismatic may swim."</div>
   </div>`;
 
   // ── Species entries ──
@@ -3478,14 +3596,14 @@ function buildAquapedia() {
       const locked = isPrismatic && !prismaticUnlocked;
       const stampDelay = (si * 35) + 'ms';
       if(locked && !isSeen) {
-        return `<div class="aq-stamp" title="Prismatic — locked" style="width:30px;height:30px;border-radius:5px;background:#0c0806;border:1px dashed #3a2010;display:flex;align-items:center;justify-content:center;opacity:0.4;flex-shrink:0;">
-          <div style="width:12px;height:12px;color:#4a3010;">${ICONS.lock}</div></div>`;
+        return `<div class="aq-stamp" title="Prismatic — locked" style="width:30px;height:30px;border-radius:5px;background:rgba(0,0,0,0.06);border:1px dashed rgba(160,140,110,0.4);display:flex;align-items:center;justify-content:center;opacity:0.4;flex-shrink:0;">
+          <div style="width:12px;height:12px;color:#b09070;">${ICONS.lock}</div></div>`;
       }
       return `<div class="aq-stamp${isSeen?' seen':''} ${isSeen?'aq-stamp-pop':''}" title="${b.name}"
-        style="width:30px;height:30px;border-radius:5px;background:${isSeen?ink.bg:'#0c0806'};border:1px solid ${isSeen?ink.border:'#2a1808'};
+        style="width:30px;height:30px;border-radius:5px;background:${isSeen?ink.bg:'rgba(0,0,0,0.06)'};border:1px solid ${isSeen?ink.border:'rgba(160,140,110,0.25)'};
         display:flex;align-items:center;justify-content:center;flex-shrink:0;
-        ${isSeen?'':'opacity:0.28;'}animation-delay:${isSeen?stampDelay:'0ms'};">
-        <span style="font-size:13px;line-height:1;color:${isSeen?ink.label:'#2a1808'};">${sym}</span>
+        ${isSeen?'':'opacity:0.35;'}animation-delay:${isSeen?stampDelay:'0ms'};">
+        <span style="font-size:13px;line-height:1;color:${isSeen?ink.label:'rgba(160,140,110,0.4)'};">${sym}</span>
       </div>`;
     }).join('');
 
@@ -3496,19 +3614,19 @@ function buildAquapedia() {
     }).join('');
 
     html += `
-    <div class="aq-card" style="border-bottom:1px solid #2e1a0a;background:${discovered?'#160e08':'#100806'};${!discovered?'opacity:0.4;':''}animation-delay:${delay};">
+    <div class="aq-card" style="border-bottom:1px solid rgba(180,160,130,0.3);${!discovered?'opacity:0.4;':''}animation-delay:${delay};">
       <div style="padding:13px 15px 11px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
-          <div style="width:2px;align-self:stretch;background:linear-gradient(180deg,${prismaticUnlocked?'#b07840':'#3a2010'},transparent);border-radius:1px;flex-shrink:0;"></div>
+          <div style="width:2px;align-self:stretch;background:linear-gradient(180deg,${prismaticUnlocked?'#b07840':'#c8a870'},transparent);border-radius:1px;flex-shrink:0;"></div>
           <span style="font-size:22px;">${def.icon}</span>
           <div style="flex:1;min-width:0;">
-            <div style="font-family:Georgia,serif;font-weight:700;font-size:13px;color:#d8a860;letter-spacing:0.4px;">${def.name}</div>
-            <div style="font-family:Georgia,serif;font-size:9px;color:#6a4c22;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
+            <div style="font-family:Georgia,serif;font-weight:700;font-size:13px;color:#5a3818;letter-spacing:0.4px;">${def.name}</div>
+            <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
           </div>
           ${prismaticUnlocked
-            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#f0a8d0;background:#280c1c;border:1px solid #6a2244;padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
+            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
             : (seenCount >= nonPrismaticCount && seenCount > 0
-                ? `<div style="font-family:Georgia,serif;font-size:9px;color:#c8a050;background:#1a1200;border:1px solid #5a4010;padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
+                ? `<div style="font-family:Georgia,serif;font-size:9px;color:#8a6830;background:rgba(180,140,60,0.1);border:1px solid rgba(180,140,60,0.3);padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
                 : '')}
         </div>
 
@@ -3516,18 +3634,31 @@ function buildAquapedia() {
 
         ${seenLabels ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;">${seenLabels}</div>` : ''}
 
-        <div style="margin-top:9px;height:3px;background:#1a0e06;border-radius:2px;overflow:hidden;">
-          <div style="height:100%;transform-origin:left;transform:scaleX(${scaleX});background:linear-gradient(90deg,#3a2010,${barColor});border-radius:2px;transition:transform .55s cubic-bezier(.22,1,.36,1);"></div>
+        <div style="margin-top:9px;height:3px;background:rgba(180,160,130,0.2);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;transform-origin:left;transform:scaleX(${scaleX});background:linear-gradient(90deg,#c8a870,${barColor});border-radius:2px;transition:transform .55s cubic-bezier(.22,1,.36,1);"></div>
         </div>
       </div>
     </div>`;
   }
 
-  html += `<div style="padding:14px;text-align:center;background:#100806;border-top:2px double #3a2010;">
-    <span style="font-family:Georgia,serif;font-size:8px;color:#3a2010;letter-spacing:2px;">— Finis —</span>
+  html += `<div style="padding:14px;text-align:center;border-top:2px double rgba(180,160,130,0.4);">
+    <span style="font-family:Georgia,serif;font-size:8px;color:#b09070;letter-spacing:2px;">— Finis —</span>
   </div>`;
 
   el.innerHTML = html;
+  // Initialize book page navigation
+  _bookPage = 0;
+  const content = document.getElementById('book-content');
+  if(content) {
+    content.scrollTop = 0;
+    setTimeout(()=>{
+      const pageH = content.clientHeight;
+      const totalPages = Math.max(1, Math.ceil(content.scrollHeight / pageH));
+      document.getElementById('book-page-num').textContent = `Page 1 of ${totalPages}`;
+      document.getElementById('book-prev').disabled = true;
+      document.getElementById('book-next').disabled = (totalPages <= 1);
+    }, 50);
+  }
 }
 
 function closeAll(){
@@ -3537,8 +3668,44 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
+  ['market','decor','orders','shop','social','finder'].forEach(id=>{
+    const el=document.getElementById('nb-'+id);
+    if(el) el.classList.remove('active');
+  });
+  // Close book overlay if open
+  const bookOv = document.getElementById('book-overlay');
+  if(bookOv && !bookOv.classList.contains('book-closed')) bookOv.classList.add('book-closed');
   currentTab='tank';
+}
+
+// ─── AQUAPEDIA BOOK SYSTEM ───────────────────────────────────────────────────
+function toggleBook(){
+  const ov = document.getElementById('book-overlay');
+  if(ov.classList.contains('book-closed')){
+    // Close any open panels first
+    closeAll();
+    buildAquapedia();
+    ov.classList.remove('book-closed');
+    document.getElementById('book-container').style.animation='bookOpen .35s cubic-bezier(.22,1,.36,1) forwards';
+  } else {
+    ov.classList.add('book-closed');
+  }
+}
+
+let _bookPage = 0;
+function bookFlip(dir){
+  const cards = document.querySelectorAll('#aqlist .aq-card, #aqlist > div');
+  if(!cards.length) return;
+  // Simple page system: each page shows all content, scroll to section
+  const content = document.getElementById('book-content');
+  const pageH = content.clientHeight;
+  const maxScroll = content.scrollHeight - pageH;
+  const totalPages = Math.max(1, Math.ceil(content.scrollHeight / pageH));
+  _bookPage = Math.max(0, Math.min(totalPages - 1, _bookPage + dir));
+  content.scrollTo({top: _bookPage * pageH, behavior:'smooth'});
+  document.getElementById('book-page-num').textContent = `Page ${_bookPage+1} of ${totalPages}`;
+  document.getElementById('book-prev').disabled = (_bookPage <= 0);
+  document.getElementById('book-next').disabled = (_bookPage >= totalPages-1);
 }
 
 // ─── PANEL DRAG SYSTEM ────────────────────────────────────────────────────────
