@@ -509,8 +509,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 <nav id="nav">
   <button class="nb" id="nb-fishshop" onclick="setTab('fishshop')"><span class="ni" id="ic-nav-fishshop"></span>Fish Shop</button>
-  <button class="nb" id="nb-supplies" onclick="setTab('supplies')"><span class="ni" id="ic-nav-supplies"></span>Supplies</button>
-  <button class="nb" id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
+  <button class="nb" id="nb-supplies" onclick="openSkillWeb()"><span class="ni" id="ic-nav-supplies"></span>Upgrades</button>
   <button class="nb" id="nb-finder" onclick="setTab('finder')"><span class="ni" id="ic-nav-finder"></span>Finder</button>
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
@@ -531,6 +530,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:10px;flex-shrink:0;">
     <button class="tabbtn active" onclick="switchFishShop('buy')" id="tab-buy">Buy</button>
     <button class="tabbtn" onclick="switchFishShop('sell')" id="tab-sell">Sell</button>
+    <button class="tabbtn" onclick="switchFishShop('decor')" id="tab-decor">Decor</button>
   </div>
   <div class="pscroll" id="fishshop-buy">
     <div class="cards" id="fcards"></div>
@@ -538,19 +538,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="pscroll" id="fishshop-sell" style="display:none;">
     <div id="mlist"></div>
   </div>
-</div>
-
-<div id="suppanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-supplies">Supplies</span><button class="xbtn" onclick="closeAll()"></button></div>
-  <button class="sw-open-btn" id="sw-open-btn" onclick="openSkillWeb()"><span id="sw-btn-icon"></span>Skill Web</button>
-  <div class="pscroll" id="supplies-scroll">
-    <div class="cards" id="ucards"></div>
-  </div>
-</div>
-
-<div id="dpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-decor"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="pscroll" id="decor-scroll">
+  <div class="pscroll" id="fishshop-decor" style="display:none;">
     <div class="sechead" style="margin-top:0;text-align:center;">UI Accent Color</div>
     <div class="swatch-row" id="swatches"></div>
     <div id="acc-themes"></div>
@@ -560,6 +548,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div id="acc-flora"></div>
   </div>
 </div>
+
 
 <div id="opanel" class="panel">
   <div class="ph"><span class="pt" id="ph-orders"></span><button class="xbtn" onclick="closeAll()"></button></div>
@@ -758,17 +747,13 @@ document.getElementById('lbl-fv').innerHTML = ICONS.tank + '<span id="fv">3/8</s
 document.getElementById('modebtn').innerHTML = ICONS.feed + ' Feed';
 
 document.getElementById('ic-nav-fishshop').innerHTML = ICONS.market;
-document.getElementById('ic-nav-supplies').innerHTML = ICONS.shop;
-document.getElementById('ic-nav-decor').innerHTML = ICONS.decor;
+document.getElementById('ic-nav-supplies').innerHTML = ICONS.star;
 document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
 document.getElementById('ic-book-fab').innerHTML = ICONS.book;
-document.getElementById('sw-btn-icon').innerHTML = ICONS.star;
 
 document.getElementById('ph-fishshop').innerHTML = ICONS.market + ' Fish Shop';
-document.getElementById('ph-supplies').innerHTML = ICONS.shop + ' Supplies';
-document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
 document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v' + CUR_VER;
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
@@ -4157,24 +4142,21 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({fishshop:'fspanel', supplies:'suppanel', decor:'dpanel', orders:'opanel', social:'socpanel', finder:'fpanel'}[t]);
+    const p = document.getElementById({fishshop:'fspanel', orders:'opanel', social:'socpanel', finder:'fpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['fishshop','supplies','decor','orders','social','finder'].forEach(id=>{
+    ['fishshop','orders','social','finder'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
     if(t==='fishshop') document.getElementById('nb-fishshop').classList.remove('notify');
-    if(t==='supplies') document.getElementById('nb-supplies').classList.remove('notify');
     if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
   }
 }
 
 function buildPanel(t){
   if(t==='fishshop') { buildShop(); buildMarket(); }
-  if(t==='supplies') buildSupplies();
-  if(t==='decor') buildDecor();
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
   if(t==='finder') buildFishFinder();
@@ -4553,7 +4535,7 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social','finder'].forEach(id=>{
+  ['market','orders','shop','social','finder'].forEach(id=>{
     const el=document.getElementById('nb-'+id);
     if(el) el.classList.remove('active');
   });
@@ -4848,10 +4830,13 @@ function applyBorder() {
 function switchFishShop(tab) {
   document.getElementById('fishshop-buy').style.display = tab==='buy' ? 'block' : 'none';
   document.getElementById('fishshop-sell').style.display = tab==='sell' ? 'block' : 'none';
+  document.getElementById('fishshop-decor').style.display = tab==='decor' ? 'block' : 'none';
   document.getElementById('tab-buy').className = tab==='buy' ? 'tabbtn active' : 'tabbtn';
   document.getElementById('tab-sell').className = tab==='sell' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-decor').className = tab==='decor' ? 'tabbtn active' : 'tabbtn';
   const lr = document.getElementById('live-rates-label');
   if(lr) lr.style.display = tab==='sell' ? '' : 'none';
+  if(tab==='decor') buildDecor();
 }
 
 function spawnFish(type) {
