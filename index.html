@@ -477,9 +477,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #skill-web-overlay{position:fixed;inset:0;z-index:50;display:none;background:#000d1a;flex-direction:column;}
 #skill-web-overlay.open{display:flex;}
 #swc{flex:1;width:100%;touch-action:none;}
-#sw-close{position:absolute;top:16px;right:16px;z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
+#sw-close{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
 #sw-close:hover{background:rgba(255,255,255,0.18);}
-#sw-mini{position:absolute;bottom:80px;right:16px;width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-mini{position:absolute;bottom:max(80px,calc(env(safe-area-inset-bottom,0px) + 16px));right:max(16px,env(safe-area-inset-right,0px));width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-era{position:absolute;top:max(16px,env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));z-index:51;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:0.5px;pointer-events:none;}
 #sw-tip{position:absolute;pointer-events:none;background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f8fafc;max-width:200px;display:none;z-index:52;}
 .sw-open-btn{display:flex;align-items:center;gap:6px;background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);color:#67e8f9;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;width:100%;justify-content:center;margin-bottom:10px;flex-shrink:0;}
 .sw-open-btn:hover{background:rgba(103,232,249,0.2);}
@@ -501,7 +502,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
       <div class="stat"><span class="slbl">Coins</span><span class="sval v-money" id="lbl-cv"></span></div>
       <div class="stat"><span class="slbl">Water</span><span class="sval" id="wvc"></span></div>
       <div class="stat"><span class="slbl">Fish</span><span class="sval" id="lbl-fv"></span></div>
-      <div class="stat"><span class="slbl">Era</span><span class="sval" id="era-val">Tidepool</span></div>
     </div>
     <button class="hbtn" id="modebtn" onclick="toggleMode()" style="align-self:flex-start; margin:0;"></button>
   </div>
@@ -520,6 +520,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="skill-web-overlay">
   <canvas id="swc"></canvas>
   <button id="sw-close" onclick="closeSkillWeb()">Close</button>
+  <div id="sw-era"></div>
   <canvas id="sw-mini"></canvas>
   <div id="sw-tip"></div>
 </div>
@@ -1491,8 +1492,8 @@ function updateHUD(){
   const xpf=document.getElementById('xpf');
   if(xpf){xpf.style.width=easedPct+'%'; xpf.style.background=xpBarColor;}
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
-  const eraEl = document.getElementById('era-val');
-  if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
+  const eraEl = document.getElementById('sw-era');
+  if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES[currentEra] || ERA_NAMES[0]);
 }
 
 function calcOffline(s){
@@ -4407,7 +4408,7 @@ function buildAquapedia() {
     Void:     { bg:'#22143e', border:'#4a2e80', label:'#c0a0e8' },
     Prismatic:{ bg:'#3a1028', border:'#7a2852', label:'#f0a8d0' },
   };
-  const BAND_SYM = { Crimson:'✦', Ember:'✶', Solar:'☀', Verdant:'✿', Abyssal:'〜', Void:'◈', Prismatic:'✧' };
+  const BAND_SYM = { Crimson:'C', Ember:'E', Solar:'S', Verdant:'V', Abyssal:'A', Void:'X', Prismatic:'P' };
   const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
   const totalBands = COLOR_BANDS.length;
 
@@ -4497,7 +4498,7 @@ function buildAquapedia() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 6px;">
           <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
           ${prismaticUnlocked
-            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
+            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">P Prismatic</div>`
             : (seenCount >= nonPrismaticCount && seenCount > 0
                 ? `<div style="font-family:Georgia,serif;font-size:9px;color:#8a6830;background:rgba(180,140,60,0.1);border:1px solid rgba(180,140,60,0.3);padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
                 : '')}
@@ -4924,7 +4925,7 @@ function buildShop(){
 
 function buildSupplies(){
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
-  const ERA_EMOJI = ['🐚','🌊','🪸','🌑','🌏','🕳️'];
+  const ERA_EMOJI = ['I','II','III','IV','V','VI'];
   const uc=document.getElementById('ucards');uc.innerHTML='';
   // Group upgrades by era
   const byEra = {};
@@ -4943,7 +4944,7 @@ function buildSupplies(){
     for(const[id,u] of byEra[era]){
       const lk=currentEra<u.era,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
       const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
-      if(lk) c.setAttribute('data-era-name','🔒 Requires: '+ERA_NAMES[u.era]);
+      if(lk) c.setAttribute('data-era-name','Requires: '+ERA_NAMES[u.era]);
       c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
       if(can)c.onclick=()=>{
         coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++;
@@ -5806,6 +5807,10 @@ function openSkillWeb() {
   sw_open = true;
   document.getElementById('skill-web-overlay').classList.add('open');
   closeAll(); // close shop panel
+  // Update era badge
+  const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const eraEl = document.getElementById('sw-era');
+  if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES_SW[currentEra] || ERA_NAMES_SW[0]);
   // Center on Core cluster (world origin)
   const ov = document.getElementById('swc');
   sw_camX = 0;
