@@ -301,6 +301,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #c.border-gold{box-shadow:inset 0 0 80px rgba(251,191,36,0.55), 0 0 50px rgba(251,191,36,0.35)!important;}
 .ostreak{background:var(--streak-bg);border:1px solid rgba(var(--ui-accent-rgb),.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
 .q-total{color:var(--text-dim);font-size:10px;font-weight:700;text-align:center;padding:8px 0 4px;letter-spacing:.5px;}
+@keyframes hintPulse { 0%,100%{opacity:0.7; transform:translateX(-50%) scale(1);} 50%{opacity:1; transform:translateX(-50%) scale(1.03);} }
 </style>
 </head>
 <body>
@@ -332,6 +333,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
+  <button class="nb" id="nb-aquapedia" onclick="setTab('aquapedia')"><span class="ni" id="ic-nav-aquapedia"></span>Codex</button>
 </nav>
 <div id="sov" onclick="closeAll()"></div>
 
@@ -380,6 +382,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="fpanel" class="panel">
   <div class="ph"><span class="pt" id="ph-finder">Fish Finder</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
   <div class="pscroll" id="flist"></div>
+</div>
+
+<div id="apanel" class="panel">
+  <div class="ph"><span class="pt" id="ph-aqua">📖 Aquapedia</span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
+  <div class="pscroll" id="alist"></div>
 </div>
 
 <div id="wmodal" class="modal">
@@ -522,7 +529,8 @@ const ICONS = {
   grass: svg('<path d="M12 22c-2-8-6-14-10-20c3 8 7 14 10 20z M12 22c0-8-2-15-4-20c2 8 3 15 4 20z M12 22c1-10 6-16 10-20c-3 8-7 14-10 20z" fill="currentColor"/>'),
   kelp: svg('<path d="M6 22c-2-4-2-10 0-14c1-3 5-5 5-5c-2 3-2 6 0 10l-2 2c0 3 2 4 1 7zM12 22c0-5 2-8 1-13c-2-4-1-7-1-7c1 2 2 5 2 8c2 2 1 6 0 12zM18 22c2-3 1-8-1-12c-1-3 1-6 2-8c-2 4-2 7 0 10c0 4-1 6-1 10z" fill="currentColor"/>'),
   coral_fan: svg('<path d="M12 22v-4m0 0c-4-4-6-8-4-12m4 12c3-3 6-7 4-11m-4 11c-2-3-4-6-2-9m2 9c2-2 3-5 1-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
-  fish_logo: svg('<path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/>')
+  fish_logo: svg('<path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/>'),
+  aquapedia: svg('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none" stroke="currentColor" stroke-width="2"/>')
 };
 
 // UI INJECTION
@@ -538,6 +546,7 @@ document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-shop').innerHTML = ICONS.shop;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
+document.getElementById('ic-nav-aquapedia').innerHTML = ICONS.aquapedia;
 
 document.getElementById('ph-market').innerHTML = ICONS.market + ' Fish Market';
 document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
@@ -608,10 +617,17 @@ let combo=0,comboTimer=0,maxCT=180;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
-let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0};
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,discovered:{}};
 let currentEra = 0;
 let visitorList = [];
 let _lastVisitorCheck = 0;
+
+// ─── PROGRESSIVE UI UNLOCK ────────────────────────────────────────────────────
+const NAV_UNLOCK = {
+  shop: 1, orders: 2, market: 2, finder: 3, decor: 4, social: 5, aquapedia: 2
+};
+let _navSeen = {};
+let _onboardStep = 0;
 
 const COLOR_BANDS = [
   { name: 'Crimson',   hueMin: 340, hueMax: 20,  bonus: 'sellMult',    bonusVal: 1.25, desc: '+25% sell value' },
@@ -638,6 +654,38 @@ const VISITOR_SPECIES = {
   abyssalbloomer:{ name:'Abyssal Bloomer',era:5, c1:'#4a044e', c2:'#701a75', sz:22, spd:0.3, trustTime:140, rarity:0.07, abyssal:true },
   starback:   { name:'Starback',         era:5, c1:'#fef9c3', c2:'#fbbf24', sz:18, spd:1.3, trustTime:160, rarity:0.06, abyssal:true },
   theecho:    { name:'The Echo',         era:5, c1:'#f8fafc', c2:'#e2e8f0', sz:0,  spd:1.5, trustTime:200, rarity:0.02, abyssal:true, isEcho:true },
+};
+
+// ─── AQUAPEDIA DATA ───────────────────────────────────────────────────────────
+const AQUAPEDIA = {
+  // ── Chapter I: Tidepool ──
+  guppy:        { ch:1, name:'Neon Guppy',        icon:'🐟', rarity:'Common',   lore:'Hardy and colorful, the Neon Guppy is often the first fish to grace a new aquarium. Their shimmering tails contain the seeds of incredible color lineages.',  hint:'Buy from the Shop at Level 1.' },
+  tetra:        { ch:1, name:'Neon Tetra',         icon:'🐠', rarity:'Common',   lore:'The electric stripe of the Neon Tetra is a natural bioluminescence mimic — evolution\'s answer to being noticed in murky water.',                            hint:'Buy from the Shop at Level 2.' },
+  goldfish:     { ch:1, name:'Goldfish',           icon:'🐡', rarity:'Common',   lore:'Descended from wild carp, the Goldfish has been selectively bred for centuries. Ancient tanks in China first held them over 1,000 years ago.',               hint:'Buy from the Shop at Level 3.' },
+  betta:        { ch:1, name:'Royal Betta',        icon:'🐟', rarity:'Uncommon', lore:'The Royal Betta\'s flowing fins evolved as elaborate signals of dominance and health. Each one is genetically unique — no two bettas share the same pattern.',  hint:'Buy from the Shop at Level 4.' },
+  seahare:      { ch:1, name:'Sea Hare',           icon:'🌊', rarity:'Rare',     lore:'Not a fish at all, the Sea Hare is a giant sea slug that uses chemical signals to navigate. Visitors sense something tranquil about well-kept tanks.',          hint:'Spotted in the Tidepool era. Feed and be patient.' },
+  // ── Chapter II: Shallows ──
+  angelfish:    { ch:2, name:'Angelfish',          icon:'🐠', rarity:'Uncommon', lore:'Angelfish pair for life in the wild. When one is removed from a tank, the other will often refuse to eat — a loyalty encoded deep in their biology.',          hint:'Buy from the Shop at Level 5.' },
+  discus:       { ch:2, name:'Blue Discus',        icon:'🐟', rarity:'Uncommon', lore:'The Blue Discus is among the most intelligent freshwater fish. They recognize individual human faces and will swim toward keepers they trust.',                 hint:'Buy from the Shop at Level 6.' },
+  mantisshrimp: { ch:2, name:'Mantis Shrimp',      icon:'🦐', rarity:'Rare',     lore:'The Mantis Shrimp sees 16 types of color receptors — humans have only 3. It moves its striking claw faster than a bullet, yet remains surprisingly gentle around calm fish.', hint:'Visitor in the Shallows era. Build trust with food.' },
+  nudibranch:   { ch:2, name:'Dorid Nudibranch',   icon:'🐚', rarity:'Rare',     lore:'Nudibranchs steal the stinging cells of sea anemones and repurpose them for their own defense. They are essentially living weapons dressed as art.',           hint:'Visitor in the Shallows era. Move slowly.' },
+  // ── Chapter III: Coral Realm ──
+  jellyfish:    { ch:3, name:'Moon Jelly',         icon:'🪼', rarity:'Uncommon', lore:'Moon Jellies have no brain, no heart, no bones. They have existed unchanged for 500 million years — predating dinosaurs, trees, and almost everything else.',   hint:'Buy from the Shop at Level 7.' },
+  scorpionfish: { ch:3, name:'Leaf Scorpionfish',  icon:'🐠', rarity:'Epic',     lore:'The Leaf Scorpionfish is a master of stillness. It mimics a dead leaf so perfectly that prey swim directly into its mouth without sensing danger.',            hint:'Visitor in the Coral Reef era. Do not startle it.' },
+  frogfish:     { ch:3, name:'Painted Frogfish',   icon:'🐡', rarity:'Epic',     lore:'Frogfish cannot swim efficiently — they walk on their pectoral fins. Each one has a unique color pattern that shifts over weeks to match its surroundings.',    hint:'Visitor in the Coral Reef era. Be very patient.' },
+  // ── Chapter IV: Twilight Zone ──
+  vampiresquid: { ch:4, name:'Vampire Squid',      icon:'🦑', rarity:'Epic',     lore:'Neither squid nor octopus, the Vampire Squid occupies its own taxonomic order. It lives in the oxygen minimum zone where almost nothing else survives.',       hint:'Visitor in the Twilight Zone era. Rare sighting.' },
+  // ── Chapter V: Open Ocean ──
+  oarfish:      { ch:5, name:'Oarfish',            icon:'🐟', rarity:'Legendary',lore:'The longest bony fish alive, Oarfish can reach 11 meters. They are believed to be the origin of sea serpent myths — sailors saw them dying at the surface.',   hint:'Very rare visitor in the Open Ocean era.' },
+  sunfish:      { ch:5, name:'Ocean Sunfish',      icon:'🐡', rarity:'Legendary',lore:'The Ocean Sunfish is the heaviest bony fish on Earth. It spends hours basking sideways at the surface — scientists still debate exactly why.',                  hint:'Rare visitor in the Open Ocean era.' },
+  // ── Chapter VI: The Abyss ──
+  lanternfish:  { ch:6, name:'Lanternfish',        icon:'✨', rarity:'Mythic',   lore:'Lanternfish produce their own cold light through bioluminescence. They perform the largest migration on Earth each night — rising from 1,000m to the surface to feed.', hint:'Tame in the Abyss era. Lights the way for others.', abyssal:true },
+  velvetray:    { ch:6, name:'Velvet Ray',         icon:'🌑', rarity:'Mythic',   lore:'The Velvet Ray navigates entirely by electroreception — it feels the electrical fields of other creatures through its skin, making light irrelevant.',           hint:'Tame in the Abyss era. Approach from the side.', abyssal:true },
+  glasseel:     { ch:6, name:'Glass Eel',          icon:'🌈', rarity:'Mythic',   lore:'So transparent you can see its spine, the Glass Eel has never been successfully bred in captivity. Every Glass Eel in existence was born in the open ocean.',  hint:'Tame in the Abyss era. It is drawn to calm water.', abyssal:true },
+  abyssalbloomer:{ ch:6,name:'Abyssal Bloomer',    icon:'🌸', rarity:'Mythic',   lore:'Named for the flower-shaped bioluminescent patterns it produces, the Abyssal Bloomer uses these light displays to attract tiny crustaceans in complete darkness.', hint:'Tame in the Abyss era. Feed generously.', abyssal:true },
+  starback:     { ch:6, name:'Starback',           icon:'⭐', rarity:'Mythic',   lore:'The Starback\'s scales contain a crystalline structure that reflects light in patterns eerily similar to star maps. Deep-sea fishers have used them as navigation guides for centuries.', hint:'Tame in the Abyss era. Appears near midnight.', abyssal:true },
+  // ── Chapter VII: Mysteries ──
+  theecho:      { ch:7, name:'The Echo',           icon:'🔮', rarity:'Unknown',  lore:'The Echo has no fixed form. It appears as a perfect mirror of the creature you treasure most. Whether it is imitating, honoring, or warning — no one knows.', hint:'Tame in the deepest Abyss. It only appears when your tank tells a story worth reflecting.', abyssal:true, secret:true },
 };
 
 const ABYSSAL_EFFECTS = {
@@ -1052,6 +1100,9 @@ function buildSave(){
     upgrades: Object.fromEntries(Object.entries(UPGRADES).map(([k,u])=>[k,u.owned])),
     _openQuests: sQuests,
     currentEra,
+    navSeen: _navSeen,
+    onboardStep: _onboardStep,
+    aquaDiscovered: sm.discovered,
     v: 18,
     ts: Date.now()
   };
@@ -1090,6 +1141,11 @@ function applyState(s){
   sm.visitorsTamed = sm.visitorsTamed || 0;
   sm.abyssalTamed = sm.abyssalTamed || 0;
   sm.homozyBred = sm.homozyBred || 0;
+  // New fields: nav unlock tracking, onboarding, aquapedia discovery
+  _navSeen = s.navSeen || {};
+  // 99 = onboarding complete; returning saves (s.v exists) skip onboarding, new saves start at step 0
+  _onboardStep = s.onboardStep !== undefined ? s.onboardStep : (s.v ? 99 : 0);
+  sm.discovered = s.aquaDiscovered || s.sm?.discovered || {};
   questStreak = s.questStreak || 0;
   // Migrate old orders that lack tier info — regenerate them
   currentOrders=(s.currentOrders&&s.currentOrders.length)?s.currentOrders:[];
@@ -1133,6 +1189,8 @@ function applyState(s){
     if(!o.tier) { generateOrders(); break; }
     if(o.startVal===undefined) o.startVal=getRawMetricValue(o);
   }
+  // Migration: mark all currently-owned fish types as discovered
+  fishList.forEach(f => { if(f.type) sm.discovered[f.type] = true; });
   updateHUD();
 }
 
@@ -1144,6 +1202,132 @@ function formatCoins(n) {
   if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
   return Math.floor(n).toLocaleString('en-US');
 }
+
+// ─── NAV LOCKS + ONBOARDING ───────────────────────────────────────────────────
+function updateNavLocks() {
+  Object.entries(NAV_UNLOCK).forEach(([id, reqLvl]) => {
+    const btn = document.getElementById('nb-' + id);
+    if (!btn) return;
+    const unlocked = playerLevel >= reqLvl;
+    const firstTime = unlocked && !_navSeen[id];
+
+    btn.style.opacity = unlocked ? '1' : '0.35';
+    btn.dataset.locked = unlocked ? '' : 'true';
+
+    if (firstTime && id !== 'shop') {
+      btn.classList.add('notify');
+      _navSeen[id] = true;
+      saveGame();
+    }
+
+    let lockEl = btn.querySelector('.nav-lock');
+    if (!unlocked) {
+      if (!lockEl) {
+        lockEl = document.createElement('span');
+        lockEl.className = 'nav-lock';
+        lockEl.style.cssText = 'position:absolute;top:2px;right:calc(50% - 14px);font-size:8px;font-weight:900;color:#64748b;background:rgba(0,0,0,0.5);border-radius:4px;padding:1px 3px;pointer-events:none;';
+        btn.appendChild(lockEl);
+      }
+      lockEl.textContent = 'Lv' + reqLvl;
+    } else if (lockEl) {
+      lockEl.remove();
+    }
+  });
+}
+
+function isFirstSession() {
+  return playerLevel <= 1 && fishList.length === 0 && totalCoins < 100;
+}
+
+function showOnboardingHint(msg) {
+  let el = document.getElementById('onboard-hint');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'onboard-hint';
+    el.style.cssText = 'position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);border-radius:16px;padding:10px 18px;color:#67e8f9;font-size:12px;font-weight:800;text-align:center;pointer-events:none;z-index:15;backdrop-filter:blur(8px);animation:hintPulse 2s ease-in-out infinite;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+}
+
+function hideOnboardingHint() {
+  document.getElementById('onboard-hint')?.remove();
+}
+
+// ─── AQUAPEDIA BUILD ──────────────────────────────────────────────────────────
+function buildAquapedia() {
+  const el = document.getElementById('alist');
+  if (!el) return;
+
+  const CHAPTER_NAMES = ['', 'I — Tidepool', 'II — Shallow Waters', 'III — Coral Realm', 'IV — Twilight Zone', 'V — Open Ocean', 'VI — The Abyss', 'VII — Mysteries'];
+  const RARITY_COLORS = { Common:'#94a3b8', Uncommon:'#10b981', Rare:'#38bdf8', Epic:'#a855f7', Legendary:'#fbbf24', Mythic:'#f43f5e', Unknown:'#e2e8f0' };
+
+  const allKeys = Object.keys(AQUAPEDIA).filter(k => !AQUAPEDIA[k].secret || sm.discovered[k]);
+  const discoveredCount = allKeys.filter(k => sm.discovered[k]).length;
+  const totalCount = Object.keys(AQUAPEDIA).filter(k => !AQUAPEDIA[k].secret).length;
+
+  const byChapter = {};
+  for (const [key, entry] of Object.entries(AQUAPEDIA)) {
+    if (entry.secret && !sm.discovered[key]) continue;
+    if (!byChapter[entry.ch]) byChapter[entry.ch] = [];
+    byChapter[entry.ch].push({ key, ...entry });
+  }
+
+  let html = `
+    <div style="text-align:center;padding:0 0 16px 0;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:800;">Field Codex</div>
+      <div style="font-size:28px;font-weight:900;color:var(--text-main);margin:4px 0;">${discoveredCount}<span style="font-size:14px;color:var(--text-dim);font-weight:600;">/${totalCount}</span></div>
+      <div style="font-size:10px;color:var(--text-dim);">Creatures Discovered</div>
+      <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;margin:10px 16px 0;overflow:hidden;">
+        <div style="height:100%;background:linear-gradient(90deg,var(--ui-accent),#a855f7);border-radius:2px;width:${Math.round(discoveredCount/Math.max(totalCount,1)*100)}%;transition:width 0.5s;"></div>
+      </div>
+    </div>`;
+
+  for (const ch of Object.keys(byChapter).sort((a,b)=>a-b)) {
+    const entries = byChapter[ch];
+    const chDiscovered = entries.filter(e => sm.discovered[e.key]).length;
+    html += `<div class="sechead" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Chapter ${CHAPTER_NAMES[ch] || ch}</span>
+      <span style="font-size:10px;color:var(--text-dim);font-weight:600;">${chDiscovered}/${entries.length}</span>
+    </div>`;
+
+    for (const entry of entries) {
+      const known = !!sm.discovered[entry.key];
+      if (known) {
+        html += `<div class="finder-card" style="margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:28px;">${entry.icon}</span>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                <span style="color:var(--text-main);font-weight:800;font-size:14px;">${entry.name}</span>
+                <span style="font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(0,0,0,0.3);color:${RARITY_COLORS[entry.rarity]||'#94a3b8'};border:1px solid ${RARITY_COLORS[entry.rarity]||'#94a3b8'};">${entry.rarity}</span>
+                ${entry.abyssal ? '<span style="font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">ABYSSAL</span>' : ''}
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);line-height:1.5;font-style:italic;">"${entry.lore}"</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:#475569;background:rgba(255,255,255,0.03);border-radius:8px;padding:6px 8px;border:1px dashed rgba(255,255,255,0.08);">
+            💡 ${entry.hint}
+          </div>
+        </div>`;
+      } else {
+        html += `<div class="finder-card" style="margin-bottom:10px;opacity:0.45;filter:grayscale(1);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:28px;filter:brightness(0);">❓</span>
+            <div>
+              <div style="color:var(--text-dim);font-weight:800;font-size:14px;">??? ${entry.abyssal ? '— Abyssal' : ''}</div>
+              <div style="font-size:11px;color:#334155;font-style:italic;">Not yet discovered</div>
+              <div style="font-size:10px;color:#1e293b;margin-top:4px;">💡 ${entry.hint}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+    }
+  }
+
+  el.innerHTML = html;
+}
+
 
 function updateHUD(){
   document.getElementById('cv').textContent = formatCoins(coins);
@@ -1170,6 +1354,16 @@ function updateHUD(){
   const ERA_NAMES = ['🌊 Tidepool','🐠 Shallows','🪸 Coral Reef','🌑 Twilight Zone','🌊 Open Ocean','🕳 Abyss'];
   const eraEl = document.getElementById('era-val');
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
+
+  // Progressive HUD stat reveal
+  const waterStat = document.getElementById('wvc')?.closest('.stat');
+  const fishStat  = document.getElementById('lbl-fv')?.closest('.stat');
+  const eraStat   = document.getElementById('era-val')?.closest('.stat');
+  if (waterStat) waterStat.style.display = playerLevel >= 2 ? '' : 'none';
+  if (fishStat)  fishStat.style.display  = playerLevel >= 3 ? '' : 'none';
+  if (eraStat)   eraStat.style.display   = playerLevel >= 3 ? '' : 'none';
+
+  updateNavLocks();
 }
 
 function calcOffline(s){
@@ -1416,6 +1610,14 @@ function updateEco(){
 
 function triggerEat(f,fd,def){
   fd.eaten=true;f.hunger=100;f.eat=18;sm.feeds++;
+  // Advance onboarding step 1 → 2 (complete) on first feed
+  if (_onboardStep === 1) {
+    _onboardStep = 2;
+    hideOnboardingHint();
+    const shopBtn = document.getElementById('nb-shop');
+    if (shopBtn) shopBtn.style.boxShadow = '';
+    saveGame();
+  }
   combo++;comboTimer=maxCT;
   sm.comboTaps = (sm.comboTaps||0) + 1;
   sm.maxCombo = Math.max(sm.maxCombo||0, combo);
@@ -2954,20 +3156,32 @@ function checkLevel(){
     spawnJuice(W/2,H/4,ICONS.star+' LEVEL UP!','var(--ui-accent)',2);
     document.getElementById('nb-shop').classList.add('notify');
     checkMilestones();
-    
-    // Level Up Modal Injection
-    let unlocks = [];
-    if(playerLevel===2) unlocks.push("• Market Rerolling (50 Coins)", "• Neon Tetra Available");
-    if(playerLevel===3) unlocks.push("• Medium Quests Unlocked", "• Elite Daily Quests", "• Combination Quests", "• Goldfish Available", "• Tier-2 Flora");
-    if(playerLevel===4) unlocks.push("• Betta Fish Available", "• Fish Bios Unlocked");
-    if(playerLevel===5) unlocks.push("• Hard Quests Unlocked", "• Angelfish Available", "• Mid-tier Themes");
-    if(playerLevel===6) unlocks.push("• Blue Discus Available");
-    if(playerLevel===7) unlocks.push("• Legendary Quests Unlocked", "• Moon Jellyfish Available", "• Advanced Decor", "• Elite Achievements");
-    if(playerLevel===8) unlocks.push("• Octopus Available");
-    if(unlocks.length === 0) unlocks.push("• Higher Quest Multipliers", "• Increased Base Rewards");
-    
+
+    // Announce newly unlocked nav tabs
+    const tabNames = {market:'Market',orders:'Quests',finder:'Fish Finder',decor:'Decor',social:'Social',aquapedia:'Aquapedia'};
+    Object.entries(NAV_UNLOCK).forEach(([id, reqLvl]) => {
+      if (playerLevel === reqLvl && id !== 'shop') {
+        setTimeout(() => toast('🎉 ' + (tabNames[id]||id) + ' tab unlocked!', '#a855f7'), 1200);
+      }
+    });
+    updateNavLocks();
+
+    // Level Up Modal — use LEVEL_UNLOCKS map
+    const LEVEL_UNLOCKS = {
+      2: ['📋 Orders tab (Quests)', '📖 Aquapedia tab', '💧 Water quality display', '🛒 Market tab', '• Market Rerolling (50 Coins)', '• Neon Tetra Available'],
+      3: ['🔍 Fish Finder tab', '🐟 Fish count display', '• Medium Quests Unlocked', '• Elite Daily Quests', '• Combination Quests', '• Goldfish Available', '• Tier-2 Flora'],
+      4: ['🎨 Decor tab', '• Betta Fish Available', '• Fish Bios Unlocked'],
+      5: ['👥 Social tab', '• Hard Quests Unlocked', '• Angelfish Available', '• Mid-tier Themes'],
+      6: ['• Blue Discus Available'],
+      7: ['🌑 Twilight Zone (Era 4 possible)', '• Legendary Quests Unlocked', '• Moon Jellyfish Available', '• Advanced Decor', '• Elite Achievements'],
+      8: ['• Octopus Available'],
+      9: ['🕳 Abyss era (after taming a visitor)'],
+    };
+    const unlockItems = LEVEL_UNLOCKS[playerLevel] || ['✦ Keep leveling up to unlock more!'];
+    document.getElementById('lvlunlocks').innerHTML = unlockItems.map(s =>
+      s.startsWith('•') ? `<div style="padding:4px 0;">${s}</div>` : `<div style="padding:4px 0;">✦ ${s}</div>`
+    ).join('');
     document.getElementById('lvlnum').textContent = playerLevel;
-    document.getElementById('lvlunlocks').innerHTML = unlocks.join('<br>');
     document.getElementById('lvlmodal').classList.add('show');
   }
   updateHUD();
@@ -3056,6 +3270,8 @@ function spawnVisitor(key, def, echoCopy) {
   computeColorBonus(v);
   visitorList.push(v);
   toast('👁 ' + def.name + ' spotted...', '#6366f1');
+  // Mark visitor as discovered in Aquapedia
+  sm.discovered[key] = true;
 }
 
 function updateVisitors() {
@@ -3140,6 +3356,14 @@ function checkMilestones() {
 // TABS, SHOP, AND DECOR
 let currentTab='tank';
 function setTab(t){
+  // Intercept locked tabs
+  const reqLvl = NAV_UNLOCK[t] || 1;
+  if (playerLevel < reqLvl) {
+    const names = {market:'Market',orders:'Orders',finder:'Fish Finder',decor:'Decor',social:'Social',aquapedia:'Aquapedia'};
+    toast('🔒 ' + (names[t]||t) + ' unlocks at Level ' + reqLvl, '#64748b');
+    return;
+  }
+
   if(t===currentTab && t!=='tank' && document.querySelector('.panel.open')){
     closeAll();
     return;
@@ -3149,17 +3373,33 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel'}[t]);
+    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel', aquapedia:'apanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['market','decor','orders','shop','social','finder'].forEach(id=>{
+    ['market','decor','orders','shop','social','finder','aquapedia'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
     if(t==='market') document.getElementById('nb-market').classList.remove('notify');
     if(t==='shop') document.getElementById('nb-shop').classList.remove('notify');
     if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
+    if(t==='aquapedia') { const nb = document.getElementById('nb-aquapedia'); if(nb) nb.classList.remove('notify'); }
+    // Era badge in panel headers for era 3+
+    const ERA_BADGE_COLORS = ['','','','rgba(76,29,149,0.6)','rgba(30,64,175,0.6)','rgba(0,0,0,0.8)'];
+    const ERA_BADGE_TEXT   = ['','','','Twilight Zone','Open Ocean','Abyss'];
+    if (currentEra >= 3) {
+      const headers = document.querySelectorAll('.panel.open .pt');
+      headers.forEach(h => {
+        if (!h.querySelector('.era-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'era-badge';
+          badge.style.cssText = `font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${ERA_BADGE_COLORS[currentEra]||'rgba(0,0,0,0.6)'};color:#c4b5fd;border:1px solid rgba(139,92,246,0.4);letter-spacing:0.5px;text-transform:uppercase;margin-left:6px;`;
+          badge.textContent = ERA_BADGE_TEXT[currentEra] || '';
+          h.appendChild(badge);
+        }
+      });
+    }
   }
 }
 
@@ -3170,6 +3410,7 @@ function buildPanel(t){
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
   if(t==='finder') buildFishFinder();
+  if(t==='aquapedia') buildAquapedia();
 }
 
 function getPersonality(f) {
@@ -3254,7 +3495,10 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social','finder'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
+  ['market','decor','orders','shop','social','finder','aquapedia'].forEach(id=>{
+    const el = document.getElementById('nb-'+id);
+    if(el) el.classList.remove('active');
+  });
   currentTab='tank';
 }
 
@@ -3498,12 +3742,25 @@ function buySpawnBaby(type) {
     genes:g, isRare:g.isRareMut
   });
   computeColorBonus(fishList[fishList.length-1]);
+  // Mark as discovered in Aquapedia
+  sm.discovered[type] = true;
+  // Advance onboarding step 0 → 1 on first fish purchase
+  if (_onboardStep === 0) {
+    _onboardStep = 1;
+    showOnboardingHint('🐟 Tap the water to feed your fish!');
+  }
   updateHUD();
 }
 
 function buySpawnEgg(type) {
   const g = generateRandomGenes(type);
   eggs.push({x:W/2+Math.random()*80-40, y:FOOD_FL(W/2), type, hatchTime:getEggHatchTime(type), genes:g, isRareMut:g.isRareMut});
+  // Mark as discovered in Aquapedia
+  sm.discovered[type] = true;
+  if (_onboardStep === 0) {
+    _onboardStep = 1;
+    showOnboardingHint('🐟 Tap the water to feed your fish!');
+  }
   updateHUD();
 }
 
@@ -4197,6 +4454,15 @@ function BOOT_APP() {
   
   try { buildOrders(); } catch(e) { console.error("BOOT: buildOrders failed:", e); }
   try { updateHUD(); } catch(e) { console.error("BOOT: updateHUD failed:", e); }
+  try {
+    updateNavLocks();
+    if (isFirstSession()) {
+      _onboardStep = 0;
+      showOnboardingHint('👆 Tap the Shop to buy your first fish');
+      const shopBtn = document.getElementById('nb-shop');
+      if (shopBtn) shopBtn.style.boxShadow = '0 0 0 3px rgba(103,232,249,0.5)';
+    }
+  } catch(e) { console.error("BOOT: nav/onboard failed:", e); }
   requestAnimationFrame(loop);
 }
 BOOT_APP();
