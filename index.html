@@ -1162,6 +1162,8 @@ function generateRandomGenes(type, isShop=false) {
 function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   let mutRate = (UPGRADES.uvlight && UPGRADES.uvlight.owned > 0) ? 0.10 : 0.05;
   if(UPGRADES.aurastone && UPGRADES.aurastone.owned > 0) mutRate += 0.10;
+  // sel_breed: +10% rare mutation chance per stack
+  mutRate += swGetBonus('sel_breed') * 0.10;
   if(momFish && momFish._colorBonus?.bonus === 'rareMult') mutRate *= momFish._colorBonus.val;
   if(dadFish && dadFish._colorBonus?.bonus === 'rareMult') mutRate *= dadFish._colorBonus.val;
   const isRareMut = Math.random() < mutRate;
@@ -1457,7 +1459,7 @@ function updateHUD(){
   document.getElementById('cv').textContent = formatCoins(coins);
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6 + (swGetBonus('evt_hor')>0?10:0);
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let rawPct=100, xpBarColor='', xpBarShadow='';
@@ -1519,8 +1521,11 @@ function calcOffline(s){
     }
     const e=Math.floor(fishEarnings);
     total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});}
-  // leviathancore: +200% offline earnings (x3 total)
-  if(s.upgrades && s.upgrades.leviathancore > 0) { total *= 3; items.forEach(it => { it.coins *= 3; }); }
+  // leviathancore: +200% offline earnings (x3 total); warp_core skill web: x3 offline (stacks multiplicatively)
+  let offlineMult = 1;
+  if(s.upgrades && s.upgrades.leviathancore > 0) offlineMult *= 3;
+  if(s.sw_owned && Object.keys(s.sw_owned).some(k => k === 's_warp' && s.sw_owned[k] > 0)) offlineMult *= 3;
+  if(offlineMult > 1) { total = Math.floor(total * offlineMult); items.forEach(it => { it.coins = Math.floor(it.coins * offlineMult); }); }
   const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
   return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
 }
@@ -1655,7 +1660,9 @@ function getPrice(f) {
   const rareMult = f.isRare ? 3 : 1;
   const colorSellMult = (f._colorBonus?.bonus === 'sellMult') ? f._colorBonus.val : 1.0;
   const platscalesMult = (UPGRADES.platscales && UPGRADES.platscales.owned > 0) ? 1.4 : 1;
-  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult);
+  const goldCatSellMult = swGetBonus('gold_cat') > 0 ? 1.1 : 1;
+  const mythicLinMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? 3 : 1;
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult);
 }
 
 function generateMasterpieceGenes(type) {
@@ -1686,6 +1693,8 @@ function sellFish(id, price) {
 function updateEco(){
   let algaeGrowMult = 1.0;
   for(const f of fishList) { if(f._colorBonus?.bonus === 'algaeClean') algaeGrowMult *= f._colorBonus.val; }
+  // kelp_f skill web: -30% algae growth
+  if(swGetBonus('kelp_f') > 0) algaeGrowMult *= 0.7;
   const grow=(UPGRADES.bioreactor&&UPGRADES.bioreactor.owned>0)?0:fishList.length*.008*algaeGrowMult,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
   const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
@@ -1733,6 +1742,20 @@ function updateEco(){
   if(time%300===0) tickOrders();
   if(time%1200===0) tickMarket();
   tickVisitor();
+
+  // Skill web passive income: tidal +3%/min per stack, inf_loop 1% of coins/min
+  // Both fire every 3600 frames (~1 min at 60fps)
+  if(time%3600===0) {
+    const tidalStacks = swGetBonus('tidal');
+    if(tidalStacks > 0 && coins > 0) {
+      const tidalAmt = Math.ceil(coins * 0.03 * tidalStacks);
+      if(tidalAmt > 0) addCoins(tidalAmt, W/2, H/3, false);
+    }
+    if(swGetBonus('inf_loop') > 0 && coins > 0) {
+      const loopAmt = Math.ceil(coins * 0.01);
+      if(loopAmt > 0) addCoins(loopAmt, W/2, H/3, false);
+    }
+  }
 
   // Passive coin loss for dirty tanks (WQ < 10% / Algae > 90)
   if(algae > 90 && time % 60 === 0 && fishList.length > 0) {
@@ -1784,8 +1807,14 @@ function triggerEat(f,fd,def){
   // obelisk: +2% per unique species owned
   const uniqueSpecies = new Set(fishList.map(fish => fish.type)).size;
   const obeliskMult = (UPGRADES.obelisk && UPGRADES.obelisk.owned > 0) ? (1 + uniqueSpecies * 0.02) : 1;
+  // skill web: midnight +15% all income, apex +20% for adults, gold_cat +10%
+  const midnightMult = 1 + swGetBonus('midnight') * 0.15;
+  const apexMult = (f.scale >= 1 && swGetBonus('apex') > 0) ? 1.2 : 1;
+  const goldCatMult = swGetBonus('gold_cat') > 0 ? 1.1 : 1;
+  // mythic_lin: rare fish earn 3x
+  const mythicMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? 3 : 1;
   
-  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen * symbioticMult * obeliskMult;
+  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen * symbioticMult * obeliskMult * midnightMult * apexMult * goldCatMult * mythicMult;
   // resonance raises the combo cap from 2.5x to 3.5x
   const multCap = (UPGRADES.resonance && UPGRADES.resonance.owned > 0) ? 3.5 : 2.5;
   // If it's a Legendary (Bred Gold), bypass the cap to allow the full 20x+ bonus
@@ -1832,12 +1861,12 @@ function updateFish(f){
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6 + (swGetBonus('evt_hor')>0?10:0);
   
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
     if(mate){
-      f.bcd=8000;mate.bcd=8000;
+      f.bcd=Math.floor(8000*(swGetBonus('brd_frenzy')>0?0.6:1));mate.bcd=f.bcd;
       const childGenes = mendelianCross(f.genes, mate.genes, def, f, mate);
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
@@ -2029,17 +2058,18 @@ function initDecor(){
 function updateSnail(s){
   s.timer++;
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
+  const spdMult = swGetBonus('vent') > 0 ? 1.5 : 1;
   if(s.state==='moving'){
     if(s.wall==='floor'){
-      s.x+=s.spd*s.dir; s.ph+=.08;
+      s.x+=s.spd*s.dir*spdMult; s.ph+=.08;
       if(s.x<10){ s.x=10; s.wall='left'; s.dir=1; }
       if(s.x>W-10){ s.x=W-10; s.wall='right'; s.dir=1; }
     } else if(s.wall==='left'){
-      s.y-=s.spd*s.dir; s.ph+=.08;
+      s.y-=s.spd*s.dir*spdMult; s.ph+=.08;
       if(s.y<150){ s.y=150; s.dir=-1; }
       if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=1; s.x=15; }
     } else if(s.wall==='right'){
-      s.y-=s.spd*s.dir; s.ph+=.08;
+      s.y-=s.spd*s.dir*spdMult; s.ph+=.08;
       if(s.y<150){ s.y=150; s.dir=-1; }
       if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=-1; s.x=W-15; }
     }
@@ -3162,6 +3192,8 @@ try {
     updateEco();
     for(const f of fishList) updateFish(f);
     if(time%60===0) { checkMilestones(); updateEliteTimerUI(); }
+    // plankton: passive XP drip once per minute
+    if(time%3600===0) { const planktonStacks = swGetBonus('plankton'); if(planktonStacks > 0) giveXP(5 * planktonStacks); }
   }
   updateVisitors();
   
@@ -3528,7 +3560,8 @@ try {
     ctx.restore();
 
     if(c.timer%4800===0) {
-      addCoins(45, c.x, FOOD_FL(c.x)-30, true);
+      const clamBase = swGetBonus('lens') > 0 ? 90 : 45;
+      addCoins(clamBase, c.x, FOOD_FL(c.x)-30, true);
       spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL!','#38bdf8',1.5);
     }
   }
@@ -4151,7 +4184,7 @@ function updateVisitors() {
 function tameVisitor(idx) {
   const v = visitorList[idx];
   const def = v.def;
-  const mF = baseMaxFish + (UPGRADES.tank.owned * 4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
+  const mF = baseMaxFish + (UPGRADES.tank.owned * 4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6 + (swGetBonus('evt_hor')>0?10:0);
   if((fishList.length + eggs.length) >= mF) {
     toast('Tank full! ' + def.name + ' could not join.', '#ef4444');
     visitorList.splice(idx, 1);
@@ -4285,6 +4318,38 @@ function buildFishFinder() {
         <span style="font-size:10px;">${ICONS.palette} <strong>${f._colorBonus.band} Band</strong> — ${f._colorBonus.desc} ${f._colorBonus.full ? '<span style="color:#fbbf24;">(Full)</span>' : '<span style="color:#94a3b8;">(Partial)</span>'}</span>
       </div>` : ''}
       ${f.isAbyssal && ABYSSAL_EFFECTS[f.name] ? `<div style="margin-top:6px; font-style:italic; color:#a855f7; font-size:10px;">${ABYSSAL_EFFECTS[f.name]}</div>` : ''}
+      ${(() => {
+        if(UPGRADES.geneticseq && UPGRADES.geneticseq.owned > 0) {
+          const mate = fishList.find(m => m !== f && m.type === f.type && m.scale >= 1 && m.bcd <= 0 && m.hunger > 80);
+          if(mate) {
+            const c1a = _safeColor(f.genes?.c1?.[0], TYPES[f.type].c1);
+            const c1b = _safeColor(mate.genes?.c1?.[0], TYPES[f.type].c1);
+            const c2a = _safeColor(f.genes?.c2?.[0], TYPES[f.type].c2);
+            const c2b = _safeColor(mate.genes?.c2?.[0], TYPES[f.type].c2);
+            const mutChance = Math.min(99, Math.round(((UPGRADES.uvlight&&UPGRADES.uvlight.owned>0?0.10:0.05) + (UPGRADES.aurastone&&UPGRADES.aurastone.owned>0?0.10:0) + swGetBonus('sel_breed')*0.10)*100));
+            return `<div style="margin-top:8px;padding:6px 8px;background:rgba(16,185,129,0.08);border-radius:8px;border:1px solid rgba(16,185,129,0.25);">
+              <div style="font-size:9px;font-weight:800;color:#10b981;margin-bottom:5px;letter-spacing:0.5px;">GENETIC SEQUENCER — Offspring Preview</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <div class="c-dot" style="background:${c1a};"></div><span style="font-size:9px;color:var(--text-dim)">+</span>
+                <div class="c-dot" style="background:${c1b};"></div><span style="font-size:9px;color:var(--text-dim)">-></span>
+                <div class="c-dot" style="background:${c1a};border:1px dashed #10b981;"></div>
+                <span style="font-size:8px;color:var(--text-sub);">or</span>
+                <div class="c-dot" style="background:${c1b};border:1px dashed #10b981;"></div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:3px;">
+                <div class="c-dot" style="background:${c2a};"></div><span style="font-size:9px;color:var(--text-dim)">+</span>
+                <div class="c-dot" style="background:${c2b};"></div><span style="font-size:9px;color:var(--text-dim)">-></span>
+                <div class="c-dot" style="background:${c2a};border:1px dashed #10b981;"></div>
+                <span style="font-size:8px;color:var(--text-sub);">or</span>
+                <div class="c-dot" style="background:${c2b};border:1px dashed #10b981;"></div>
+              </div>
+              <div style="margin-top:5px;font-size:9px;color:var(--text-dim);">Rare mutation chance: <span style="color:#fbbf24;">${mutChance}%</span></div>
+            </div>`;
+          }
+          return `<div style="margin-top:8px;padding:6px 8px;background:rgba(16,185,129,0.06);border-radius:8px;border:1px solid rgba(16,185,129,0.15);font-size:9px;color:var(--text-dim);font-style:italic;">Genetic Sequencer: No compatible mate in tank</div>`;
+        }
+        return '';
+      })()}
           <div class="f-personality">
           <div style="font-weight:900; color:var(--card-text); margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
           <div style="color:var(--text-sub);">Loves: <span style="color:#10b981">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
@@ -4960,7 +5025,7 @@ function buildShop(){
 
 function buildSupplies(){
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
-  const uc=document.getElementById('ucards');uc.innerHTML='';
+  const uc=document.getElementById('ucards');if(!uc)return;
   // Group upgrades by era
   const byEra = {};
   for(const[id,u] of Object.entries(UPGRADES)){
@@ -5012,7 +5077,7 @@ function redeemCode(raw){
     const fData = decodeFish(code);
     if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
     if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
-    const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
+    const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6 + (swGetBonus('evt_hor')>0?10:0);
     if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
     
     claimedCodes.add(code); codesRedeemed++;
@@ -6295,7 +6360,7 @@ function swDrawAll() {
       ctx2.fillStyle = cl.color;
       ctx2.textAlign = 'center';
       ctx2.textBaseline = 'middle';
-      ctx2.fillText(`\u{1F512} Level ${cl.req}`, clCenter.x, clCenter.y + 4);
+      ctx2.fillText(`Level ${cl.req}`, clCenter.x, clCenter.y + 4);
       ctx2.restore();
     }
 
