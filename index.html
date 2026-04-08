@@ -4234,8 +4234,9 @@ function buildAquapedia() {
     }).join('');
 
     // Determine fish preview colors from seen data or defaults
-    const previewC1 = (seen.length > 0 && fishList.find(f => f.type === key)) ? fishList.find(f => f.type === key).genes.c1[0] : def.c1;
-    const previewC2 = (seen.length > 0 && fishList.find(f => f.type === key)) ? fishList.find(f => f.type === key).genes.c2[0] : def.c2;
+    const _pf = seen.length > 0 ? fishList.find(f => f.type === key) : null;
+    const previewC1 = _pf ? _pf.genes.c1[0] : def.c1;
+    const previewC2 = _pf ? _pf.genes.c2[0] : def.c2;
 
     _bookPages.push(`
     <div style="padding:16px 18px 10px;${!discovered?'opacity:0.45;':''}overflow-y:auto;height:100%;box-sizing:border-box;">
@@ -4295,15 +4296,7 @@ function _renderBookPage() {
   </div>`;
 
   // Draw fish preview canvases on species pages
-  content.querySelectorAll('canvas.aq-fish-preview').forEach(cvs => {
-    const type = cvs.dataset.fishType;
-    const c1 = cvs.dataset.c1;
-    const c2 = cvs.dataset.c2;
-    const preview = drawFishPreview(type, c1, c2, 120, 60);
-    const pc = cvs.getContext('2d');
-    pc.clearRect(0, 0, cvs.width, cvs.height);
-    pc.drawImage(preview, 0, 0);
-  });
+  _drawBookPreviews(content);
 
   // Update page number (roman numerals)
   const pageNum = document.getElementById('book-page-num');
@@ -4312,6 +4305,18 @@ function _renderBookPage() {
   // Update nav buttons
   document.getElementById('book-prev').disabled = (_bookPage <= 0);
   document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+}
+
+function _drawBookPreviews(container) {
+  container.querySelectorAll('canvas.aq-fish-preview').forEach(cvs => {
+    const type = cvs.dataset.fishType;
+    const c1 = cvs.dataset.c1;
+    const c2 = cvs.dataset.c2;
+    const preview = drawFishPreview(type, c1, c2, 120, 60);
+    const pc = cvs.getContext('2d');
+    pc.clearRect(0, 0, cvs.width, cvs.height);
+    pc.drawImage(preview, 0, 0);
+  });
 }
 
 function closeAll(){
@@ -4388,15 +4393,7 @@ function bookFlip(dir){
     </div>`;
 
     // Draw fish preview canvases
-    content.querySelectorAll('canvas.aq-fish-preview').forEach(cvs => {
-      const type = cvs.dataset.fishType;
-      const c1 = cvs.dataset.c1;
-      const c2 = cvs.dataset.c2;
-      const preview = drawFishPreview(type, c1, c2, 120, 60);
-      const pc = cvs.getContext('2d');
-      pc.clearRect(0, 0, cvs.width, cvs.height);
-      pc.drawImage(preview, 0, 0);
-    });
+    _drawBookPreviews(content);
 
     // Update page number
     const pageNum = document.getElementById('book-page-num');
