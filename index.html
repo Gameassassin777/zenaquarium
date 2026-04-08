@@ -187,7 +187,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .full{opacity:.38;cursor:default;filter:grayscale(70%);}
 .full:active{transform:none!important;}
 .locked{opacity:.38;pointer-events:none;}
-.locked::after{content:'LOCKED Lv'attr(data-req);position:absolute;inset:0;background:var(--dash-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:var(--text-dim);border-radius:13px;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);}
+.locked::after{content:attr(data-era-name);position:absolute;inset:0;background:var(--dash-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:var(--text-dim);border-radius:13px;-webkit-backdrop-filter:var(--glass);backdrop-filter:var(--glass);}
+.sechead{font-size:11px;font-weight:800;color:var(--ui-accent);text-transform:uppercase;letter-spacing:1px;padding:10px 4px 4px;width:100%;grid-column:1/-1;opacity:0.85;}
 
 /* MARKET REVAMP */
 .m-header { background:var(--streak-bg); border:1px solid rgba(var(--ui-accent-rgb),0.25); border-radius:12px; padding:12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; box-shadow:inset 0 0 20px rgba(var(--ui-accent-rgb),0.05); }
@@ -221,7 +222,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 .ci{font-size:32px;display:block;margin-bottom:6px; color:#e2e8f0; filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
 .cn{color:#fff;font-size:14px;font-weight:800;display:block;margin:2px 0;}
-.cd{color:#94a3b8;font-size:10px;margin-bottom:8px;display:block;line-height:1.4;height:28px;}
+.cd{color:#cbd5e1;font-size:12px;margin-bottom:8px;display:block;line-height:1.4;height:auto;min-height:28px;}
 .cpr{color:#fbbf24;font-size:13px;font-weight:900;text-shadow:0 0 10px rgba(251,191,36,.5);}
 .cown{color:var(--ui-accent);font-size:10px;margin-top:5px;display:block;font-weight:bold;}
 
@@ -476,9 +477,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #skill-web-overlay{position:fixed;inset:0;z-index:50;display:none;background:#000d1a;flex-direction:column;}
 #skill-web-overlay.open{display:flex;}
 #swc{flex:1;width:100%;touch-action:none;}
-#sw-close{position:absolute;top:16px;right:16px;z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
+#sw-close{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
 #sw-close:hover{background:rgba(255,255,255,0.18);}
-#sw-mini{position:absolute;bottom:80px;right:16px;width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-mini{position:absolute;bottom:max(80px,calc(env(safe-area-inset-bottom,0px) + 16px));right:max(16px,env(safe-area-inset-right,0px));width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-era{position:absolute;top:max(16px,env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));z-index:51;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:0.5px;pointer-events:none;}
 #sw-tip{position:absolute;pointer-events:none;background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f8fafc;max-width:200px;display:none;z-index:52;}
 .sw-open-btn{display:flex;align-items:center;gap:6px;background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);color:#67e8f9;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;width:100%;justify-content:center;margin-bottom:10px;flex-shrink:0;}
 .sw-open-btn:hover{background:rgba(103,232,249,0.2);}
@@ -495,12 +497,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
         <span class="slbl">Lvl</span>
         <span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
-        <span id="active-badge" style="display:none;position:absolute;top:-12px;right:0;font-size:8px;color:#fbbf24;font-weight:900;letter-spacing:0.5px;">ACTIVE</span>
+
       </div>
       <div class="stat"><span class="slbl">Coins</span><span class="sval v-money" id="lbl-cv"></span></div>
       <div class="stat"><span class="slbl">Water</span><span class="sval" id="wvc"></span></div>
       <div class="stat"><span class="slbl">Fish</span><span class="sval" id="lbl-fv"></span></div>
-      <div class="stat"><span class="slbl">Era</span><span class="sval" id="era-val">Tidepool</span></div>
     </div>
     <button class="hbtn" id="modebtn" onclick="toggleMode()" style="align-self:flex-start; margin:0;"></button>
   </div>
@@ -509,8 +510,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 <nav id="nav">
   <button class="nb" id="nb-fishshop" onclick="setTab('fishshop')"><span class="ni" id="ic-nav-fishshop"></span>Fish Shop</button>
-  <button class="nb" id="nb-supplies" onclick="setTab('supplies')"><span class="ni" id="ic-nav-supplies"></span>Supplies</button>
-  <button class="nb" id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
+  <button class="nb" id="nb-supplies" onclick="openSkillWeb()"><span class="ni" id="ic-nav-supplies"></span>Upgrades</button>
   <button class="nb" id="nb-finder" onclick="setTab('finder')"><span class="ni" id="ic-nav-finder"></span>Finder</button>
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
@@ -520,6 +520,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="skill-web-overlay">
   <canvas id="swc"></canvas>
   <button id="sw-close" onclick="closeSkillWeb()">Close</button>
+  <div id="sw-era"></div>
   <canvas id="sw-mini"></canvas>
   <div id="sw-tip"></div>
 </div>
@@ -531,6 +532,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:10px;flex-shrink:0;">
     <button class="tabbtn active" onclick="switchFishShop('buy')" id="tab-buy">Buy</button>
     <button class="tabbtn" onclick="switchFishShop('sell')" id="tab-sell">Sell</button>
+    <button class="tabbtn" onclick="switchFishShop('decor')" id="tab-decor">Decor</button>
   </div>
   <div class="pscroll" id="fishshop-buy">
     <div class="cards" id="fcards"></div>
@@ -538,19 +540,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="pscroll" id="fishshop-sell" style="display:none;">
     <div id="mlist"></div>
   </div>
-</div>
-
-<div id="suppanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-supplies">Supplies</span><button class="xbtn" onclick="closeAll()"></button></div>
-  <button class="sw-open-btn" id="sw-open-btn" onclick="openSkillWeb()"><span id="sw-btn-icon"></span>Skill Web</button>
-  <div class="pscroll" id="supplies-scroll">
-    <div class="cards" id="ucards"></div>
-  </div>
-</div>
-
-<div id="dpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-decor"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="pscroll" id="decor-scroll">
+  <div class="pscroll" id="fishshop-decor" style="display:none;">
     <div class="sechead" style="margin-top:0;text-align:center;">UI Accent Color</div>
     <div class="swatch-row" id="swatches"></div>
     <div id="acc-themes"></div>
@@ -560,6 +550,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div id="acc-flora"></div>
   </div>
 </div>
+
 
 <div id="opanel" class="panel">
   <div class="ph"><span class="pt" id="ph-orders"></span><button class="xbtn" onclick="closeAll()"></button></div>
@@ -758,17 +749,13 @@ document.getElementById('lbl-fv').innerHTML = ICONS.tank + '<span id="fv">3/8</s
 document.getElementById('modebtn').innerHTML = ICONS.feed + ' Feed';
 
 document.getElementById('ic-nav-fishshop').innerHTML = ICONS.market;
-document.getElementById('ic-nav-supplies').innerHTML = ICONS.shop;
-document.getElementById('ic-nav-decor').innerHTML = ICONS.decor;
+document.getElementById('ic-nav-supplies').innerHTML = ICONS.star;
 document.getElementById('ic-nav-orders').innerHTML = ICONS.orders;
 document.getElementById('ic-nav-social').innerHTML = ICONS.social;
 document.getElementById('ic-nav-finder').innerHTML = ICONS.finder;
 document.getElementById('ic-book-fab').innerHTML = ICONS.book;
-document.getElementById('sw-btn-icon').innerHTML = ICONS.star;
 
 document.getElementById('ph-fishshop').innerHTML = ICONS.market + ' Fish Shop';
-document.getElementById('ph-supplies').innerHTML = ICONS.shop + ' Supplies';
-document.getElementById('ph-decor').innerHTML = ICONS.decor + ' Tank Decor';
 document.getElementById('ph-orders').innerHTML = ICONS.orders + ' Orders';
 document.getElementById('ph-social').innerHTML = ICONS.social + ' Social & Data v' + CUR_VER;
 document.getElementById('ph-finder').innerHTML = ICONS.finder + ' Fish Finder';
@@ -953,25 +940,47 @@ function getFishPrice(type) {
 }
 
 const UPGRADES={
-  flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,req:2},
-  snail:     {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,        info:'Passive income + eats algae',                  max:5,owned:0,req:1},
-  autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,req:3},
-  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+4 max fish capacity',                         max:5,owned:0,req:4},
-  filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,req:5},
-  nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:3},
-  clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,req:6},
-  heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:50000,      info:'+25% coin value for all fish',                 max:1,owned:0,req:7},
-  kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,req:3},
-  coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,req:5},
-  oxygen:    {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,      info:'Fish hunger drains 20% slower',                max:1,owned:0,req:6},
-  uvlight:   {name:'UV Light',       icon:ICONS.star,   cost:75000,      info:'Rare mutation chance +5%',                     max:1,owned:0,req:7},
-  // ── Tier IV: Mythic Upgrades (Levels 11-13) ──
-  bioreactor:{name:'Bioreactor',     icon:ICONS.filter, cost:2000000,    info:'Continuously purifies water (no algae)',       max:1,owned:0,req:11},
-  aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:5000000,    info:'+10% rare mutation chance',                    max:1,owned:0,req:11},
-  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:8000000,    info:'+50% coin value during Harmony',               max:1,owned:0,req:12},
-  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:25000000,   info:'Eggs hatch 35% faster',                        max:1,owned:0,req:12},
-  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:80000000,   info:'+100% income from all fish',                   max:1,owned:0,req:13},
-  prism:     {name:'Prism Lens',     icon:ICONS.crystal,cost:120000000,  info:'Daily quest rerolls are free',                 max:1,owned:0,req:13}
+  // ── Era 0: Tidepool ──
+  flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,era:0},
+  snail:     {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,        info:'Passive income + eats algae',                  max:5,owned:0,era:0},
+  autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,era:0},
+  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+4 max fish capacity',                         max:5,owned:0,era:0},
+  filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,era:0},
+  nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,era:0},
+  clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,era:0},
+  heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:50000,      info:'+25% coin value for all fish',                 max:1,owned:0,era:0},
+  kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,era:0},
+  coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,era:0},
+  oxygen:    {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,      info:'Fish hunger drains 20% slower',                max:1,owned:0,era:0},
+  uvlight:   {name:'UV Light',       icon:ICONS.star,   cost:75000,      info:'Rare mutation chance +5%',                     max:1,owned:0,era:0},
+  // ── Era 1: Shallows ──
+  tidalcurrent:   {name:'Tidal Current',    icon:ICONS.wave,    cost:100000,     info:'Fish swim to food 30% faster',                 max:1,owned:0,era:1},
+  echosounder:    {name:'Echo Sounder',     icon:ICONS.finder,  cost:150000,     info:'Reveals visitor rarity on approach',            max:1,owned:0,era:1},
+  coralnursery:   {name:'Coral Nursery',    icon:ICONS.blossom, cost:200000,     info:'15% chance of breeding twins',                  max:1,owned:0,era:1},
+  nutrientdiffuser:{name:'Nutrient Diffuser',icon:ICONS.sparkle,cost:250000,     info:'Snails produce +50% passive income',            max:1,owned:0,era:1},
+  deepvalve:      {name:'Pressure Valve',   icon:ICONS.filter,  cost:300000,     info:'+6 max fish capacity',                         max:3,owned:0,era:1},
+  // ── Era 2: Coral Reef ──
+  bioreactor:{name:'Bioreactor',     icon:ICONS.filter, cost:2000000,    info:'Continuously purifies water (no algae)',       max:1,owned:0,era:2},
+  aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:5000000,    info:'+10% rare mutation chance',                    max:1,owned:0,era:2},
+  geneticseq:{name:'Genetic Sequencer',icon:ICONS.eye,  cost:3000000,    info:'See offspring color prediction before breeding',max:1,owned:0,era:2},
+  symbiotic: {name:'Symbiotic Algae',icon:ICONS.reef,   cost:4000000,    info:'Low algae (<20%) gives +10% coin bonus',       max:1,owned:0,era:2},
+  // ── Era 3: Twilight Zone ──
+  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:8000000,    info:'+50% coin value during Harmony',               max:1,owned:0,era:3},
+  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:25000000,   info:'Eggs hatch 35% faster',                        max:1,owned:0,era:3},
+  resonance: {name:'Resonance Chamber',icon:ICONS.sparkle,cost:15000000, info:'Combo multiplier cap raised from 2.5× to 3.5×',max:1,owned:0,era:3},
+  obelisk:   {name:'Oceanic Obelisk',icon:ICONS.crown,  cost:20000000,   info:'+2% coin value per unique fish species owned', max:1,owned:0,era:3},
+  abyssbeacon:{name:'Abyssal Beacon',icon:ICONS.fire,   cost:25000000,   info:'+25% visitor spawn rate',                      max:1,owned:0,era:3},
+  // ── Era 4: Open Ocean ──
+  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:80000000,   info:'+100% income from all fish',                   max:1,owned:0,era:4},
+  prism:     {name:'Prism Lens',     icon:ICONS.rainbow,cost:120000000,  info:'Daily quest rerolls are free',                 max:1,owned:0,era:4},
+  platscales:{name:'Platinum Scales',icon:ICONS.coin,   cost:100000000,  info:'Fish sell value on Market +40%',               max:1,owned:0,era:4},
+  chronopearl:{name:'Chrono Pearl',  icon:ICONS.moon,   cost:150000000,  info:'Daily rewards give 2× coins',                  max:1,owned:0,era:4},
+  voidsiphon:{name:'Void Siphon',    icon:ICONS.drop,   cost:200000000,  info:'Clams produce pearls 50% faster',              max:1,owned:0,era:4},
+  // ── Era 5: Abyss ──
+  celestial: {name:'Celestial Anchor',icon:ICONS.star,  cost:500000000,  info:'Harmony state lasts 30% longer',               max:1,owned:0,era:5},
+  primordialspark:{name:'Primordial Spark',icon:ICONS.fire,cost:1000000000,info:'All fish income ×3',                         max:1,owned:0,era:5},
+  leviathancore:{name:'Leviathan Core',icon:ICONS.abyss,cost:2000000000, info:'+200% offline earnings',                       max:1,owned:0,era:5},
+  abyssalheart:{name:'Abyssal Heart', icon:ICONS.heart, cost:1500000000, info:'Visitors trust you 40% faster',                max:1,owned:0,era:5}
 };
 
 const THEMES={
@@ -1482,11 +1491,9 @@ function updateHUD(){
   }
   const xpf=document.getElementById('xpf');
   if(xpf){xpf.style.width=easedPct+'%'; xpf.style.background=xpBarColor;}
-  const activeBadge=document.getElementById('active-badge');
-  if(activeBadge) activeBadge.style.display=isActive?'inline':'none';
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
-  const eraEl = document.getElementById('era-val');
-  if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
+  const eraEl = document.getElementById('sw-era');
+  if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES[currentEra] || ERA_NAMES[0]);
 }
 
 function calcOffline(s){
@@ -1850,7 +1857,7 @@ function updateFish(f){
   if(f.type === 'octopus'){
     // -- Octopus jet-propulsion burst-and-coast movement --
     // Lazy-init state
-    if(f._octoPhase === undefined){ f._octoPhase = 0; f._octoTimer = Math.floor(80 + Math.random()*80); f._octoBurstDir = {x:1, y:0}; }
+    if(f._octoPhase === undefined){ f._octoPhase = 0; f._octoTimer = Math.floor(80 + Math.random()*80); f._octoBurstDir = {x:1, y:0}; f._octoContractT = 0; }
 
     f._octoTimer--;
 
@@ -1867,6 +1874,8 @@ function updateFish(f){
       // Coasting: very slow drift, arms wave, heavy damping
       const damp = trait === 'lazy' ? 0.90 : 0.93;
       f.vx *= damp; f.vy *= damp;
+      // mantle slowly re-expands during coast
+      f._octoContractT = Math.max(0, f._octoContractT - 0.013);
       // gentle random wander every ~90 frames
       if(f.timer % 90 === 0){
         if(trait === 'lazy' && Math.random() < 0.55){ f.vx *= 0.2; f.vy *= 0.2; }
@@ -1893,7 +1902,8 @@ function updateFish(f){
         f._octoBurstDir = {x: Math.cos(ja), y: Math.sin(ja) * 0.75};
       }
     } else {
-      // Jetting: quick burst in chosen direction
+      // Jetting: quick burst in chosen direction — mantle contracts fast
+      f._octoContractT = Math.min(1, f._octoContractT + 0.07);
       const jetSpd = baseSpd * (trait === 'active' ? 4.5 : trait === 'lazy' ? 2.5 : 3.5);
       f.vx += f._octoBurstDir.x * jetSpd * 0.35;
       f.vy += f._octoBurstDir.y * jetSpd * 0.35;
@@ -2778,52 +2788,56 @@ function drawFish(f){
     }
   }
   else if(f.type==='octopus'){
-    // breathing pulse — faster during jet phase
-    const isJetting = f._octoPhase === 1;
-    const pulseRate = isJetting ? 1.8 : 0.45;
-    const opulse = 1 + Math.sin(f.phase * pulseRate) * (isJetting ? 0.09 : 0.04);
-    // mantle squishes when jetting
-    const msx = isJetting ? (1 - Math.abs(Math.sin(f.phase*pulseRate))*0.12) : 1;
-    const msy = isJetting ? (1 + Math.abs(Math.sin(f.phase*pulseRate))*0.16) : 1;
+    // Smooth contraction state: 0 = fully relaxed, 1 = peak contraction (jetting)
+    const contractT = f._octoContractT !== undefined ? f._octoContractT : 0;
+    // Gentle breathing when relaxed — suppressed at peak contraction
+    const breathe = Math.sin(f.phase * 0.42) * 0.035 * (1 - contractT);
+    const opulse = 1 + breathe + contractT * 0.03;
+    // Mantle squish: narrows horizontally, elongates vertically during contraction
+    const msx = (1 - contractT * 0.42 + breathe * 0.5) * opulse;
+    const msy = (1 + contractT * 0.34 - breathe * 0.5) * opulse;
 
     ctx.lineCap='round'; ctx.lineJoin='round';
 
-    // -- Webbing between arm bases --
+    // -- Webbing between arm bases — pulls inward during contraction --
+    const webScale = 1 - contractT * 0.28;
     ctx.fillStyle = _c1 + '44';
     ctx.beginPath();
-    ctx.moveTo(-s*0.55, s*0.18);
-    ctx.bezierCurveTo(-s*0.7, s*0.55, -s*0.35, s*0.7, 0, s*0.62);
-    ctx.bezierCurveTo(s*0.35, s*0.7, s*0.7, s*0.55, s*0.55, s*0.18);
-    ctx.quadraticCurveTo(0, s*0.4, -s*0.55, s*0.18);
+    ctx.moveTo(-s*0.55*msx, s*0.18*webScale);
+    ctx.bezierCurveTo(-s*0.7*msx, s*0.55*webScale, -s*0.35*msx, s*0.7*webScale, 0, s*0.62*webScale);
+    ctx.bezierCurveTo(s*0.35*msx, s*0.7*webScale, s*0.7*msx, s*0.55*webScale, s*0.55*msx, s*0.18*webScale);
+    ctx.quadraticCurveTo(0, s*0.4*webScale, -s*0.55*msx, s*0.18*webScale);
     ctx.fill();
 
     // -- 8 Arms --
     for(let i=0; i<8; i++){
       // fan arms from -80 to +80 degrees beneath the mantle
       const baseAngle = (i/7 - 0.5) * Math.PI * 1.1 + Math.PI*0.5;
-      const bx = Math.cos(baseAngle) * s * 0.42;
-      const by = Math.sin(baseAngle) * s * 0.38 + s*0.28;
+      const bx = Math.cos(baseAngle) * s * 0.42 * msx;
+      const by = Math.sin(baseAngle) * s * 0.38 * webScale + s*0.28*msy;
 
       // independent phase per arm using f.id and arm index
       const ph1 = f.phase + i * 0.72 + (f.id % 7) * 0.4;
       const ph2 = f.phase * 1.25 + i * 0.55 + (f.id % 5) * 0.6;
       const ph3 = f.phase * 0.85 + i * 0.9 + (f.id % 11) * 0.3;
 
-      // during jetting arms trail behind, otherwise wave organically
-      const jetDamp = isJetting ? 0.25 : 1.0;
+      // during contraction arms trail behind, otherwise wave organically
+      const jetDamp = 1 - contractT * 0.78;
       const w1 = Math.sin(ph1) * s * 0.28 * jetDamp;
       const w2 = Math.sin(ph2) * s * 0.22 * jetDamp;
       const w3 = Math.sin(ph3) * s * 0.16 * jetDamp;
 
-      // front arms curl inward, back arms trail
+      // front arms curl inward, back arms trail — curl reduced during contraction
       const sideSign = (i < 4) ? -1 : 1;
-      const curlX = sideSign * s * 0.2 * (isJetting ? 0.2 : 1);
+      const curlX = sideSign * s * 0.2 * (1 - contractT * 0.85);
+      // tentacles lean backward (negative X in local space) during contraction
+      const leanX = -contractT * s * 0.38;
 
-      // 3-segment bezier S-curve control points
-      const cp1x = bx * 0.6 + w1 * 0.5,  cp1y = by + s * 0.45 + w1 * 0.4;
-      const cp2x = bx * 0.9 + w2,         cp2y = by + s * 0.95 + w2 * 0.6;
-      const cp3x = bx * 0.8 + w3 + curlX, cp3y = by + s * 1.55 + w3 * 0.5;
-      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5;
+      // 3-segment bezier S-curve control points with backward lean during contraction
+      const cp1x = bx * 0.6 + w1 * 0.5 + leanX * 0.25,  cp1y = by + s * 0.45 + w1 * 0.4;
+      const cp2x = bx * 0.9 + w2 + leanX * 0.6,           cp2y = by + s * 0.95 + w2 * 0.6;
+      const cp3x = bx * 0.8 + w3 + curlX + leanX,          cp3y = by + s * 1.55 + w3 * 0.5;
+      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5 + leanX * 1.3;
       const endy  = by + s * 2.1  + w3 * 0.3;
 
       // thick arm (body color, wide at base)
@@ -2895,23 +2909,23 @@ function drawFish(f){
     }
 
     // -- Mantle (bulbous dome teardrop shape) --
-    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72*opulse);
+    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72);
     mg.addColorStop(0, _c1);
     mg.addColorStop(0.6, _c1);
     mg.addColorStop(1, _c2);
     ctx.fillStyle = mg;
     ctx.beginPath();
     // teardrop: wide dome top, narrowing at base
-    ctx.moveTo(0, s*0.32*msy*opulse);
+    ctx.moveTo(0, s*0.32*msy);
     ctx.bezierCurveTo(
-      -s*0.72*msx*opulse, s*0.28*msy,
-      -s*0.78*msx*opulse, -s*0.62*msy,
-       0,                 -s*0.92*msy*opulse
+      -s*0.72*msx, s*0.28*msy,
+      -s*0.78*msx, -s*0.62*msy,
+       0,          -s*0.92*msy
     );
     ctx.bezierCurveTo(
-       s*0.78*msx*opulse, -s*0.62*msy,
-       s*0.72*msx*opulse,  s*0.28*msy,
-       0,                  s*0.32*msy*opulse
+       s*0.78*msx, -s*0.62*msy,
+       s*0.72*msx,  s*0.28*msy,
+       0,           s*0.32*msy
     );
     ctx.closePath();
     ctx.fill();
@@ -2919,9 +2933,9 @@ function drawFish(f){
     // mantle shading overlay
     ctx.fillStyle = _c2 + '33';
     ctx.beginPath();
-    ctx.moveTo(0, s*0.32*msy*opulse);
-    ctx.bezierCurveTo(-s*0.72*msx*opulse, s*0.28*msy, -s*0.78*msx*opulse, -s*0.62*msy, 0, -s*0.92*msy*opulse);
-    ctx.bezierCurveTo(s*0.78*msx*opulse, -s*0.62*msy, s*0.72*msx*opulse, s*0.28*msy, 0, s*0.32*msy*opulse);
+    ctx.moveTo(0, s*0.32*msy);
+    ctx.bezierCurveTo(-s*0.72*msx, s*0.28*msy, -s*0.78*msx, -s*0.62*msy, 0, -s*0.92*msy);
+    ctx.bezierCurveTo(s*0.78*msx, -s*0.62*msy, s*0.72*msx, s*0.28*msy, 0, s*0.32*msy);
     ctx.closePath();
     ctx.fill();
 
@@ -2938,20 +2952,20 @@ function drawFish(f){
       ctx.fill();
     }
 
-    // -- Siphon (funnel below eye, points backward) --
+    // -- Siphon (funnel below eye, points backward) — scales with mantle --
     ctx.fillStyle = _c2 + 'cc';
     ctx.beginPath();
-    ctx.moveTo(s*0.22, s*0.02);
-    ctx.bezierCurveTo(s*0.38, s*0.06, s*0.45, s*0.14, s*0.38, s*0.22);
-    ctx.bezierCurveTo(s*0.3, s*0.3, s*0.18, s*0.28, s*0.15, s*0.2);
+    ctx.moveTo(s*0.22*msx, s*0.02*msy);
+    ctx.bezierCurveTo(s*0.38*msx, s*0.06*msy, s*0.45*msx, s*0.14*msy, s*0.38*msx, s*0.22*msy);
+    ctx.bezierCurveTo(s*0.3*msx, s*0.3*msy, s*0.18*msx, s*0.28*msy, s*0.15*msx, s*0.2*msy);
     ctx.closePath();
     ctx.fill();
     // siphon opening tip
     ctx.strokeStyle = _c2; ctx.lineWidth = s * 0.04;
-    ctx.beginPath(); ctx.moveTo(s*0.38, s*0.22); ctx.lineTo(s*0.48, s*0.28); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*0.38*msx, s*0.22*msy); ctx.lineTo(s*0.48*msx, s*0.28*msy); ctx.stroke();
 
-    // -- Large expressive octopus eye (custom, not drawEye helper) --
-    const ex = s * 0.35, ey = -s * 0.18;
+    // -- Large expressive octopus eye — tracks mantle surface --
+    const ex = s * 0.35 * msx, ey = -s * 0.18 * msy;
     const er = s * 0.16; // sclera radius
     // sclera (white)
     ctx.fillStyle = '#ffffffee';
@@ -3938,11 +3952,11 @@ function addCoins(amt,x,y,bonus=false){
   spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const XP_THRESHOLDS=[
-  0,1200,2800,5000,8000,12000,17500,25000,35000,50000,
-  70000,95000,130000,175000,235000,310000,405000,520000,660000,820000,
-  1000000,1190000,1390000,1610000,1860000,2150000,2490000,2890000,3360000,3910000,
-  4550000,5290000,6150000,7150000,8310000,9650000,11200000,13000000,15100000,17550000,
-  20400000,23700000,27500000,31850000,36850000,42600000,49150000,56600000,65050000,74600000
+  0,900,2100,3750,6000,9000,13125,18750,26250,37500,
+  52500,71250,97500,131250,176250,232500,303750,390000,495000,615000,
+  750000,892500,1042500,1207500,1395000,1612500,1867500,2167500,2520000,2932500,
+  3412500,3967500,4612500,5362500,6232500,7237500,8400000,9750000,11325000,13162500,
+  15300000,17775000,20625000,23887500,27637500,31950000,36862500,42450000,48787500,55950000
 ];
 const LEVEL_UNLOCKS={
   2:['Market','Easy Orders','Neon Tetra'],3:['Fish Finder','Fish Count HUD'],
@@ -4009,6 +4023,7 @@ function checkEraUnlock(){
     const abyssOk=i<5||(sm.visitorsTamed>=1);
     if(levelOk&&abyssOk&&i>currentEra){
       currentEra=i;
+      updateHUD();
       showEraAnnouncement(i);
       toast(ICONS.wave+' Era unlocked: '+['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'][i],'#a855f7');
       saveGame();
@@ -4184,24 +4199,21 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({fishshop:'fspanel', supplies:'suppanel', decor:'dpanel', orders:'opanel', social:'socpanel', finder:'fpanel'}[t]);
+    const p = document.getElementById({fishshop:'fspanel', orders:'opanel', social:'socpanel', finder:'fpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['fishshop','supplies','decor','orders','social','finder'].forEach(id=>{
+    ['fishshop','orders','social','finder'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
     if(t==='fishshop') document.getElementById('nb-fishshop').classList.remove('notify');
-    if(t==='supplies') document.getElementById('nb-supplies').classList.remove('notify');
     if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
   }
 }
 
 function buildPanel(t){
   if(t==='fishshop') { buildShop(); buildMarket(); }
-  if(t==='supplies') buildSupplies();
-  if(t==='decor') buildDecor();
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
   if(t==='finder') buildFishFinder();
@@ -4294,8 +4306,14 @@ function _toRoman(n){
 
 let _bookPages = []; // array of page HTML strings
 let _bookPage = 0;
+let _bookAnimations = []; // active animation state objects for fish previews
 
-function drawFishPreview(type, c1, c2, canvasW, canvasH) {
+function _cancelBookAnimations() {
+  _bookAnimations.forEach(a => { a.running = false; cancelAnimationFrame(a.frameId); });
+  _bookAnimations = [];
+}
+
+function drawFishPreview(type, c1, c2, canvasW, canvasH, time) {
   const cvs = document.createElement('canvas');
   cvs.width = canvasW * 2; cvs.height = canvasH * 2;
   cvs.style.width = canvasW + 'px'; cvs.style.height = canvasH + 'px';
@@ -4313,17 +4331,19 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
   const _c1 = c1 || def.c1, _c2 = c2 || def.c2;
   const bg = pc.createLinearGradient(0, -s, 0, s);
   bg.addColorStop(0, _c1); bg.addColorStop(0.5, _c1); bg.addColorStop(1, _c2);
-  const wag = 0, paddle = 0;
+  const wag = time ? Math.sin(time * 2.5) * s * 0.35 : 0;
+  const paddle = time ? Math.sin(time * 1.8 + 0.8) * s * 0.12 : 0;
+  if (time) pc.rotate(Math.sin(time * 2.5) * 0.05);
 
   if (type === 'guppy') {
     pc.fillStyle = _c2 + 'aa';
     pc.beginPath(); pc.moveTo(-s * .2, 0);
-    pc.bezierCurveTo(-s * 1.5, -s * 1.2, -s * 1.8, -s, -s * 2.2, 0);
-    pc.bezierCurveTo(-s * 1.8, s, -s * 1.5, s * 1.2, -s * .2, 0); pc.fill();
+    pc.bezierCurveTo(-s * 1.5, -s * 1.2, -s * 1.8, -s + wag * 1.5, -s * 2.2, wag * 2);
+    pc.bezierCurveTo(-s * 1.8, s + wag * 1.5, -s * 1.5, s * 1.2, -s * .2, 0); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .8, s * .35, 0, 0, Math.PI * 2); pc.fill();
     drawEye(pc, s * .4, -s * .05, s * .12);
   } else if (type === 'tetra') {
-    pc.fillStyle = _c1; pc.beginPath(); pc.moveTo(-s * .8, 0); pc.lineTo(-s * 1.5, -s * .5); pc.lineTo(-s * 1.5, s * .5); pc.fill();
+    pc.fillStyle = _c1; pc.beginPath(); pc.moveTo(-s * .8, 0); pc.lineTo(-s * 1.5, -s * .5 + wag); pc.lineTo(-s * 1.5, s * .5 + wag); pc.fill();
     pc.fillStyle = _c2; pc.beginPath(); pc.ellipse(0, 0, s * .9, s * .28, 0, 0, Math.PI * 2); pc.fill();
     drawEye(pc, s * .5, -s * .05, s * .08);
   } else if (type === 'seahorse') {
@@ -4337,47 +4357,32 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
     drawEye(pc, s * .2, -s * .45, s * .06);
   } else if (type === 'goldfish') {
     pc.fillStyle = _c2 + '66'; pc.beginPath(); pc.moveTo(-s * .2, 0);
-    pc.bezierCurveTo(-s * 1.2, -s * .6, -s * 1.8, -s * 1.4, -s * 2.2, 0);
-    pc.bezierCurveTo(-s * 1.5, s * 1.4, -s * 1.2, s * .6, -s * .2, 0); pc.fill();
+    pc.bezierCurveTo(-s * 1.2, -s * .6, -s * 1.8, -s * 1.4 + wag * 1.5, -s * 2.2, wag * 2);
+    pc.bezierCurveTo(-s * 1.5, s * 1.4 + wag * 1.5, -s * 1.2, s * .6, -s * .2, 0); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 1.1, s * .6, 0, 0, Math.PI * 2); pc.fill();
     drawEye(pc, s * .7, -s * .1, s * .12);
   } else if (type === 'angelfish') {
     pc.fillStyle = _c2 + 'aa'; pc.beginPath();
-    pc.moveTo(0, 0); pc.lineTo(-s * 1.8, -s * 1.5); pc.lineTo(-s * .2, 0); pc.lineTo(-s * 1.8, s * 1.5); pc.fill();
+    pc.moveTo(0, 0); pc.lineTo(-s * 1.8, -s * 1.5 + wag); pc.lineTo(-s * .2, 0); pc.lineTo(-s * 1.8, s * 1.5 + wag); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * .6, s * .9, 0, 0, Math.PI * 2); pc.fill();
     drawEye(pc, s * .25, -s * .2, s * .08);
   } else if (type === 'discus') {
-    pc.fillStyle = _c2 + 'aa'; pc.beginPath(); pc.moveTo(-s * .6, 0); pc.lineTo(-s * 1.5, -s * .8); pc.lineTo(-s * 1.5, s * .8); pc.fill();
+    pc.fillStyle = _c2 + 'aa'; pc.beginPath(); pc.moveTo(-s * .6, 0); pc.lineTo(-s * 1.5, -s * .8 + wag); pc.lineTo(-s * 1.5, s * .8 + wag); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.arc(0, 0, s, 0, Math.PI * 2); pc.fill();
     drawEye(pc, s * .6, -s * .1, s * .1);
   } else if (type === 'jellyfish') {
     pc.strokeStyle = _c1 + '44'; pc.lineWidth = s * .1;
-    for (let i = -3; i <= 3; i++) { pc.beginPath(); pc.moveTo(i * s * .15, -s * .2); pc.quadraticCurveTo(i * s * .4, s * .5, i * s * .2, s * 1.8); pc.stroke(); }
+    for (let i = -3; i <= 3; i++) { pc.beginPath(); pc.moveTo(i * s * .15, -s * .2); pc.quadraticCurveTo(i * s * .4, s * .5, i * s * .2, s * 1.8 + paddle * (i % 2 ? 1 : -1)); pc.stroke(); }
     pc.fillStyle = _c2 + '88'; pc.beginPath();
     pc.moveTo(-s * .7, -s * .2); pc.bezierCurveTo(-s * .7, -s * 1, s * .7, -s * 1, s * .7, -s * .2);
     pc.quadraticCurveTo(0, 0, -s * .7, -s * .2); pc.fill();
   } else if (type === 'octopus') {
-    pc.lineCap = 'round'; pc.lineJoin = 'round';
-    // 8 arms fanning beneath the mantle (matches main render angles)
-    for (let i = 0; i < 8; i++) {
-      const ba = (i / 7 - 0.5) * Math.PI * 1.1 + Math.PI * 0.5;
-      const abx = Math.cos(ba) * s * 0.38, aby = Math.sin(ba) * s * 0.3 + s * 0.22;
-      const aex = abx * 0.3, aey = aby + s * 1.7;
-      pc.strokeStyle = bg; pc.lineWidth = s * 0.17;
-      pc.beginPath(); pc.moveTo(abx, aby);
-      pc.bezierCurveTo(abx * 0.7, aby + s * 0.45, abx * 0.5, aby + s * 0.95, aex, aey); pc.stroke();
-      pc.strokeStyle = _c1 + 'bb'; pc.lineWidth = s * 0.11;
-      pc.beginPath(); pc.moveTo(abx, aby);
-      pc.bezierCurveTo(abx * 0.7, aby + s * 0.45, abx * 0.5, aby + s * 0.95, aex, aey); pc.stroke();
-    }
-    // teardrop mantle matching main render shape
-    const mantlePath = new Path2D();
-    mantlePath.moveTo(0, s * 0.28);
-    mantlePath.bezierCurveTo(-s * 0.65, s * 0.22, -s * 0.72, -s * 0.56, 0, -s * 0.88);
-    mantlePath.bezierCurveTo(s * 0.72, -s * 0.56, s * 0.65, s * 0.22, 0, s * 0.28);
-    pc.fillStyle = bg; pc.fill(mantlePath);
-    pc.fillStyle = _c1 + '55'; pc.fill(mantlePath);
-    drawEye(pc, s * 0.32, -s * 0.16, s * 0.1);
+    pc.strokeStyle = bg; pc.lineCap = 'round';
+    for (let i = 0; i < 4; i++) { pc.lineWidth = s * .2; const a = (i / 3) * Math.PI * .8 - Math.PI * .4;
+      pc.beginPath(); pc.moveTo(0, s * .2); pc.quadraticCurveTo(Math.cos(a) * s, s, Math.cos(a) * s * 1.2, s * 1.8 + wag * (i % 2 ? 1 : -1)); pc.stroke(); }
+    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(-s * .3, -s * .2, s * .8, s * .6, -Math.PI / 12, 0, Math.PI * 2); pc.fill();
+    pc.beginPath(); pc.ellipse(s * .3, 0, s * .5, s * .4, Math.PI / 12, 0, Math.PI * 2); pc.fill();
+    drawEye(pc, s * .5, -s * .1, s * .08);
   } else if (type === 'turtle') {
     pc.fillStyle = _c1; pc.beginPath(); pc.ellipse(s * .9, 0, s * .35, s * .25, 0, 0, Math.PI * 2); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, s * .1, s * .95, s * .5, 0, Math.PI, Math.PI * 2); pc.closePath(); pc.fill();
@@ -4385,7 +4390,7 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
     drawEye(pc, s * 1.0, -s * .05, s * .06);
   } else if (type === 'whaleshark') {
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, 0, s * 2, s * .8, 0, 0, Math.PI * 2); pc.fill();
-    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * 1.5, 0); pc.lineTo(-s * 2.2, -s * .6); pc.lineTo(-s * 2.2, s * .6); pc.closePath(); pc.fill();
+    pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * 1.5, 0); pc.lineTo(-s * 2.2, -s * .6 + wag); pc.lineTo(-s * 2.2, s * .6 + wag); pc.closePath(); pc.fill();
     drawEye(pc, s * 1.8, -s * .2, s * .05);
   } else if (type === 'narwhal') {
     pc.fillStyle = bg; pc.beginPath();
@@ -4410,9 +4415,9 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
     drawEye(pc, s * .4, -s * .3, s * .08);
   } else if (type === 'betta') {
     pc.fillStyle = _c2 + '77'; pc.beginPath(); pc.moveTo(s * .2, -s * .1);
-    pc.bezierCurveTo(-s * .5, -s * 2.5, -s * 2, -s * 1.5, -s * 1.8, -s * .5); pc.fill();
+    pc.bezierCurveTo(-s * .5, -s * 2.5, -s * 2, -s * 1.5 + wag, -s * 1.8, -s * .5); pc.fill();
     pc.beginPath(); pc.moveTo(s * .2, s * .1);
-    pc.bezierCurveTo(-s * .5, s * 2.5, -s * 2, s * 1.5, -s * 1.8, s * .5); pc.fill();
+    pc.bezierCurveTo(-s * .5, s * 2.5, -s * 2, s * 1.5 + wag, -s * 1.8, s * .5); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.moveTo(-s * .7, 0);
     pc.quadraticCurveTo(0, -s * .4, s * .7, -s * .2);
     pc.quadraticCurveTo(s * .8, -s * .3, s * .9, -s * .2);
@@ -4438,7 +4443,7 @@ function buildAquapedia() {
     Void:     { bg:'#22143e', border:'#4a2e80', label:'#c0a0e8' },
     Prismatic:{ bg:'#3a1028', border:'#7a2852', label:'#f0a8d0' },
   };
-  const BAND_SYM = { Crimson:'✦', Ember:'✶', Solar:'☀', Verdant:'✿', Abyssal:'〜', Void:'◈', Prismatic:'✧' };
+  const BAND_SYM = { Crimson:'C', Ember:'E', Solar:'S', Verdant:'V', Abyssal:'A', Void:'X', Prismatic:'P' };
   const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
   const totalBands = COLOR_BANDS.length;
 
@@ -4520,7 +4525,7 @@ function buildAquapedia() {
 
       <!-- Fish preview canvas placeholder -->
       <div class="aq-page-item" style="animation-delay:60ms;text-align:center;">
-        <canvas class="aq-fish-preview" data-fish-type="${key}" data-c1="${previewC1}" data-c2="${previewC2}" width="320" height="240" style="width:160px;height:120px;"></canvas>
+        <canvas class="aq-fish-preview" data-fish-type="${key}" data-c1="${previewC1}" data-c2="${previewC2}" data-seen="${seenCount}" width="320" height="240" style="width:160px;height:120px;"></canvas>
       </div>
 
       <!-- Status -->
@@ -4528,7 +4533,7 @@ function buildAquapedia() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 6px;">
           <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
           ${prismaticUnlocked
-            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
+            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">P Prismatic</div>`
             : (seenCount >= nonPrismaticCount && seenCount > 0
                 ? `<div style="font-family:Georgia,serif;font-size:9px;color:#8a6830;background:rgba(180,140,60,0.1);border:1px solid rgba(180,140,60,0.3);padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
                 : '')}
@@ -4577,14 +4582,34 @@ function _renderBookPage() {
 }
 
 function _drawBookPreviews(container) {
+  _cancelBookAnimations();
   container.querySelectorAll('canvas.aq-fish-preview').forEach(cvs => {
     const type = cvs.dataset.fishType;
     const c1 = cvs.dataset.c1;
     const c2 = cvs.dataset.c2;
-    const preview = drawFishPreview(type, c1, c2, 160, 120);
-    const pc = cvs.getContext('2d');
-    pc.clearRect(0, 0, cvs.width, cvs.height);
-    pc.drawImage(preview, 0, 0);
+    const seen = parseInt(cvs.dataset.seen, 10) || 0;
+
+    if (seen > 0) {
+      // Animated preview for unlocked species
+      const anim = { running: true, t: 0, frameId: 0 };
+      const draw = () => {
+        if (!anim.running) return;
+        anim.t += 0.04;
+        const preview = drawFishPreview(type, c1, c2, 160, 120, anim.t);
+        const pc = cvs.getContext('2d');
+        pc.clearRect(0, 0, cvs.width, cvs.height);
+        pc.drawImage(preview, 0, 0);
+        anim.frameId = requestAnimationFrame(draw);
+      };
+      anim.frameId = requestAnimationFrame(draw);
+      _bookAnimations.push(anim);
+    } else {
+      // Static preview for locked/undiscovered species
+      const preview = drawFishPreview(type, c1, c2, 160, 120);
+      const pc = cvs.getContext('2d');
+      pc.clearRect(0, 0, cvs.width, cvs.height);
+      pc.drawImage(preview, 0, 0);
+    }
   });
 }
 
@@ -4595,13 +4620,16 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
-  ['market','decor','orders','shop','social','finder'].forEach(id=>{
+  ['market','orders','shop','social','finder'].forEach(id=>{
     const el=document.getElementById('nb-'+id);
     if(el) el.classList.remove('active');
   });
   // Close book overlay if open
   const bookOv = document.getElementById('book-overlay');
-  if(bookOv && !bookOv.classList.contains('book-closed')) bookOv.classList.add('book-closed');
+  if(bookOv && !bookOv.classList.contains('book-closed')) {
+    _cancelBookAnimations();
+    bookOv.classList.add('book-closed');
+  }
   currentTab='tank';
 }
 
@@ -4615,6 +4643,7 @@ function toggleBook(){
     ov.classList.remove('book-closed');
     document.getElementById('book-container').style.animation='bookOpen .35s cubic-bezier(.22,1,.36,1) forwards';
   } else {
+    _cancelBookAnimations();
     ov.classList.add('book-closed');
   }
 }
@@ -4635,6 +4664,52 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ─── BOOK SWIPE & TAP NAVIGATION ─────────────────────────────────────────────
+(function(){
+  let _swipeSX = 0, _swipeSY = 0, _swipeJustDone = false;
+
+  function _bookIsOpen() {
+    const ov = document.getElementById('book-overlay');
+    return ov && !ov.classList.contains('book-closed');
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (!_bookIsOpen()) return;
+    const bc = document.getElementById('book-content');
+    if (!bc || !bc.contains(e.target)) return;
+    _swipeSX = e.touches[0].clientX;
+    _swipeSY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (!_bookIsOpen()) return;
+    const bc = document.getElementById('book-content');
+    if (!bc || !bc.contains(e.changedTouches[0].target)) return;
+    const dx = e.changedTouches[0].clientX - _swipeSX;
+    const dy = e.changedTouches[0].clientY - _swipeSY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      _swipeJustDone = true;
+      bookFlip(dx < 0 ? 1 : -1);
+      setTimeout(() => { _swipeJustDone = false; }, 400);
+    }
+  }, { passive: true });
+
+  document.addEventListener('click', e => {
+    if (!_bookIsOpen()) return;
+    const bc = document.getElementById('book-content');
+    if (!bc || !bc.contains(e.target)) return;
+    // Don't trigger on interactive elements
+    if (e.target.closest('button, a, input, select, textarea')) return;
+    // Don't trigger shortly after a swipe
+    if (_swipeJustDone) return;
+    const rect = bc.getBoundingClientRect();
+    const relX = e.clientX - rect.left;
+    const pct = relX / rect.width;
+    if (pct < 0.4) bookFlip(-1);
+    else if (pct > 0.6) bookFlip(1);
+  });
+})();
+
 let _bookFlipping = false;
 function bookFlip(dir){
   if(_bookFlipping) return;
@@ -4644,6 +4719,7 @@ function bookFlip(dir){
   if(newPage < 0 || newPage >= totalPages) return;
 
   _bookFlipping = true;
+  _cancelBookAnimations();
   const content = document.getElementById('book-content');
   const aqlist = document.getElementById('aqlist');
   if(!aqlist) { _bookFlipping = false; return; }
@@ -4890,10 +4966,13 @@ function applyBorder() {
 function switchFishShop(tab) {
   document.getElementById('fishshop-buy').style.display = tab==='buy' ? 'block' : 'none';
   document.getElementById('fishshop-sell').style.display = tab==='sell' ? 'block' : 'none';
+  document.getElementById('fishshop-decor').style.display = tab==='decor' ? 'block' : 'none';
   document.getElementById('tab-buy').className = tab==='buy' ? 'tabbtn active' : 'tabbtn';
   document.getElementById('tab-sell').className = tab==='sell' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-decor').className = tab==='decor' ? 'tabbtn active' : 'tabbtn';
   const lr = document.getElementById('live-rates-label');
   if(lr) lr.style.display = tab==='sell' ? '' : 'none';
+  if(tab==='decor') buildDecor();
 }
 
 function spawnFish(type) {
@@ -4951,22 +5030,39 @@ function buildShop(){
 }
 
 function buildSupplies(){
+  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const ERA_EMOJI = ['I','II','III','IV','V','VI'];
   const uc=document.getElementById('ucards');uc.innerHTML='';
+  // Group upgrades by era
+  const byEra = {};
   for(const[id,u] of Object.entries(UPGRADES)){
-    const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
-    const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
-    c.setAttribute('data-req',u.req);
-    c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
-    if(can)c.onclick=()=>{
-      coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++; 
-      document.getElementById('cv').textContent=formatCoins(coins);
-      if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
-      if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
-      if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
-      if(id==='coral') { ownedFlora.push('coral'); initDecor(); }
-      updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildSupplies(); saveGame();
-    };
-    uc.appendChild(c);
+    const e = u.era || 0;
+    if(!byEra[e]) byEra[e] = [];
+    byEra[e].push([id,u]);
+  }
+  // Show eras up to currentEra+1 (one ahead so players see what's coming)
+  const maxEra = Math.min(ERA_NAMES.length-1, currentEra+1);
+  for(let era=0; era<=maxEra; era++){
+    if(!byEra[era]) continue;
+    const hd=document.createElement('div');hd.className='sechead';
+    hd.textContent=ERA_EMOJI[era]+' '+ERA_NAMES[era];
+    uc.appendChild(hd);
+    for(const[id,u] of byEra[era]){
+      const lk=currentEra<u.era,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
+      const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
+      if(lk) c.setAttribute('data-era-name','Requires: '+ERA_NAMES[u.era]);
+      c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
+      if(can)c.onclick=()=>{
+        coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++;
+        document.getElementById('cv').textContent=formatCoins(coins);
+        if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+        if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+        if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
+        if(id==='coral') { ownedFlora.push('coral'); initDecor(); }
+        updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildSupplies(); saveGame();
+      };
+      uc.appendChild(c);
+    }
   }
 }
 
@@ -5817,6 +5913,10 @@ function openSkillWeb() {
   sw_open = true;
   document.getElementById('skill-web-overlay').classList.add('open');
   closeAll(); // close shop panel
+  // Update era badge
+  const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const eraEl = document.getElementById('sw-era');
+  if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES_SW[currentEra] || ERA_NAMES_SW[0]);
   // Center on Core cluster (world origin)
   const ov = document.getElementById('swc');
   sw_camX = 0;
