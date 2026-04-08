@@ -2644,7 +2644,7 @@ ctx.fill();
   
   // Lanternfish ambient glow
   for(const f of fishList) {
-    if(f.name === 'Lanternfish' || f.isAbyssal && TYPES[f.type]?.name === 'Lanternfish') {
+    if(f.name === 'Lanternfish' || (f.isAbyssal && TYPES[f.type]?.name === 'Lanternfish')) {
       const lg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 40);
       lg.addColorStop(0, 'rgba(255,200,100,0.12)');
       lg.addColorStop(1, 'rgba(255,200,100,0)');
