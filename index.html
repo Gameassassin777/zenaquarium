@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.2.4';
+const CUR_VER = '2.2.5';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -6076,82 +6076,82 @@ window.addEventListener('unhandledrejection', (ev) => {
 // ── Cluster & Node Definitions ──────────────────────────────────────
 const SW_CLUSTERS = [
   {
-    id: 'core', name: 'Core', req: 1, cx: 0, cy: 0, color: '#67e8f9',  // center hub
+    id: 'core', name: 'Core', req: 1, cx: 0, cy: 0, color: '#67e8f9',  // center hub (grows upward)
     nodes: [
-      { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: 'Double base coin value',             cost: 500,      max: 1, req: [], effect: 'flakes',   angle: 30,  dist: 80 },
-      { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income + eats algae',        cost: 350,      max: 5, req: [], effect: 'snail',    angle: 10,  dist: 150 },
-      { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food automatically',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', angle: -10, dist: 220 },
-      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity',               cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    angle: -25, dist: 290 },
-      { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  angle: 210, dist: 80 },
-      { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', angle: 190, dist: 150 },
-      { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Passive gold + filters water',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', angle: 170, dist: 220 },
-      { id: 'c_heater',   name: 'Water Heater',     desc: '+25% coin value for all fish',       cost: 50000,    max: 1, req: ['c_clam'],   effect: 'heater',  angle: 155, dist: 290 }
+      { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: 'Double base coin value',             cost: 500,      max: 1, req: [], effect: 'flakes',   x: -80,  y: -50 },
+      { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income + eats algae',        cost: 350,      max: 5, req: [], effect: 'snail',    x: 80,   y: -50 },
+      { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food automatically',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', x: -200, y: -150 },
+      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity',               cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    x: 200,  y: -150 },
+      { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', x: -350, y: -300 },
+      { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  x: 350,  y: -300 },
+      { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Passive gold + filters water',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', x: 0,    y: -450 },
+      { id: 'c_heater',   name: 'Water Heater',     desc: '+25% coin value for all fish',       cost: 50000,    max: 1, req: ['c_clam'],   effect: 'heater',  x: 0,    y: -600 }
     ]
   },
   {
-    id: 'deep', name: 'Shallows', req: 5, cx: 580, cy: -50, color: '#3b82f6',  // right side
+    id: 'deep', name: 'Shallows', req: 5, cx: 350, cy: -50, color: '#3b82f6',  // right branch
     nodes: [
-      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',       angle: 45,  dist: 70 },
-      { id: 'd_swift',    name: 'Swift Current',     desc: 'Fish swim 30% faster',              cost: 80000,    max: 1, req: ['d_tidal'],    effect: 'tidalcurrent', angle: 35, dist: 130 },
-      { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', angle: 25,  dist: 190 },
-      { id: 'd_kelp',     name: 'Purple Kelp',         desc: 'Unlocks Purple Kelp in tank',    cost: 15000,    max: 1, req: ['d_tidal'],    effect: 'kelp',     angle: 15,  dist: 250 },
-      { id: 'd_coral',    name: 'Fan Coral',           desc: 'Unlocks Fan Coral in tank',      cost: 35000,    max: 1, req: ['d_kelp'],     effect: 'coral',    angle: 5,   dist: 310 },
-      { id: 'd_vent',     name: 'Thermal Vent',       desc: 'Snails move 50% faster',           cost: 40000,    max: 1, req: ['d_plankton'], effect: 'vent',     angle: -5,  dist: 370 },
-      { id: 'd_dome',     name: 'Pressure Dome',      desc: 'Fish never lose hunger offline',   cost: 100000,   max: 1, req: ['d_vent'],     effect: 'dome',     angle: -15, dist: 430 },
-      { id: 'd_lens',     name: 'Abyssal Lens',       desc: 'Doubles clam income',              cost: 250000,   max: 1, req: ['d_dome'],     effect: 'lens',     angle: -25, dist: 490 },
-      { id: 'd_kelp_f',   name: 'Kelp Forest',        desc: '-30% algae growth rate',           cost: 500000,   max: 1, req: ['d_lens'],     effect: 'kelp_f',   angle: -35, dist: 550 },
-      { id: 'd_midnight', name: 'Midnight Zone',      desc: '+15% all income',                  cost: 1200000,  max: 1, req: ['d_kelp_f'],   effect: 'midnight', angle: -45, dist: 610 }
+      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',       x: 50,  y: 0 },
+      { id: 'd_swift',    name: 'Swift Current',     desc: 'Fish swim 30% faster',              cost: 80000,    max: 1, req: ['d_tidal'],    effect: 'tidalcurrent', x: 120, y: -50 },
+      { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', x: 120, y: 50 },
+      { id: 'd_kelp',     name: 'Purple Kelp',         desc: 'Unlocks Purple Kelp in tank',    cost: 15000,    max: 1, req: ['d_tidal'],    effect: 'kelp',     x: 190, y: 80 },
+      { id: 'd_coral',    name: 'Fan Coral',           desc: 'Unlocks Fan Coral in tank',      cost: 35000,    max: 1, req: ['d_kelp'],     effect: 'coral',    x: 260, y: 110 },
+      { id: 'd_vent',     name: 'Thermal Vent',       desc: 'Snails move 50% faster',           cost: 40000,    max: 1, req: ['d_plankton'], effect: 'vent',     x: 190, y: 0 },
+      { id: 'd_dome',     name: 'Pressure Dome',      desc: 'Fish never lose hunger offline',   cost: 100000,   max: 1, req: ['d_vent'],     effect: 'dome',     x: 260, y: -30 },
+      { id: 'd_lens',     name: 'Abyssal Lens',       desc: 'Doubles clam income',              cost: 250000,   max: 1, req: ['d_dome'],     effect: 'lens',     x: 330, y: -60 },
+      { id: 'd_kelp_f',   name: 'Kelp Forest',        desc: '-30% algae growth rate',           cost: 500000,   max: 1, req: ['d_lens'],     effect: 'kelp_f',   x: 400, y: -90 },
+      { id: 'd_midnight', name: 'Midnight Zone',      desc: '+15% all income',                  cost: 1200000,  max: 1, req: ['d_kelp_f'],   effect: 'midnight', x: 470, y: -120 }
     ]
   },
   {
-    id: 'evo', name: 'Evolution', req: 16, cx: 580, cy: 300, color: '#34d399',  // right lower
+    id: 'evo', name: 'Evolution', req: 16, cx: 250, cy: 150, color: '#34d399',  // lower right branch
     nodes: [
-      { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 8000,     max: 3, req: [], effect: 'sel_breed',  angle: 90,  dist: 70 },
-      { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 25000,    max: 1, req: ['e_breed'],  effect: 'gene_splice', angle: 100, dist: 140 },
-      { id: 'e_chroma', name: 'Chromatic Drift',     desc: 'Color shift range +50%',            cost: 60000,    max: 1, req: ['e_splice'], effect: 'chroma',      angle: 110, dist: 210 },
-      { id: 'e_apex',   name: 'Apex Genes',          desc: 'Adult fish gain +20% value',        cost: 150000,   max: 1, req: ['e_chroma'], effect: 'apex',        angle: 120, dist: 280 },
-      { id: 'e_prism',  name: 'Prismatic Lock',      desc: 'Prismatic band bonus x2',           cost: 400000,   max: 1, req: ['e_apex'],   effect: 'prism_lock',  angle: 130, dist: 350 },
-      { id: 'e_frenzy', name: 'Breeding Frenzy',     desc: 'Breeding cooldown -40%',            cost: 900000,   max: 1, req: ['e_prism'],  effect: 'brd_frenzy',  angle: 135, dist: 420 },
-      { id: 'e_mythic', name: 'Mythic Lineage',      desc: 'All rare fish sell for 3x',         cost: 2500000,  max: 1, req: ['e_frenzy'], effect: 'mythic_lin',  angle: 140, dist: 490 },
-      { id: 'e_trans',  name: 'Transcendence',       desc: 'One random fish becomes legendary', cost: 8000000,  max: 1, req: ['e_mythic'], effect: 'transcend',   angle: 145, dist: 560 }
+      { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 8000,     max: 3, req: [], effect: 'sel_breed',  x: 50,  y: 50 },
+      { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 25000,    max: 1, req: ['e_breed'],  effect: 'gene_splice', x: 120, y: 120 },
+      { id: 'e_chroma', name: 'Chromatic Drift',     desc: 'Color shift range +50%',            cost: 60000,    max: 1, req: ['e_splice'], effect: 'chroma',      x: 120, y: 200 },
+      { id: 'e_apex',   name: 'Apex Genes',          desc: 'Adult fish gain +20% value',        cost: 150000,   max: 1, req: ['e_chroma'], effect: 'apex',        x: 190, y: 120 },
+      { id: 'e_prism',  name: 'Prismatic Lock',      desc: 'Prismatic band bonus x2',           cost: 400000,   max: 1, req: ['e_apex'],   effect: 'prism_lock',  x: 260, y: 120 },
+      { id: 'e_frenzy', name: 'Breeding Frenzy',     desc: 'Breeding cooldown -40%',            cost: 900000,   max: 1, req: ['e_prism'],  effect: 'brd_frenzy',  x: 330, y: 120 },
+      { id: 'e_mythic', name: 'Mythic Lineage',      desc: 'All rare fish sell for 3x',         cost: 2500000,  max: 1, req: ['e_frenzy'], effect: 'mythic_lin',  x: 400, y: 120 },
+      { id: 'e_trans',  name: 'Transcendence',       desc: 'One random fish becomes legendary', cost: 8000000,  max: 1, req: ['e_mythic'], effect: 'transcend',   x: 470, y: 120 }
     ]
   },
   {
-    id: 'alch', name: 'Alchemy', req: 24, cx: -580, cy: -50, color: '#fbbf24',  // left side
+    id: 'alch', name: 'Alchemy', req: 24, cx: -350, cy: -50, color: '#fbbf24',  // left branch
     nodes: [
-      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight',  angle: 135, dist: 70 },
-      { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    angle: 145, dist: 140 },
-      { id: 'a_symb',     name: 'Symbiosis',           desc: '+10% coins when water quality is high', cost: 200000, max: 1, req: ['a_arb'], effect: 'symbiotic',  angle: 155, dist: 210 },
-      { id: 'a_magnet',   name: 'Coin Magnet',         desc: '+50% coins earned per feed',       cost: 80000,    max: 1, req: ['a_arb'],     effect: 'coin_mag',   angle: 165, dist: 280 },
-      { id: 'a_obelisk',  name: 'Obelisk',             desc: '+2% coins per unique species',     cost: 400000,   max: 1, req: ['a_magnet'],  effect: 'obelisk',    angle: 175, dist: 350 },
-      { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5s',                  cost: 200000,   max: 1, req: ['a_magnet'],  effect: 'overflow',   angle: 185, dist: 420 },
-      { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All sales +10%',                   cost: 600000,   max: 1, req: ['a_overflow'], effect: 'gold_cat',  angle: 195, dist: 490 },
-      { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Convert algae to coins',           cost: 1500000,  max: 1, req: ['a_gold'],    effect: 'phil_stone', angle: 205, dist: 560 },
-      { id: 'a_eco',      name: 'Economic Singularity',desc: 'Income cap raised x2',             cost: 4000000,  max: 1, req: ['a_phil'],    effect: 'eco_sing',   angle: 215, dist: 630 },
-      { id: 'a_loop',     name: 'Infinite Loop',       desc: '1% of total coins/min passive',    cost: 12000000, max: 1, req: ['a_eco'],     effect: 'inf_loop',   angle: 225, dist: 700 }
+      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight',  x: -50,  y: 0 },
+      { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    x: -120, y: -50 },
+      { id: 'a_symb',     name: 'Symbiosis',           desc: '+10% coins when water quality is high', cost: 200000, max: 1, req: ['a_arb'], effect: 'symbiotic',  x: -120, y: 50 },
+      { id: 'a_magnet',   name: 'Coin Magnet',         desc: '+50% coins earned per feed',       cost: 80000,    max: 1, req: ['a_arb'],     effect: 'coin_mag',   x: -190, y: 0 },
+      { id: 'a_obelisk',  name: 'Obelisk',             desc: '+2% coins per unique species',     cost: 400000,   max: 1, req: ['a_magnet'],  effect: 'obelisk',    x: -260, y: 30 },
+      { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5s',                  cost: 200000,   max: 1, req: ['a_magnet'],  effect: 'overflow',   x: -260, y: -30 },
+      { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All sales +10%',                   cost: 600000,   max: 1, req: ['a_overflow'], effect: 'gold_cat',  x: -330, y: -30 },
+      { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Convert algae to coins',           cost: 1500000,  max: 1, req: ['a_gold'],    effect: 'phil_stone', x: -400, y: -30 },
+      { id: 'a_eco',      name: 'Economic Singularity',desc: 'Income cap raised x2',             cost: 4000000,  max: 1, req: ['a_phil'],    effect: 'eco_sing',   x: -470, y: -30 },
+      { id: 'a_loop',     name: 'Infinite Loop',       desc: '1% of total coins/min passive',    cost: 12000000, max: 1, req: ['a_eco'],     effect: 'inf_loop',   x: -540, y: -30 }
     ]
   },
   {
-    id: 'sing', name: 'Singularity', req: 32, cx: -580, cy: 300, color: '#a855f7',  // left lower
+    id: 'sing', name: 'Singularity', req: 32, cx: -250, cy: 150, color: '#a855f7',  // lower left branch
     nodes: [
-      { id: 's_quantum',   name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 270, dist: 70 },
-      { id: 's_resonance', name: 'Resonance',           desc: 'Combo cap raised to 3.5×',            cost: 600000,  max: 1, req: ['s_quantum'], effect: 'resonance', angle: 260, dist: 140 },
-      { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  angle: 250, dist: 210 },
-      { id: 's_horizon', name: 'Event Horizon',        desc: 'Tank capacity +10 permanently',       cost: 300000,  max: 1, req: ['s_dark'],    effect: 'evt_hor',   angle: 240, dist: 280 },
-      { id: 's_anti',    name: 'Antimatter',           desc: 'All negative events reversed',        cost: 900000,  max: 1, req: ['s_horizon'], effect: 'antimatter', angle: 230, dist: 350 },
-      { id: 's_warp',    name: 'Warp Core',            desc: 'Offline income x3',                   cost: 3000000, max: 1, req: ['s_anti'],    effect: 'warp_core', angle: 220, dist: 420 },
-      { id: 's_point',   name: 'Singularity Point',    desc: 'All cluster bonuses +5%',             cost: 15000000,max: 1, req: ['s_warp'],    effect: 'sing_pt',   angle: 210, dist: 490 }
+      { id: 's_quantum',   name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', x: -50,  y: 50 },
+      { id: 's_resonance', name: 'Resonance',           desc: 'Combo cap raised to 3.5×',            cost: 600000,  max: 1, req: ['s_quantum'], effect: 'resonance', x: -120, y: 100 },
+      { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  x: -120, y: 180 },
+      { id: 's_horizon', name: 'Event Horizon',        desc: 'Tank capacity +10 permanently',       cost: 300000,  max: 1, req: ['s_dark'],    effect: 'evt_hor',   x: -190, y: 100 },
+      { id: 's_anti',    name: 'Antimatter',           desc: 'All negative events reversed',        cost: 900000,  max: 1, req: ['s_horizon'], effect: 'antimatter', x: -260, y: 100 },
+      { id: 's_warp',    name: 'Warp Core',            desc: 'Offline income x3',                   cost: 3000000, max: 1, req: ['s_anti'],    effect: 'warp_core', x: -330, y: 100 },
+      { id: 's_point',   name: 'Singularity Point',    desc: 'All cluster bonuses +5%',             cost: 15000000,max: 1, req: ['s_warp'],    effect: 'sing_pt',   x: -400, y: 100 }
     ]
   },
   {
-    id: 'pres', name: 'Prestige', req: 40, cx: 0, cy: -480, color: '#f472b6',  // top center
+    id: 'pres', name: 'Prestige', req: 40, cx: 0, cy: -750, color: '#f472b6',  // top crown above core tree
     nodes: [
-      { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 50000,    max: 1, req: [], effect: 'aura_weave',  angle: 270, dist: 90 },
-      { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', angle: 260, dist: 160 },
-      { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated background flowers',               cost: 1000000,  max: 1, req: ['p_chron'], effect: 'etrnl_bloom', angle: 250, dist: 230 },
-      { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'Rainbow wave animation on water surface',   cost: 5000000,  max: 1, req: ['p_bloom'], effect: 'cosmic_tide', angle: 240, dist: 300 },
-      { id: 'p_omega',      name: 'Omega Key',        desc: 'Unlock all cosmetic variants permanently',  cost: 25000000, max: 1, req: ['p_cosmic'],  effect: 'omega_key',      angle: 230, dist: 370 },
-      { id: 'p_primordial', name: 'Primordial Spark', desc: '×3 income multiplier on all fish',          cost: 5000000,  max: 1, req: ['p_bloom'],   effect: 'primordialspark', angle: 280, dist: 300 }
+      { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 50000,    max: 1, req: [], effect: 'aura_weave',  x: 0,    y: -50 },
+      { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', x: -80,  y: -120 },
+      { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated background flowers',               cost: 1000000,  max: 1, req: ['p_chron'], effect: 'etrnl_bloom', x: 80,   y: -120 },
+      { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'Rainbow wave animation on water surface',   cost: 5000000,  max: 1, req: ['p_bloom'], effect: 'cosmic_tide', x: -160, y: -190 },
+      { id: 'p_omega',      name: 'Omega Key',        desc: 'Unlock all cosmetic variants permanently',  cost: 25000000, max: 1, req: ['p_cosmic'],  effect: 'omega_key',      x: 160,  y: -190 },
+      { id: 'p_primordial', name: 'Primordial Spark', desc: '×3 income multiplier on all fish',          cost: 5000000,  max: 1, req: ['p_bloom'],   effect: 'primordialspark', x: 0,    y: -250 }
     ]
   }
 ];
@@ -6253,6 +6253,7 @@ const sw_revealed   = new Set(); // cluster ids already revealed
 // Compute world position for a node given its parent cluster
 function swNodePos(nd, cl) {
   if (SW_TREE_POS[nd.id]) return SW_TREE_POS[nd.id];
+  if (nd.x !== undefined && nd.y !== undefined) return { x: cl.cx + nd.x, y: cl.cy + nd.y };
   const rad = (nd.angle * Math.PI) / 180;
   return {
     x: cl.cx + Math.cos(rad) * nd.dist,
