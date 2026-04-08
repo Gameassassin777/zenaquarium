@@ -5272,7 +5272,7 @@ function swDrawAll() {
     const elapsed = now - burst.startTime;
     if (elapsed > 600) { sw_buyBursts.splice(i, 1); continue; }
     const spos = swWorldToScreen(burst.x, burst.y);
-    const [br,bg2,bb] = swHexRgb(burst.color);
+    const [br,bGreen,bb] = swHexRgb(burst.color);
     const progress = elapsed / 600;
     // Expanding rings
     for (let ring = 0; ring < 3; ring++) {
@@ -5282,7 +5282,7 @@ function swDrawAll() {
       const alpha = (1 - rp) * 0.5;
       ctx2.beginPath();
       ctx2.arc(spos.x, spos.y, radius, 0, Math.PI * 2);
-      ctx2.strokeStyle = `rgba(${br},${bg2},${bb},${alpha.toFixed(2)})`;
+      ctx2.strokeStyle = `rgba(${br},${bGreen},${bb},${alpha.toFixed(2)})`;
       ctx2.lineWidth = 2;
       ctx2.stroke();
     }
@@ -5291,7 +5291,7 @@ function swDrawAll() {
     if (flashAlpha > 0) {
       const flashGrad = ctx2.createRadialGradient(spos.x, spos.y, 0, spos.x, spos.y, 20 * sw_zoom);
       flashGrad.addColorStop(0, `rgba(255,255,255,${(flashAlpha * 0.6).toFixed(2)})`);
-      flashGrad.addColorStop(1, `rgba(${br},${bg2},${bb},0)`);
+      flashGrad.addColorStop(1, `rgba(${br},${bGreen},${bb},0)`);
       ctx2.fillStyle = flashGrad;
       ctx2.beginPath();
       ctx2.arc(spos.x, spos.y, 20 * sw_zoom, 0, Math.PI * 2);
@@ -5346,7 +5346,7 @@ function swDrawAll() {
       ctx2.fillStyle = cl.color;
       ctx2.textAlign = 'center';
       ctx2.textBaseline = 'middle';
-      ctx2.fillText('\u{1F512} Level ' + cl.req, clCenter.x, clCenter.y + 4);
+      ctx2.fillText(`\u{1F512} Level ${cl.req}`, clCenter.x, clCenter.y + 4);
       ctx2.restore();
     }
 
