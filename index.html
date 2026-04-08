@@ -2868,16 +2868,43 @@ function drawFish(f){
       ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
       ctx.stroke();
 
-      // suckers (5 dots per arm along inner curve, shrinking toward tip)
-      ctx.strokeStyle = _c2 + 'cc';
-      for(let j=1; j<=5; j++){
-        const t = j / 5.5;
-        const sx = bx*(1-t) + (cp1x*(1-t)*t + cp2x*t*(1-t) + cp3x*t*t)*3 + endx*t*t*t;
-        const sy = by*(1-t) + (cp1y*(1-t)*t + cp2y*t*(1-t) + cp3y*t*t)*3 + endy*t*t*t;
-        const sr = s * 0.032 * (1 - t * 0.55);
-        ctx.lineWidth = sr * 0.5;
-        ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
-        ctx.stroke();
+      // suckers — two rows of 7, sampled from the same piecewise bezier centerline that is rendered
+      const cubicPoint = (p0, p1, p2, p3, t) => {
+        const mt = 1 - t;
+        return mt*mt*mt*p0 + 3*mt*mt*t*p1 + 3*mt*t*t*p2 + t*t*t*p3;
+      };
+      const cubicDerivative = (p0, p1, p2, p3, t) => {
+        const mt = 1 - t;
+        return 3*mt*mt*(p1-p0) + 6*mt*t*(p2-p1) + 3*t*t*(p3-p2);
+      };
+      for(let j=1; j<=7; j++){
+        const t = j / 8;
+        let lt, p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y;
+        if(t < 0.5){
+          lt = t * 2;
+          p0x = bx;   p0y = by;
+          p1x = cp1x; p1y = cp1y;
+          p2x = cp2x; p2y = cp2y;
+          p3x = cp3x; p3y = cp3y;
+        }else{
+          lt = (t - 0.5) * 2;
+          p0x = cp2x; p0y = cp2y;
+          p1x = cp3x; p1y = cp3y;
+          p2x = endx; p2y = endy;
+          p3x = endx; p3y = endy;
+        }
+        const skx = cubicPoint(p0x, p1x, p2x, p3x, lt);
+        const sky = cubicPoint(p0y, p1y, p2y, p3y, lt);
+        // tangent on the same rendered segment for perpendicular row offset
+        const tdx = cubicDerivative(p0x, p1x, p2x, p3x, lt);
+        const tdy = cubicDerivative(p0y, p1y, p2y, p3y, lt);
+        const tlen = Math.hypot(tdx, tdy) || 1;
+        const roff = s * 0.03 * (1 - t * 0.4);
+        const nx = -tdy / tlen * roff, ny = tdx / tlen * roff;
+        const skr = s * 0.026 * (1 - t * 0.55);
+        ctx.fillStyle = '#ecd8f499'; ctx.strokeStyle = _c2 + 'bb'; ctx.lineWidth = skr * 0.4;
+        ctx.beginPath(); ctx.arc(skx + nx, sky + ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(skx - nx, sky - ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
       }
     }
 
