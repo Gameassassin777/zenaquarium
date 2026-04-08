@@ -4681,7 +4681,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'deep', name: 'Deep Ocean', req: 10, cx: 600, cy: -200, color: '#3b82f6',
+    id: 'deep', name: 'Deep Ocean', req: 10, cx: 350, cy: -250, color: '#3b82f6',
     nodes: [
       { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',     angle: 0,   dist: 110 },
       { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', angle: 45,  dist: 110 },
@@ -4694,7 +4694,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'evo', name: 'Evolution', req: 20, cx: 600, cy: 200, color: '#34d399',
+    id: 'evo', name: 'Evolution', req: 20, cx: 350, cy: 250, color: '#34d399',
     nodes: [
       { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 8000,     max: 3, req: [], effect: 'sel_breed',  angle: 0,   dist: 110 },
       { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 25000,    max: 1, req: ['e_breed'],  effect: 'gene_splice', angle: 45,  dist: 110 },
@@ -4707,7 +4707,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'alch', name: 'Alchemy', req: 30, cx: -600, cy: -200, color: '#fbbf24',
+    id: 'alch', name: 'Alchemy', req: 30, cx: -350, cy: -250, color: '#fbbf24',
     nodes: [
       { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight', angle: 0,   dist: 110 },
       { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    angle: 45,  dist: 110 },
@@ -4720,7 +4720,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'sing', name: 'Singularity', req: 40, cx: -600, cy: 200, color: '#a855f7',
+    id: 'sing', name: 'Singularity', req: 40, cx: -350, cy: 250, color: '#a855f7',
     nodes: [
       { id: 's_quantum', name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 0,   dist: 100 },
       { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  angle: 60,  dist: 100 },
@@ -4731,7 +4731,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'pres', name: 'Prestige', req: 50, cx: 0, cy: -600, color: '#f472b6',
+    id: 'pres', name: 'Prestige', req: 50, cx: 0, cy: -400, color: '#f472b6',
     nodes: [
       { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 50000,    max: 1, req: [], effect: 'aura_weave',  angle: 0,   dist: 100 },
       { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', angle: 72,  dist: 100 },
@@ -4750,6 +4750,52 @@ SW_CLUSTERS.forEach(cl => {
   });
 });
 
+// ── Tree layout precomputation ─────────────────────────────────────
+function swHexRgb(hex) {
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+}
+const SW_TREE_POS = {};
+function swBuildTreeLayout() {
+  const depthCache = {};
+  function getDepth(nodeId) {
+    if (depthCache[nodeId] !== undefined) return depthCache[nodeId];
+    const nd = SW_NODE_MAP[nodeId];
+    if (!nd || nd.req.length === 0) { depthCache[nodeId] = 0; return 0; }
+    let maxD = 0;
+    for (const rid of nd.req) maxD = Math.max(maxD, getDepth(rid) + 1);
+    depthCache[nodeId] = maxD;
+    return maxD;
+  }
+  SW_CLUSTERS.forEach(cl => {
+    if (cl.id === 'core') {
+      cl.nodes.forEach(nd => {
+        const depth = getDepth(nd.id);
+        const rad = (nd.angle * Math.PI) / 180;
+        const dist = 80 + depth * 78;
+        SW_TREE_POS[nd.id] = {
+          x: cl.cx + Math.cos(rad) * dist,
+          y: cl.cy + Math.sin(rad) * dist
+        };
+      });
+    } else {
+      const len = Math.sqrt(cl.cx * cl.cx + cl.cy * cl.cy) || 1;
+      const dirX = cl.cx / len;
+      const dirY = cl.cy / len;
+      const perpX = -dirY;
+      const perpY = dirX;
+      cl.nodes.forEach((nd, i) => {
+        const depth = getDepth(nd.id);
+        const wobble = Math.sin(depth * 2.3 + i * 1.7) * 20;
+        SW_TREE_POS[nd.id] = {
+          x: cl.cx + dirX * depth * 85 + perpX * wobble,
+          y: cl.cy + dirY * depth * 85 + perpY * wobble
+        };
+      });
+    }
+  });
+}
+swBuildTreeLayout();
+
 // State
 const SW_NODE_OWNED = {};      // nodeId -> purchase count (0..max)
 const sw_mastery    = {};      // nodeId -> 0|1|2|3
@@ -4757,6 +4803,7 @@ const sw_revealed   = new Set(); // cluster ids already revealed
 
 // Compute world position for a node given its parent cluster
 function swNodePos(nd, cl) {
+  if (SW_TREE_POS[nd.id]) return SW_TREE_POS[nd.id];
   const rad = (nd.angle * Math.PI) / 180;
   return {
     x: cl.cx + Math.cos(rad) * nd.dist,
@@ -4778,14 +4825,78 @@ const sw_revealAnims = [];
 // Supernova: { clusterId, startTime }
 const sw_supernova = [];
 
+// ── Visual effect state ─────────────────────────────────────────────
+let sw_lastFrame = 0;
+const sw_buyBursts = [];
+
+// Stars (static, generated once)
+const sw_stars = [];
+for (let i = 0; i < 250; i++) {
+  const hash = ((i * 2654435761) >>> 0);
+  sw_stars.push({
+    x: ((hash % 3000) - 1500),
+    y: (((hash >> 8) % 2400) - 1200),
+    size: 0.4 + (hash % 100) / 80,
+    alpha: 0.15 + (hash % 70) / 100,
+    cr: 200 + (hash % 55), cg: 200 + ((hash >> 4) % 55), cb: 220 + ((hash >> 8) % 35),
+    twinkleSpeed: 0.001 + (hash % 50) / 20000,
+    twinklePhase: (hash % 628) / 100,
+    parallax: 0.6 + (hash % 40) / 100
+  });
+}
+
+// Nebulae (soft colored patches that drift)
+const sw_nebulae = [
+  { x: 300, y: -200, r: 400, color: '#3b82f6' },
+  { x: -300, y: 100, r: 350, color: '#a855f7' },
+  { x: 0, y: -400, r: 300, color: '#f472b6' },
+  { x: -200, y: -300, r: 280, color: '#fbbf24' },
+  { x: 200, y: 300, r: 320, color: '#34d399' }
+];
+
+// Energy flow particles along connections
+const sw_energyParticles = [];
+SW_CLUSTERS.forEach(cl => {
+  cl.nodes.forEach(nd => {
+    nd.req.forEach(reqId => {
+      for (let k = 0; k < 2; k++) {
+        sw_energyParticles.push({
+          fromId: reqId, toId: nd.id, clusterId: cl.id,
+          progress: Math.random(),
+          speed: 0.12 + Math.random() * 0.13,
+          color: cl.color
+        });
+      }
+    });
+  });
+});
+
+// Ambient floating particles
+const sw_ambientParticles = [];
+for (let i = 0; i < 40; i++) {
+  sw_ambientParticles.push({
+    x: (Math.random() - 0.5) * 2000,
+    y: (Math.random() - 0.5) * 1500,
+    vx: (Math.random() - 0.5) * 8,
+    vy: (Math.random() - 0.5) * 6,
+    size: 0.5 + Math.random() * 1.5,
+    baseAlpha: 0.08 + Math.random() * 0.15,
+    life: Math.random() * 10,
+    maxLife: 5 + Math.random() * 8,
+    cr: 150 + Math.floor(Math.random() * 105),
+    cg: 150 + Math.floor(Math.random() * 105),
+    cb: 180 + Math.floor(Math.random() * 75)
+  });
+}
+
 function openSkillWeb() {
   sw_open = true;
   document.getElementById('skill-web-overlay').classList.add('open');
   closeAll(); // close shop panel
-  // Center on Core cluster
+  // Center on Core cluster (world origin)
   const ov = document.getElementById('swc');
-  sw_camX = ov.clientWidth / 2;
-  sw_camY = ov.clientHeight / 2;
+  sw_camX = 0;
+  sw_camY = 0;
   sw_zoom = 0.85;
   swResizeCanvas();
   swCheckReveal(true);
@@ -4927,6 +5038,9 @@ function swBuyNode(nd) {
 
   updateHUD();
   saveGame();
+  // Buy burst animation
+  const bpos = swNodePos(nd, cl);
+  sw_buyBursts.push({ x: bpos.x, y: bpos.y, startTime: performance.now(), color: cl.color });
   swDrawAll();
 }
 
@@ -4938,30 +5052,95 @@ function swDrawAll() {
   if (!ctx2) return;
   const W2 = cvs.width, H2 = cvs.height;
   const now = performance.now();
+  const dt = now - (sw_lastFrame || now);
+  sw_lastFrame = now;
 
-  // Background
+  // ── Background ──
   ctx2.clearRect(0, 0, W2, H2);
-  const bg = ctx2.createRadialGradient(W2/2, H2/2, 0, W2/2, H2/2, Math.max(W2,H2)*0.8);
-  bg.addColorStop(0, '#001020');
-  bg.addColorStop(1, '#000d1a');
+  const bg = ctx2.createRadialGradient(W2/2, H2/2, 0, W2/2, H2/2, Math.max(W2,H2)*0.9);
+  bg.addColorStop(0, '#0a0e1a');
+  bg.addColorStop(0.5, '#060a14');
+  bg.addColorStop(1, '#020408');
   ctx2.fillStyle = bg;
   ctx2.fillRect(0, 0, W2, H2);
 
-  // Star field
-  ctx2.save();
-  const starSeed = 12345;
-  for (let i = 0; i < 120; i++) {
-    const sx = ((starSeed * (i + 1) * 2654435761) >>> 0) % W2;
-    const sy = ((starSeed * (i + 1) * 1013904223) >>> 0) % H2;
-    const sa = 0.15 + (((starSeed * i * 16807) >>> 0) % 60) / 100;
+  // ── Nebula clouds ──
+  sw_nebulae.forEach((neb, i) => {
+    const drift = now * 0.00003;
+    const nx = neb.x + Math.sin(drift + i * 1.5) * 50;
+    const ny = neb.y + Math.cos(drift * 0.7 + i * 2.1) * 40;
+    const spos = swWorldToScreen(nx, ny);
+    const radius = neb.r * sw_zoom;
+    const [nr,ng,nb] = swHexRgb(neb.color);
+    const grad = ctx2.createRadialGradient(spos.x, spos.y, 0, spos.x, spos.y, radius);
+    grad.addColorStop(0, `rgba(${nr},${ng},${nb},0.07)`);
+    grad.addColorStop(0.4, `rgba(${nr},${ng},${nb},0.03)`);
+    grad.addColorStop(1, `rgba(${nr},${ng},${nb},0)`);
+    ctx2.fillStyle = grad;
     ctx2.beginPath();
-    ctx2.arc(sx, sy, 0.8, 0, Math.PI * 2);
-    ctx2.fillStyle = `rgba(255,255,255,${sa})`;
+    ctx2.arc(spos.x, spos.y, radius, 0, Math.PI * 2);
     ctx2.fill();
-  }
-  ctx2.restore();
+  });
 
-  // Draw connector lines between nodes
+  // ── Star field with twinkling ──
+  for (let i = 0; i < sw_stars.length; i++) {
+    const star = sw_stars[i];
+    const px = star.x * star.parallax;
+    const py = star.y * star.parallax;
+    const spos = swWorldToScreen(px, py);
+    if (spos.x < -20 || spos.x > W2 + 20 || spos.y < -20 || spos.y > H2 + 20) continue;
+    const twinkle = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(now * star.twinkleSpeed + star.twinklePhase));
+    const alpha = star.alpha * twinkle;
+    ctx2.beginPath();
+    ctx2.arc(spos.x, spos.y, Math.max(0.4, star.size * sw_zoom), 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(${star.cr},${star.cg},${star.cb},${alpha.toFixed(2)})`;
+    ctx2.fill();
+    if (star.size > 1.4 && alpha > 0.45) {
+      ctx2.globalAlpha = alpha * 0.25;
+      ctx2.strokeStyle = `rgba(${star.cr},${star.cg},${star.cb},1)`;
+      ctx2.lineWidth = 0.5;
+      const fl = star.size * 4 * sw_zoom;
+      ctx2.beginPath();
+      ctx2.moveTo(spos.x - fl, spos.y); ctx2.lineTo(spos.x + fl, spos.y);
+      ctx2.moveTo(spos.x, spos.y - fl); ctx2.lineTo(spos.x, spos.y + fl);
+      ctx2.stroke();
+      ctx2.globalAlpha = 1;
+    }
+  }
+
+  // ── Inter-cluster curved connectors ──
+  SW_CLUSTERS.forEach(cl => {
+    if (cl.id === 'core') return;
+    const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
+    if (!coreCl) return;
+    const a = swWorldToScreen(cl.cx, cl.cy);
+    const b = swWorldToScreen(coreCl.cx, coreCl.cy);
+    const perpX = -(a.y - b.y) * 0.15;
+    const perpY = (a.x - b.x) * 0.15;
+    const midX = (a.x + b.x) / 2;
+    const midY = (a.y + b.y) / 2;
+    // Glow layer
+    ctx2.beginPath();
+    ctx2.moveTo(a.x, a.y);
+    ctx2.quadraticCurveTo(midX + perpX, midY + perpY, b.x, b.y);
+    ctx2.strokeStyle = cl.color;
+    ctx2.globalAlpha = 0.06;
+    ctx2.lineWidth = 8 * sw_zoom;
+    ctx2.stroke();
+    // Thin dashed line
+    ctx2.beginPath();
+    ctx2.moveTo(a.x, a.y);
+    ctx2.quadraticCurveTo(midX + perpX, midY + perpY, b.x, b.y);
+    ctx2.strokeStyle = cl.color;
+    ctx2.globalAlpha = 0.12;
+    ctx2.lineWidth = 1.2;
+    ctx2.setLineDash([4, 6]);
+    ctx2.stroke();
+    ctx2.setLineDash([]);
+    ctx2.globalAlpha = 1;
+  });
+
+  // ── Node connector lines (bezier curves) ──
   SW_CLUSTERS.forEach(cl => {
     const revealed = sw_revealed.has(cl.id);
     cl.nodes.forEach(nd => {
@@ -4973,53 +5152,97 @@ function swDrawAll() {
         const posA = swWorldToScreen(swNodePos(nd, cl).x, swNodePos(nd, cl).y);
         const posB = swWorldToScreen(swNodePos(reqNd, reqCl).x, swNodePos(reqNd, reqCl).y);
         const bothOwned = swOwned(nd.id) > 0 && swOwned(reqNd.id) > 0;
-        ctx2.beginPath();
-        ctx2.moveTo(posA.x, posA.y);
-        ctx2.lineTo(posB.x, posB.y);
+        const perpX2 = -(posA.y - posB.y) * 0.12;
+        const perpY2 = (posA.x - posB.x) * 0.12;
+        const midX2 = (posA.x + posB.x) / 2;
+        const midY2 = (posA.y + posB.y) / 2;
+
         if (!revealed) {
-          ctx2.strokeStyle = 'rgba(255,255,255,0.06)';
-        } else if (bothOwned) {
-          ctx2.strokeStyle = cl.color;
-          ctx2.globalAlpha = 0.9;
+          ctx2.beginPath();
+          ctx2.moveTo(posA.x, posA.y);
+          ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
+          ctx2.strokeStyle = 'rgba(255,255,255,0.04)';
+          ctx2.lineWidth = 1;
+          ctx2.stroke();
         } else {
-          ctx2.strokeStyle = cl.color;
-          ctx2.globalAlpha = 0.25;
+          // Wide glow for owned connections
+          if (bothOwned) {
+            ctx2.beginPath();
+            ctx2.moveTo(posA.x, posA.y);
+            ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
+            ctx2.strokeStyle = cl.color;
+            ctx2.globalAlpha = 0.12;
+            ctx2.lineWidth = Math.max(3, 6 * sw_zoom);
+            ctx2.stroke();
+            ctx2.globalAlpha = 1;
+          }
+          // Main line
+          ctx2.beginPath();
+          ctx2.moveTo(posA.x, posA.y);
+          ctx2.quadraticCurveTo(midX2 + perpX2, midY2 + perpY2, posB.x, posB.y);
+          if (bothOwned) {
+            ctx2.strokeStyle = cl.color;
+            ctx2.globalAlpha = 0.8;
+            ctx2.lineWidth = 2;
+          } else {
+            ctx2.strokeStyle = cl.color;
+            ctx2.globalAlpha = 0.2;
+            ctx2.lineWidth = 1.2;
+            ctx2.setLineDash([3, 5]);
+          }
+          ctx2.stroke();
+          ctx2.setLineDash([]);
+          ctx2.globalAlpha = 1;
         }
-        ctx2.lineWidth = 1.2;
-        ctx2.stroke();
-        ctx2.globalAlpha = 1;
       });
     });
   });
 
-  // Draw inter-cluster connector lines (hub-spoke)
-  SW_CLUSTERS.forEach(cl => {
-    if (cl.id === 'core') return;
-    const coreCl = SW_CLUSTERS.find(c => c.id === 'core');
-    if (!coreCl) return;
-    const a = swWorldToScreen(cl.cx, cl.cy);
-    const b = swWorldToScreen(coreCl.cx, coreCl.cy);
+  // ── Energy flow particles along owned connections ──
+  sw_energyParticles.forEach(ep => {
+    ep.progress += ep.speed * dt * 0.001;
+    if (ep.progress > 1) ep.progress -= 1;
+    const ndA = SW_NODE_MAP[ep.fromId];
+    const ndB = SW_NODE_MAP[ep.toId];
+    if (!ndA || !ndB) return;
+    if (swOwned(ep.fromId) <= 0 || swOwned(ep.toId) <= 0) return;
+    const clA = SW_CLUSTERS.find(c => c.id === ndA.clusterId);
+    const clB = SW_CLUSTERS.find(c => c.id === ndB.clusterId);
+    if (!clA || !clB) return;
+    const posA = swWorldToScreen(swNodePos(ndA, clA).x, swNodePos(ndA, clA).y);
+    const posB = swWorldToScreen(swNodePos(ndB, clB).x, swNodePos(ndB, clB).y);
+    const perpX3 = -(posA.y - posB.y) * 0.12;
+    const perpY3 = (posA.x - posB.x) * 0.12;
+    const cpx = (posA.x + posB.x) / 2 + perpX3;
+    const cpy = (posA.y + posB.y) / 2 + perpY3;
+    const t = ep.progress;
+    const it = 1 - t;
+    const px = it*it*posA.x + 2*it*t*cpx + t*t*posB.x;
+    const py = it*it*posA.y + 2*it*t*cpy + t*t*posB.y;
+    const alpha = Math.sin(t * Math.PI) * 0.8;
+    const [er,eg,eb] = swHexRgb(ep.color);
+    // Glow
     ctx2.beginPath();
-    ctx2.moveTo(a.x, a.y);
-    ctx2.lineTo(b.x, b.y);
-    ctx2.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx2.lineWidth = 1;
-    ctx2.setLineDash([6, 8]);
-    ctx2.stroke();
-    ctx2.setLineDash([]);
+    ctx2.arc(px, py, Math.max(3, 5 * sw_zoom), 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(${er},${eg},${eb},${(alpha * 0.2).toFixed(2)})`;
+    ctx2.fill();
+    // Core dot
+    ctx2.beginPath();
+    ctx2.arc(px, py, Math.max(1, 2 * sw_zoom), 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(${Math.min(255,er+60)},${Math.min(255,eg+60)},${Math.min(255,eb+60)},${alpha.toFixed(2)})`;
+    ctx2.fill();
   });
 
-  // Supernova flash
+  // ── Supernova flash ──
   sw_supernova.forEach(sn => {
     const elapsed = now - sn.startTime;
     if (elapsed < 800) {
       let alpha;
-      if (elapsed < 400) alpha = (elapsed / 400) * 0.8;
-      else alpha = 0.8 * (1 - (elapsed - 400) / 400);
+      if (elapsed < 400) alpha = (elapsed / 400) * 0.7;
+      else alpha = 0.7 * (1 - (elapsed - 400) / 400);
       ctx2.fillStyle = `rgba(255,255,255,${alpha})`;
       ctx2.fillRect(0, 0, W2, H2);
     }
-    // Rainbow connector lines for 3s
     if (elapsed < 3000) {
       const cl2 = SW_CLUSTERS.find(c => c.id === sn.clusterId);
       if (cl2) {
@@ -5031,10 +5254,9 @@ function swDrawAll() {
             const pB = swWorldToScreen(swNodePos(ndB, cl2).x, swNodePos(ndB, cl2).y);
             const h = (t2 * 360 + ndA.angle) % 360;
             ctx2.beginPath();
-            ctx2.moveTo(pA.x, pA.y);
-            ctx2.lineTo(pB.x, pB.y);
+            ctx2.moveTo(pA.x, pA.y); ctx2.lineTo(pB.x, pB.y);
             ctx2.strokeStyle = `hsl(${h},100%,65%)`;
-            ctx2.globalAlpha = 0.6;
+            ctx2.globalAlpha = 0.5;
             ctx2.lineWidth = 1.5;
             ctx2.stroke();
             ctx2.globalAlpha = 1;
@@ -5044,105 +5266,215 @@ function swDrawAll() {
     }
   });
 
-  // Draw clusters & nodes
+  // ── Buy burst animations ──
+  for (let i = sw_buyBursts.length - 1; i >= 0; i--) {
+    const burst = sw_buyBursts[i];
+    const elapsed = now - burst.startTime;
+    if (elapsed > 600) { sw_buyBursts.splice(i, 1); continue; }
+    const spos = swWorldToScreen(burst.x, burst.y);
+    const [br,bg2,bb] = swHexRgb(burst.color);
+    const progress = elapsed / 600;
+    // Expanding rings
+    for (let ring = 0; ring < 3; ring++) {
+      const rp = Math.max(0, progress - ring * 0.12);
+      if (rp <= 0) continue;
+      const radius = rp * 50 * sw_zoom;
+      const alpha = (1 - rp) * 0.5;
+      ctx2.beginPath();
+      ctx2.arc(spos.x, spos.y, radius, 0, Math.PI * 2);
+      ctx2.strokeStyle = `rgba(${br},${bg2},${bb},${alpha.toFixed(2)})`;
+      ctx2.lineWidth = 2;
+      ctx2.stroke();
+    }
+    // Center flash
+    const flashAlpha = Math.max(0, 1 - progress * 2);
+    if (flashAlpha > 0) {
+      const flashGrad = ctx2.createRadialGradient(spos.x, spos.y, 0, spos.x, spos.y, 20 * sw_zoom);
+      flashGrad.addColorStop(0, `rgba(255,255,255,${(flashAlpha * 0.6).toFixed(2)})`);
+      flashGrad.addColorStop(1, `rgba(${br},${bg2},${bb},0)`);
+      ctx2.fillStyle = flashGrad;
+      ctx2.beginPath();
+      ctx2.arc(spos.x, spos.y, 20 * sw_zoom, 0, Math.PI * 2);
+      ctx2.fill();
+    }
+  }
+
+  // ── Draw clusters & nodes ──
   SW_CLUSTERS.forEach(cl => {
     const revealed = sw_revealed.has(cl.id);
-    // Reveal animation
     let revAlpha = 1, revScale = 1;
     const ra = sw_revealAnims.find(r => r.clusterId === cl.id);
     if (ra) {
       const elapsed = now - ra.startTime;
-      if (elapsed < 600) {
-        revAlpha = elapsed / 600;
-        revScale = 0.7 + 0.3 * (elapsed / 600);
+      if (elapsed < 800) {
+        revAlpha = elapsed / 800;
+        revScale = 0.5 + 0.5 * Math.min(1, elapsed / 600);
       }
     }
 
-    // Cluster name label
+    // Cluster name label with glow
     const clCenter = swWorldToScreen(cl.cx, cl.cy);
     ctx2.save();
-    ctx2.globalAlpha = revealed ? 0.6 * revAlpha : 0.2;
-    ctx2.font = `bold ${Math.round(11 * sw_zoom)}px system-ui`;
+    ctx2.globalAlpha = revealed ? 0.7 * revAlpha : 0.15;
+    const fontSize = Math.max(9, Math.round(12 * sw_zoom));
+    ctx2.font = `bold ${fontSize}px system-ui`;
     ctx2.fillStyle = cl.color;
     ctx2.textAlign = 'center';
     ctx2.textBaseline = 'bottom';
-    ctx2.fillText(cl.name.toUpperCase(), clCenter.x, clCenter.y - (60 * sw_zoom) - 6);
+    if (revealed) {
+      ctx2.shadowColor = cl.color;
+      ctx2.shadowBlur = 15;
+    }
+    ctx2.fillText(cl.name.toUpperCase(), clCenter.x, clCenter.y - 12);
+    ctx2.shadowBlur = 0;
     ctx2.restore();
 
-    // Cluster lock ring
+    // Lock ring for unrevealed clusters
     if (!revealed) {
       ctx2.save();
-      ctx2.globalAlpha = 0.12;
+      const lockPulse = 0.5 + 0.5 * Math.sin(now * 0.002);
+      ctx2.globalAlpha = 0.08 + lockPulse * 0.04;
       ctx2.beginPath();
-      ctx2.arc(clCenter.x, clCenter.y, 160 * sw_zoom, 0, Math.PI * 2);
+      ctx2.arc(clCenter.x, clCenter.y, (120 + lockPulse * 10) * sw_zoom, 0, Math.PI * 2);
       ctx2.strokeStyle = cl.color;
-      ctx2.lineWidth = 1.5;
+      ctx2.lineWidth = 1;
+      ctx2.setLineDash([3, 5]);
       ctx2.stroke();
-      // Req level text
-      ctx2.globalAlpha = 0.3;
-      ctx2.font = `${Math.round(10 * sw_zoom)}px system-ui`;
+      ctx2.setLineDash([]);
+      ctx2.globalAlpha = 0.25;
+      ctx2.font = `${Math.max(8, Math.round(10 * sw_zoom))}px system-ui`;
       ctx2.fillStyle = cl.color;
       ctx2.textAlign = 'center';
       ctx2.textBaseline = 'middle';
-      ctx2.fillText('Level ' + cl.req + ' required', clCenter.x, clCenter.y + 4);
+      ctx2.fillText('\u{1F512} Level ' + cl.req, clCenter.x, clCenter.y + 4);
       ctx2.restore();
     }
 
+    // Draw nodes
     cl.nodes.forEach(nd => {
       const wpos = swNodePos(nd, cl);
       const spos = swWorldToScreen(wpos.x, wpos.y);
-      const r = Math.max(6, 28 * sw_zoom * (revealed ? revScale : 1));
+      if (spos.x < -80 || spos.x > W2+80 || spos.y < -80 || spos.y > H2+80) return;
+      const baseR = Math.max(8, 26 * sw_zoom * (revealed ? revScale : 1));
       const owned = swOwned(nd.id);
       const mastery = swMastery(nd.id);
       const maxed = swNodeMaxed(nd);
+      const canBuy = revealed && swCanBuy(nd, cl);
 
       ctx2.save();
-      if (!revealed) ctx2.globalAlpha = 0.15;
+      if (!revealed) ctx2.globalAlpha = 0.12;
       else ctx2.globalAlpha = revAlpha;
 
-      // Node fill
+      // Buyable pulse
+      let pulseScale = 1;
+      if (canBuy && !swNodeFullyDone(nd)) {
+        pulseScale = 1 + 0.08 * Math.sin(now * 0.004);
+      }
+      const r = baseR * pulseScale;
+
+      // Outer glow for owned nodes
+      if (owned > 0 && revealed) {
+        const [gr,gg,gb] = swHexRgb(cl.color);
+        const glowR = r + Math.max(4, 8 * sw_zoom);
+        const glow = ctx2.createRadialGradient(spos.x, spos.y, r * 0.7, spos.x, spos.y, glowR);
+        glow.addColorStop(0, `rgba(${gr},${gg},${gb},0.25)`);
+        glow.addColorStop(1, `rgba(${gr},${gg},${gb},0)`);
+        ctx2.fillStyle = glow;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, glowR, 0, Math.PI * 2);
+        ctx2.fill();
+      }
+
+      // Buyable glow (green pulse)
+      if (canBuy && !swNodeFullyDone(nd) && revealed) {
+        const gAlpha = 0.1 + 0.08 * Math.sin(now * 0.003);
+        const glowR2 = r + Math.max(6, 12 * sw_zoom);
+        const glow2 = ctx2.createRadialGradient(spos.x, spos.y, r, spos.x, spos.y, glowR2);
+        glow2.addColorStop(0, `rgba(52,211,153,${gAlpha.toFixed(2)})`);
+        glow2.addColorStop(1, 'rgba(52,211,153,0)');
+        ctx2.fillStyle = glow2;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, glowR2, 0, Math.PI * 2);
+        ctx2.fill();
+      }
+
+      // Node fill (radial gradient for 3D look)
+      const [cr,cg,cb] = swHexRgb(cl.color);
+      const nodeGrad = ctx2.createRadialGradient(
+        spos.x - r * 0.25, spos.y - r * 0.25, 0,
+        spos.x, spos.y, r
+      );
+      if (owned > 0 || maxed) {
+        nodeGrad.addColorStop(0, `rgba(${Math.min(255,cr+70)},${Math.min(255,cg+70)},${Math.min(255,cb+70)},1)`);
+        nodeGrad.addColorStop(1, cl.color);
+      } else {
+        nodeGrad.addColorStop(0, `rgba(${cr},${cg},${cb},0.4)`);
+        nodeGrad.addColorStop(1, `rgba(${cr},${cg},${cb},0.18)`);
+      }
       ctx2.beginPath();
       ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
-      if (owned > 0 || maxed) {
-        ctx2.fillStyle = cl.color;
-      } else {
-        // Parse color for rgba
-        const hex = cl.color;
-        const rr = parseInt(hex.slice(1,3),16);
-        const gg = parseInt(hex.slice(3,5),16);
-        const bb = parseInt(hex.slice(5,7),16);
-        ctx2.fillStyle = `rgba(${rr},${gg},${bb},0.3)`;
-      }
+      ctx2.fillStyle = nodeGrad;
       ctx2.fill();
 
-      // Node stroke / mastery ring
+      // Mastery rings
       if (mastery >= 3) {
-        // M3: white glow
         ctx2.shadowColor = '#ffffff';
-        ctx2.shadowBlur = 18 * sw_zoom;
+        ctx2.shadowBlur = Math.max(8, 20 * sw_zoom);
         ctx2.strokeStyle = '#ffffff';
         ctx2.lineWidth = 2.5;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, r + 2, 0, Math.PI * 2);
+        ctx2.stroke();
+        // Orbiting particles
+        for (let k = 0; k < 4; k++) {
+          const a2 = (now * 0.002 + k * Math.PI / 2) % (Math.PI * 2);
+          const px2 = spos.x + Math.cos(a2) * (r + 6);
+          const py2 = spos.y + Math.sin(a2) * (r + 6);
+          ctx2.beginPath();
+          ctx2.arc(px2, py2, Math.max(1, 1.5 * sw_zoom), 0, Math.PI * 2);
+          ctx2.fillStyle = '#ffffff';
+          ctx2.fill();
+        }
+        ctx2.shadowBlur = 0;
       } else if (mastery === 2) {
-        // M2: animated rainbow gradient
-        const h2 = (now / 600) % 360;
+        const h2 = (now / 500) % 360;
         ctx2.strokeStyle = `hsl(${h2},100%,65%)`;
         ctx2.lineWidth = 2.5;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, r + 1, 0, Math.PI * 2);
+        ctx2.stroke();
       } else if (mastery === 1) {
-        // M1: gold
         ctx2.strokeStyle = '#fbbf24';
         ctx2.lineWidth = 2.5;
+        ctx2.shadowColor = '#fbbf24';
+        ctx2.shadowBlur = 8;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, r + 1, 0, Math.PI * 2);
+        ctx2.stroke();
+        ctx2.shadowBlur = 0;
       } else {
-        ctx2.strokeStyle = cl.color;
-        ctx2.lineWidth = 2;
+        ctx2.strokeStyle = (owned > 0) ? cl.color : `rgba(${cr},${cg},${cb},0.5)`;
+        ctx2.lineWidth = 1.5;
+        ctx2.beginPath();
+        ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
+        ctx2.stroke();
       }
-      ctx2.beginPath();
-      ctx2.arc(spos.x, spos.y, r, 0, Math.PI * 2);
-      ctx2.stroke();
-      ctx2.shadowBlur = 0;
 
-      // Owned count badge
-      if (owned > 0 && nd.max > 1) {
-        ctx2.font = `bold ${Math.max(7, Math.round(8 * sw_zoom))}px system-ui`;
+      // Inner badge/symbol
+      if (swNodeFullyDone(nd)) {
+        ctx2.font = `${Math.max(8, Math.round(12 * sw_zoom))}px system-ui`;
+        ctx2.fillStyle = '#fbbf24';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText('\u2605', spos.x, spos.y);
+      } else if (maxed && nd.max === 1) {
+        ctx2.font = `${Math.max(8, Math.round(12 * sw_zoom))}px system-ui`;
+        ctx2.fillStyle = '#f8fafc';
+        ctx2.textAlign = 'center';
+        ctx2.textBaseline = 'middle';
+        ctx2.fillText('\u2713', spos.x, spos.y);
+      } else if (owned > 0 && nd.max > 1) {
+        ctx2.font = `bold ${Math.max(7, Math.round(9 * sw_zoom))}px system-ui`;
         ctx2.fillStyle = '#f8fafc';
         ctx2.textAlign = 'center';
         ctx2.textBaseline = 'middle';
@@ -5150,22 +5482,22 @@ function swDrawAll() {
       }
 
       if (revealed) {
-        // Node name label below
+        // Node name
         const fsize = Math.max(7, Math.round(9 * sw_zoom));
-        ctx2.font = `${fsize}px system-ui`;
-        ctx2.fillStyle = '#f8fafc';
+        ctx2.font = `600 ${fsize}px system-ui`;
+        ctx2.fillStyle = '#e2e8f0';
         ctx2.textAlign = 'center';
         ctx2.textBaseline = 'top';
-        ctx2.fillText(nd.name, spos.x, spos.y + r + 4);
-
-        // Cost label above (if not fully done)
+        ctx2.fillText(nd.name, spos.x, spos.y + r + 5);
+        // Cost label
         if (!swNodeFullyDone(nd)) {
           const costStr = swFmtCost(swNodeCost(nd));
-          ctx2.font = `${Math.max(6, Math.round(8 * sw_zoom))}px system-ui`;
-          ctx2.fillStyle = cl.color;
+          const costFsize = Math.max(6, Math.round(8 * sw_zoom));
+          ctx2.font = `bold ${costFsize}px system-ui`;
+          ctx2.fillStyle = canBuy ? '#34d399' : `rgba(${cr},${cg},${cb},0.6)`;
           ctx2.textAlign = 'center';
           ctx2.textBaseline = 'bottom';
-          ctx2.fillText(costStr, spos.x, spos.y - r - 2);
+          ctx2.fillText(costStr, spos.x, spos.y - r - 3);
         }
       }
 
@@ -5173,9 +5505,39 @@ function swDrawAll() {
     });
   });
 
-  // Clean up old reveal / supernova animations
+  // ── Ambient floating particles ──
+  sw_ambientParticles.forEach(p => {
+    p.x += p.vx * dt * 0.001;
+    p.y += p.vy * dt * 0.001;
+    p.life += dt * 0.001;
+    let alpha;
+    if (p.life < 1) alpha = p.life;
+    else if (p.life > p.maxLife - 1) alpha = Math.max(0, p.maxLife - p.life);
+    else alpha = 1;
+    alpha *= p.baseAlpha;
+    if (p.life > p.maxLife) {
+      p.x = (Math.random() - 0.5) * 2000;
+      p.y = (Math.random() - 0.5) * 1500;
+      p.life = 0;
+    }
+    const spos = swWorldToScreen(p.x, p.y);
+    if (spos.x < -10 || spos.x > W2+10 || spos.y < -10 || spos.y > H2+10) return;
+    ctx2.beginPath();
+    ctx2.arc(spos.x, spos.y, Math.max(0.5, p.size * sw_zoom), 0, Math.PI * 2);
+    ctx2.fillStyle = `rgba(${p.cr},${p.cg},${p.cb},${Math.max(0, alpha).toFixed(2)})`;
+    ctx2.fill();
+  });
+
+  // ── Vignette ──
+  const vigGrad = ctx2.createRadialGradient(W2/2, H2/2, Math.min(W2,H2)*0.3, W2/2, H2/2, Math.max(W2,H2)*0.7);
+  vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  vigGrad.addColorStop(1, 'rgba(0,0,0,0.3)');
+  ctx2.fillStyle = vigGrad;
+  ctx2.fillRect(0, 0, W2, H2);
+
+  // Clean up old animations
   for (let i = sw_revealAnims.length - 1; i >= 0; i--) {
-    if (now - sw_revealAnims[i].startTime > 650) sw_revealAnims.splice(i, 1);
+    if (now - sw_revealAnims[i].startTime > 850) sw_revealAnims.splice(i, 1);
   }
   for (let i = sw_supernova.length - 1; i >= 0; i--) {
     if (now - sw_supernova[i].startTime > 3200) sw_supernova.splice(i, 1);
@@ -5203,12 +5565,10 @@ function swDrawMinimap() {
   mc.fillRect(0, 0, MW, MH);
 
   // World bounds
-  const WX_MIN = -900, WX_MAX = 900, WY_MIN = -900, WY_MAX = 600;
+  const WX_MIN = -1000, WX_MAX = 1000, WY_MIN = -900, WY_MAX = 900;
   const ww = WX_MAX - WX_MIN, wh = WY_MAX - WY_MIN;
   const toMiniX = wx => ((wx - WX_MIN) / ww) * MW;
   const toMiniY = wy => ((wy - WY_MIN) / wh) * MH;
-
-  // Draw cluster dots
   SW_CLUSTERS.forEach(cl => {
     mc.beginPath();
     mc.arc(toMiniX(cl.cx), toMiniY(cl.cy), 5, 0, Math.PI * 2);
@@ -5415,7 +5775,7 @@ function swInitEvents() {
     mini.addEventListener('click', e => {
       const rect = mini.getBoundingClientRect();
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      const WX_MIN = -900, WX_MAX = 900, WY_MIN = -900, WY_MAX = 600;
+      const WX_MIN = -1000, WX_MAX = 1000, WY_MIN = -900, WY_MAX = 900;
       const ww = WX_MAX - WX_MIN, wh = WY_MAX - WY_MIN;
       sw_camX = WX_MIN + (mx / SW_MINI_W) * ww;
       sw_camY = WY_MIN + (my / SW_MINI_H) * wh;
