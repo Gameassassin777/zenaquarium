@@ -843,9 +843,9 @@ const VISITOR_SPECIES = {
   nudibranch: { name:'Dorid Nudibranch', era:1, c1:'#f97316', c2:'#7c3aed', sz:12, spd:0.4, trustTime:160, rarity:0.6 },
   scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:180, rarity:0.4 },
   frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:175, rarity:0.35 },
-  vampiresquid:{ name:'Vampire Squid',   era:3, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25 },
-  oarfish:    { name:'Oarfish',          era:4, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15 },
-  sunfish:    { name:'Ocean Sunfish',    era:4, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2 },
+  vampiresquid:{ name:'Vampire Squid',   era:4, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25 },
+  oarfish:    { name:'Oarfish',          era:3, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15 },
+  sunfish:    { name:'Ocean Sunfish',    era:3, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2 },
   lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:240, rarity:0.12, abyssal:true },
   velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:270, rarity:0.08, abyssal:true },
   glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:250, rarity:0.10, abyssal:true },
@@ -963,18 +963,18 @@ const UPGRADES={
   aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:5000000,    info:'+10% rare mutation chance',                    max:1,owned:0,era:2},
   geneticseq:{name:'Genetic Sequencer',icon:ICONS.eye,  cost:3000000,    info:'See offspring color prediction before breeding',max:1,owned:0,era:2},
   symbiotic: {name:'Symbiotic Algae',icon:ICONS.reef,   cost:4000000,    info:'Low algae (<20%) gives +10% coin bonus',       max:1,owned:0,era:2},
-  // ── Era 3: Twilight Zone ──
-  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:8000000,    info:'+50% coin value during Harmony',               max:1,owned:0,era:3},
-  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:25000000,   info:'Eggs hatch 35% faster',                        max:1,owned:0,era:3},
-  resonance: {name:'Resonance Chamber',icon:ICONS.sparkle,cost:15000000, info:'Combo multiplier cap raised from 2.5× to 3.5×',max:1,owned:0,era:3},
-  obelisk:   {name:'Oceanic Obelisk',icon:ICONS.crown,  cost:20000000,   info:'+2% coin value per unique fish species owned', max:1,owned:0,era:3},
-  abyssbeacon:{name:'Abyssal Beacon',icon:ICONS.fire,   cost:25000000,   info:'+25% visitor spawn rate',                      max:1,owned:0,era:3},
-  // ── Era 4: Open Ocean ──
-  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:80000000,   info:'+100% income from all fish',                   max:1,owned:0,era:4},
-  prism:     {name:'Prism Lens',     icon:ICONS.rainbow,cost:120000000,  info:'Daily quest rerolls are free',                 max:1,owned:0,era:4},
-  platscales:{name:'Platinum Scales',icon:ICONS.coin,   cost:100000000,  info:'Fish sell value on Market +40%',               max:1,owned:0,era:4},
-  chronopearl:{name:'Chrono Pearl',  icon:ICONS.moon,   cost:150000000,  info:'Daily rewards give 2× coins',                  max:1,owned:0,era:4},
-  voidsiphon:{name:'Void Siphon',    icon:ICONS.drop,   cost:200000000,  info:'Clams produce pearls 50% faster',              max:1,owned:0,era:4},
+  // ── Era 3: Open Ocean ──
+  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:80000000,   info:'+100% income from all fish',                   max:1,owned:0,era:3},
+  prism:     {name:'Prism Lens',     icon:ICONS.rainbow,cost:120000000,  info:'Daily quest rerolls are free',                 max:1,owned:0,era:3},
+  platscales:{name:'Platinum Scales',icon:ICONS.coin,   cost:100000000,  info:'Fish sell value on Market +40%',               max:1,owned:0,era:3},
+  chronopearl:{name:'Chrono Pearl',  icon:ICONS.moon,   cost:150000000,  info:'Daily rewards give 2x coins',                  max:1,owned:0,era:3},
+  voidsiphon:{name:'Void Siphon',    icon:ICONS.drop,   cost:200000000,  info:'Clams produce pearls 50% faster',              max:1,owned:0,era:3},
+  // ── Era 4: Twilight Zone ──
+  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:8000000,    info:'+50% coin value during Harmony',               max:1,owned:0,era:4},
+  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:25000000,   info:'Eggs hatch 35% faster',                        max:1,owned:0,era:4},
+  resonance: {name:'Resonance Chamber',icon:ICONS.sparkle,cost:15000000, info:'Combo multiplier cap raised from 2.5x to 3.5x',max:1,owned:0,era:4},
+  obelisk:   {name:'Oceanic Obelisk',icon:ICONS.crown,  cost:20000000,   info:'+2% coin value per unique fish species owned', max:1,owned:0,era:4},
+  abyssbeacon:{name:'Abyssal Beacon',icon:ICONS.fire,   cost:25000000,   info:'+25% visitor spawn rate',                      max:1,owned:0,era:4},
   // ── Era 5: Abyss ──
   celestial: {name:'Celestial Anchor',icon:ICONS.star,  cost:500000000,  info:'Harmony state lasts 30% longer',               max:1,owned:0,era:5},
   primordialspark:{name:'Primordial Spark',icon:ICONS.fire,cost:1000000000,info:'All fish income ×3',                         max:1,owned:0,era:5},
@@ -1161,6 +1161,7 @@ function generateRandomGenes(type, isShop=false) {
 
 function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   let mutRate = (UPGRADES.uvlight && UPGRADES.uvlight.owned > 0) ? 0.10 : 0.05;
+  if(UPGRADES.aurastone && UPGRADES.aurastone.owned > 0) mutRate += 0.10;
   if(momFish && momFish._colorBonus?.bonus === 'rareMult') mutRate *= momFish._colorBonus.val;
   if(dadFish && dadFish._colorBonus?.bonus === 'rareMult') mutRate *= dadFish._colorBonus.val;
   const isRareMut = Math.random() < mutRate;
@@ -1266,7 +1267,7 @@ const ORDER_POOL=[
   {id:'v2', tier:'hard',   icon:ICONS.social, desc:'Tame 3 different Visitors',           metric:'visitorsTamed', isState:false, target:3,  reward:2500, minLvl:4},
   {id:'v3', tier:'legend', icon:ICONS.social, desc:'Tame a creature from the Abyss',     metric:'abyssalTamed',  isState:false, target:1,  reward:0,    minLvl:9, ftyperew:'jellyfish'},
   {id:'v4', tier:'med',    icon:ICONS.ocean,  desc:'Reach the Shallows (Era 2)',          metric:'currentEra',    isState:true,  target:1,  reward:500,  minLvl:3},
-  {id:'v5', tier:'hard',   icon:ICONS.abyss,  desc:'Descend to the Twilight Zone (Era 4)',metric:'currentEra',   isState:true,  target:3,  reward:3000, minLvl:7},
+  {id:'v5', tier:'hard',   icon:ICONS.abyss,  desc:'Descend to the Twilight Zone (Era 4)',metric:'currentEra',   isState:true,  target:4,  reward:3000, minLvl:7},
   // Color genetics quests
   {id:'c1', tier:'med',    icon:ICONS.star,   desc:'Breed a Homozygous color band fish',  metric:'homozyBred',    isState:false, target:1,  reward:1000, minLvl:3},
   {id:'c2', tier:'hard',   icon:ICONS.star,   desc:'Collect 3 fish with Full Color Bonus',metric:'homozyOwned',   isState:true,  target:3,  reward:2000, minLvl:5},
@@ -1456,7 +1457,7 @@ function updateHUD(){
   document.getElementById('cv').textContent = formatCoins(coins);
   document.getElementById('lvl').textContent=playerLevel;
   document.getElementById('wv').textContent=Math.floor(100-algae)+'%';
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
   let rawPct=100, xpBarColor='', xpBarShadow='';
@@ -1490,7 +1491,7 @@ function updateHUD(){
   }
   const xpf=document.getElementById('xpf');
   if(xpf){xpf.style.width=easedPct+'%'; xpf.style.background=xpBarColor;}
-  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const eraEl = document.getElementById('era-val');
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
 }
@@ -1503,8 +1504,10 @@ function calcOffline(s){
   const lvlScale = Math.max(0.02, Math.pow((s.playerLevel||1)/10, 2)); // Level 1 = 2%, Level 10 = 100%
   
   const sc=(s.upgrades && s.upgrades.snail) || 0;
-  if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
-  if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed*lvlScale);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
+  const snailMult = (s.upgrades && s.upgrades.nutrientdiffuser > 0) ? 1.5 : 1;
+  if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale*snailMult);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
+  const clamMult = (s.upgrades && s.upgrades.voidsiphon > 0) ? 1.5 : 1;
+  if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed*lvlScale*clamMult);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
   const fish=s.fishList || s.fish || [];
   if(fish.length>0){
     let fishEarnings = 0;
@@ -1516,6 +1519,8 @@ function calcOffline(s){
     }
     const e=Math.floor(fishEarnings);
     total+=e;if(e>0)items.push({icon:ICONS.tank,label:`${fish.length} fish earned`,coins:e});}
+  // leviathancore: +200% offline earnings (x3 total)
+  if(s.upgrades && s.upgrades.leviathancore > 0) { total *= 3; items.forEach(it => { it.coins *= 3; }); }
   const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
   return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
 }
@@ -1548,7 +1553,8 @@ function showDailyModal(){
   document.getElementById('dmodal').classList.add('show');
 }
 function claimDaily(){
-  const r=DR[Math.min(dailyStreak,DR.length-1)];
+  let r=DR[Math.min(dailyStreak,DR.length-1)];
+  if(UPGRADES.chronopearl && UPGRADES.chronopearl.owned > 0) r *= 2;
   const idx=Math.min(dailyStreak,DR.length-1);
   const xpReward=[30,30,60,60,80,80,200,200,500,500,500,1500][idx]||30;
   dailyStreak++;lastDailyTs=Date.now();
@@ -1648,7 +1654,8 @@ function getPrice(f) {
   const traitMult = TRAIT_MARKET_MULT[f.genes.trait[0]] || 1.0;
   const rareMult = f.isRare ? 3 : 1;
   const colorSellMult = (f._colorBonus?.bonus === 'sellMult') ? f._colorBonus.val : 1.0;
-  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult);
+  const platscalesMult = (UPGRADES.platscales && UPGRADES.platscales.owned > 0) ? 1.4 : 1;
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult);
 }
 
 function generateMasterpieceGenes(type) {
@@ -1679,10 +1686,10 @@ function sellFish(id, price) {
 function updateEco(){
   let algaeGrowMult = 1.0;
   for(const f of fishList) { if(f._colorBonus?.bonus === 'algaeClean') algaeGrowMult *= f._colorBonus.val; }
-  const grow=fishList.length*.008*algaeGrowMult,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
+  const grow=(UPGRADES.bioreactor&&UPGRADES.bioreactor.owned>0)?0:fishList.length*.008*algaeGrowMult,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
   const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
-  isHarmony=algae<15&&allFed;
+  isHarmony=algae<(UPGRADES.celestial&&UPGRADES.celestial.owned>0?20:15)&&allFed;
   if(isHarmony)sm.harmonySec+=1/60;
 
   if(UPGRADES.autofeed.owned>0&&time%240===0&&foodList.length<fishList.length){
@@ -1764,20 +1771,31 @@ function triggerEat(f,fd,def){
   const bondMult   = f.bonded > 0 ? 1.3 : 1;
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.15 : 1;
   const flakesMult = UPGRADES.flakes.owned > 0 ? 1.5 : 1;
-  const harmonyMult= isHarmony ? 1.3 : 1;
+  const magpumpBonus = (UPGRADES.magpump && UPGRADES.magpump.owned > 0 && isHarmony) ? 0.5 : 0;
+  const harmonyMult= isHarmony ? (1.3 + magpumpBonus) : 1;
   let goldMult   = isGold ? 1.3 : 1;
   const isBredGold = isGold && f.isRare;
   if (isBredGold) goldMult = 20;
   
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
   const algaePen   = Math.max(0, (90 - algae) / 90);
+  // symbiotic: +10% when algae < 20
+  const symbioticMult = (UPGRADES.symbiotic && UPGRADES.symbiotic.owned > 0 && algae < 20) ? 1.1 : 1;
+  // obelisk: +2% per unique species owned
+  const uniqueSpecies = new Set(fishList.map(fish => fish.type)).size;
+  const obeliskMult = (UPGRADES.obelisk && UPGRADES.obelisk.owned > 0) ? (1 + uniqueSpecies * 0.02) : 1;
   
-  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen;
-  // If it's a Legendary (Bred Gold), we bypass the 2.5x cap to allow the full 20x+ bonus
-  const cappedMult = isBredGold ? rawMult : Math.min(rawMult, 2.5); 
+  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen * symbioticMult * obeliskMult;
+  // resonance raises the combo cap from 2.5x to 3.5x
+  const multCap = (UPGRADES.resonance && UPGRADES.resonance.owned > 0) ? 3.5 : 2.5;
+  // If it's a Legendary (Bred Gold), bypass the cap to allow the full 20x+ bonus
+  const cappedMult = isBredGold ? rawMult : Math.min(rawMult, multCap);
+  // singularity: +100% income (x2); primordialspark: all fish income x3 (stacks multiplicatively)
+  const singMult = (UPGRADES.singularity && UPGRADES.singularity.owned > 0) ? 2 : 1;
+  const primordialMult = (UPGRADES.primordialspark && UPGRADES.primordialspark.owned > 0) ? 3 : 1;
   let feedBonus = 1.0;
   if(f._colorBonus?.bonus === 'feedMult') feedBonus = f._colorBonus.val;
-  const total = Math.ceil(def.val * cm * cappedMult * feedBonus);
+  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * singMult * primordialMult);
   if (total > 0) {
     if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
@@ -1814,7 +1832,7 @@ function updateFish(f){
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
-  const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
   
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
@@ -1830,6 +1848,14 @@ function updateFish(f){
         if(sx < 50) sx = 50; if(sx > W-50) sx = W-50;
       }
       eggs.push({x:sx, y:FOOD_FL(sx), type:f.type, hatchTime:getEggHatchTime(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      // coralnursery: 15% chance of twins
+      if(UPGRADES.coralnursery && UPGRADES.coralnursery.owned > 0 && Math.random() < 0.15 && (fishList.length+eggs.length) < mF) {
+        let sx2 = sx + (Math.random() < 0.5 ? -50 : 50);
+        if(sx2 < 50) sx2 = 50; if(sx2 > W-50) sx2 = W-50;
+        const twinGenes = mendelianCross(f.genes, mate.genes, def, f, mate);
+        eggs.push({x:sx2, y:FOOD_FL(sx2), type:f.type, hatchTime:getEggHatchTime(f.type), genes:twinGenes, isRareMut:twinGenes.isRareMut});
+        spawnJuice(sx2, FOOD_FL(sx2)-20, 'Twins!', '#fb7185', 1);
+      }
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
       updateHUD();
     }
@@ -1928,7 +1954,8 @@ function updateFish(f){
   } else {
     if(best){
       const dx=best.x-f.x,dy=best.y-f.y,d=Math.max(1,Math.hypot(dx,dy));
-      f.vx+=(dx/d)*.8;f.vy+=(dy/d)*.6;
+      const tidalBoost = (UPGRADES.tidalcurrent && UPGRADES.tidalcurrent.owned > 0) ? 1.3 : 1;
+      f.vx+=(dx/d)*.8*tidalBoost;f.vy+=(dy/d)*.6*tidalBoost;
       const sp=Math.hypot(f.vx,f.vy),cap=baseSpd*3*sm2;
       if(sp>cap){f.vx*=cap/sp;f.vy*=cap/sp;}
       if(d<35*f.scale)triggerEat(f,best,def);
@@ -2017,7 +2044,7 @@ function updateSnail(s){
       if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=-1; s.x=W-15; }
     }
   }
-  if(s.timer%450===0){addCoins(isHarmony?5:2,s.x,s.y-20,isHarmony);}
+  if(s.timer%450===0){const snailCoin=isHarmony?5:2;addCoins(UPGRADES.nutrientdiffuser&&UPGRADES.nutrientdiffuser.owned>0?Math.ceil(snailCoin*1.5):snailCoin,s.x,s.y-20,isHarmony);}
 }
 
 function drawSnail(s){
@@ -3455,7 +3482,7 @@ try {
     
     const breath = Math.sin(c.timer*.02);
     let openAngle = Math.max(0, breath) * 0.4; 
-    const isPearling = (c.timer%4800 > 4600);
+    const isPearling = (c.timer%(UPGRADES.voidsiphon&&UPGRADES.voidsiphon.owned>0?2400:4800) > (UPGRADES.voidsiphon&&UPGRADES.voidsiphon.owned>0?2200:4600));
     if(isPearling) openAngle = 0.8; 
 
     ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,12,25,8,0,0,Math.PI*2);ctx.fill();
@@ -3617,6 +3644,13 @@ ctx.fill();
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(168,85,247,0.8)';
     ctx.fillText('[ ' + v.def.name + ' ]', v.x, v.y - (v.def.sz||24)*1.5 - 10);
+    if(UPGRADES.echosounder && UPGRADES.echosounder.owned > 0) {
+      const r = v.def.rarity;
+      const rl = r >= 0.5 ? 'Common' : r >= 0.2 ? 'Uncommon' : r >= 0.1 ? 'Rare' : 'Legendary';
+      ctx.font = '8px system-ui';
+      ctx.fillStyle = r >= 0.5 ? 'rgba(148,163,184,0.9)' : r >= 0.2 ? 'rgba(52,211,153,0.9)' : r >= 0.1 ? 'rgba(251,191,36,0.9)' : 'rgba(168,85,247,0.9)';
+      ctx.fillText(rl, v.x, v.y - (v.def.sz||24)*1.5 - 20);
+    }
     ctx.restore();
   }
   
@@ -3851,7 +3885,7 @@ function doTap(x,y){
           v.trust = Math.max(0, v.trust - 20); v._tapCount = 0;
           toast('You spooked the ' + v.def.name + '!', '#ef4444');
         } else {
-          v.trust = Math.min(100, v.trust + 8);
+          v.trust = Math.min(100, v.trust + 8 * (UPGRADES.abyssalheart&&UPGRADES.abyssalheart.owned>0?1.4:1));
           for(let i=0;i<3;i++) particles.push({x:v.x,y:v.y-20,vx:(Math.random()-.5)*2,vy:-1-Math.random()*1.5,life:0.8,c:'#a855f7'});
         }
         return;
@@ -3939,10 +3973,10 @@ const LEVEL_UNLOCKS={
   16:['Era 2 — Coral Reef'],17:['Moon Jellyfish'],18:['Aquapedia Chapter III'],
   19:['Oxygen Pump & UV Light'],20:['Market Surge','Harmony XP x2'],
   21:['Tank Cap +2'],22:['Homozygous Color Bonus'],23:['Advanced Bond Levels'],
-  24:['Era 3 — Twilight Zone'],25:['Aquapedia Chapter IV','Vampire Squid'],
+  24:['Era 3 — Open Ocean','Oarfish & Sunfish'],25:['Aquapedia Chapter IV'],
   26:['Bioreactor'],27:['Kelp & Coral Decor'],28:['Quest Streak Boost'],
   29:['Deeper Fish Personalities'],30:['Water Heater','Title: Reef Keeper'],
-  31:['Aura Stone'],32:['Era 4 — Open Ocean','Oarfish & Sunfish'],
+  31:['Aura Stone'],32:['Era 4 — Twilight Zone','Vampire Squid'],
   33:['Aquapedia Chapter V'],34:['Rare Mutation Boost'],35:['Sell Multiple Fish'],
   36:['Combo Cap x12'],37:['Named Fish XP Bonus'],38:['Elite Daily Quests'],
   39:['Abyssal Substrate Themes'],40:['Era 5 — The Abyss!','Lanternfish'],
@@ -3997,7 +4031,7 @@ function checkEraUnlock(){
       currentEra=i;
       updateHUD();
       showEraAnnouncement(i);
-      toast(ICONS.wave+' Era unlocked: '+['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'][i],'#a855f7');
+      toast(ICONS.wave+' Era unlocked: '+['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'][i],'#a855f7');
       saveGame();
       break;
     }
@@ -4005,7 +4039,7 @@ function checkEraUnlock(){
 }
 
 function showEraAnnouncement(eraIdx) {
-  const names = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const names = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const colors = ['#06b6d4','#0284c7','#f97316','#4c1d95','#1e40af','#0f172a'];
   const el = document.createElement('div');
   el.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:eraFade 3s ease forwards;`;
@@ -4031,7 +4065,8 @@ function tickVisitor() {
   // Per-check chance = hourlyRate / 60, so average rate caps at 10 %/hr at era 5
   const hourlyRate = Math.min(0.10, 0.02 + currentEra * 0.016);
   const baseChance = hourlyRate / 60;
-  if(Math.random() > baseChance) return;
+  const beaconMult = (UPGRADES.abyssbeacon && UPGRADES.abyssbeacon.owned > 0) ? 1.25 : 1;
+  if(Math.random() > baseChance * beaconMult) return;
   const weights = eligible.map(([k,v]) => v.rarity);
   const total = weights.reduce((a,b)=>a+b,0);
   let r = Math.random() * total;
@@ -4097,7 +4132,7 @@ function updateVisitors() {
     if(!v.spooked) {
       for(const fd of foodList) {
         if(!fd.eaten && Math.hypot(fd.x-v.x, fd.y-v.y) < 60) {
-          v.trust = Math.min(100, v.trust + 0.15);
+          v.trust = Math.min(100, v.trust + 0.15 * (UPGRADES.abyssalheart&&UPGRADES.abyssalheart.owned>0?1.4:1));
           fd.eaten = true; v.eat = 18;
           break;
         }
@@ -4116,7 +4151,7 @@ function updateVisitors() {
 function tameVisitor(idx) {
   const v = visitorList[idx];
   const def = v.def;
-  const mF = baseMaxFish + (UPGRADES.tank.owned * 4);
+  const mF = baseMaxFish + (UPGRADES.tank.owned * 4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
   if((fishList.length + eggs.length) >= mF) {
     toast('Tank full! ' + def.name + ' could not join.', '#ef4444');
     visitorList.splice(idx, 1);
@@ -4729,7 +4764,8 @@ function getEggHatchTime(type) {
   if(req === 4) mins = 30;
   if(req === 5) mins = 45;
   if(req === 6) mins = 60;
-  return Date.now() + mins * 60 * 1000;
+  const ethkeyMult = (UPGRADES.ethkey && UPGRADES.ethkey.owned > 0) ? 0.65 : 1;
+  return Date.now() + mins * 60 * 1000 * ethkeyMult;
 }
 
 let lastGiftCode = '';
@@ -4923,7 +4959,7 @@ function buildShop(){
 }
 
 function buildSupplies(){
-  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
+  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const uc=document.getElementById('ucards');uc.innerHTML='';
   // Group upgrades by era
   const byEra = {};
@@ -4976,7 +5012,7 @@ function redeemCode(raw){
     const fData = decodeFish(code);
     if(!fData) { toast('Invalid fish code!','#ef4444'); return; }
     if(claimedCodes.has(code)){ toast('Already claimed this fish!','#ef4444'); return; }
-    const mF = baseMaxFish + (UPGRADES.tank.owned*4);
+    const mF = baseMaxFish + (UPGRADES.tank.owned*4) + ((UPGRADES.deepvalve && UPGRADES.deepvalve.owned)||0)*6;
     if((fishList.length+eggs.length) >= mF) { toast('Tank is full!','#ef4444'); return; }
     
     claimedCodes.add(code); codesRedeemed++;
@@ -5281,6 +5317,7 @@ function generateDailyQuest() {
 }
 
 function getRerollCost() {
+  if(UPGRADES.prism && UPGRADES.prism.owned > 0) return 0;
   return Math.max(50, 50 + playerLevel * 25);
 }
 
@@ -5593,7 +5630,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'deep', name: 'Deep Ocean', req: 10, cx: 350, cy: -250, color: '#3b82f6',
+    id: 'deep', name: 'Deep Ocean', req: 8, cx: 350, cy: -250, color: '#3b82f6',
     nodes: [
       { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 5000,     max: 3, req: [], effect: 'tidal',     angle: 0,   dist: 110 },
       { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 15000,    max: 3, req: ['d_tidal'],    effect: 'plankton', angle: 45,  dist: 110 },
@@ -5606,7 +5643,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'evo', name: 'Evolution', req: 20, cx: 350, cy: 250, color: '#34d399',
+    id: 'evo', name: 'Evolution', req: 16, cx: 350, cy: 250, color: '#34d399',
     nodes: [
       { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 8000,     max: 3, req: [], effect: 'sel_breed',  angle: 0,   dist: 110 },
       { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 25000,    max: 1, req: ['e_breed'],  effect: 'gene_splice', angle: 45,  dist: 110 },
@@ -5619,7 +5656,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'alch', name: 'Alchemy', req: 30, cx: -350, cy: -250, color: '#fbbf24',
+    id: 'alch', name: 'Alchemy', req: 24, cx: -350, cy: -250, color: '#fbbf24',
     nodes: [
       { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 12000,    max: 1, req: [], effect: 'mkt_insight', angle: 0,   dist: 110 },
       { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 35000,    max: 1, req: ['a_market'],  effect: 'arb_eng',    angle: 45,  dist: 110 },
@@ -5632,7 +5669,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'sing', name: 'Singularity', req: 40, cx: -350, cy: 250, color: '#a855f7',
+    id: 'sing', name: 'Singularity', req: 32, cx: -350, cy: 250, color: '#a855f7',
     nodes: [
       { id: 's_quantum', name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 20000,   max: 1, req: [], effect: 'q_entangle', angle: 0,   dist: 100 },
       { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 75000,   max: 1, req: ['s_quantum'], effect: 'dark_mat',  angle: 60,  dist: 100 },
@@ -5643,7 +5680,7 @@ const SW_CLUSTERS = [
     ]
   },
   {
-    id: 'pres', name: 'Prestige', req: 50, cx: 0, cy: -400, color: '#f472b6',
+    id: 'pres', name: 'Prestige', req: 40, cx: 0, cy: -400, color: '#f472b6',
     nodes: [
       { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 50000,    max: 1, req: [], effect: 'aura_weave',  angle: 0,   dist: 100 },
       { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 200000,   max: 1, req: ['p_aura'],  effect: 'chron_stone', angle: 72,  dist: 100 },
