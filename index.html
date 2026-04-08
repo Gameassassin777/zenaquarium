@@ -791,7 +791,7 @@ let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
-let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0};
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[]};
 let currentEra = 0;
 let visitorList = [];
 let _lastVisitorCheck = 0;
@@ -4768,6 +4768,7 @@ function swNodePos(nd, cl) {
 let sw_open = false;
 let sw_camX = 0, sw_camY = 0, sw_zoom = 1.0;
 const SW_ZOOM_MIN = 0.15, SW_ZOOM_MAX = 2.5;
+const SW_MINI_W = 120, SW_MINI_H = 90;
 let sw_dragging = false, sw_dragSX = 0, sw_dragSY = 0, sw_dragCamX = 0, sw_dragCamY = 0;
 let sw_touches = [];
 let sw_lastPinchDist = 0;
@@ -4804,7 +4805,7 @@ function swResizeCanvas() {
   if (!ov || !cvs) return;
   cvs.width  = ov.clientWidth  || window.innerWidth;
   cvs.height = ov.clientHeight || window.innerHeight;
-  if (mini) { mini.width = 120; mini.height = 90; }
+  if (mini) { mini.width = SW_MINI_W; mini.height = SW_MINI_H; }
 }
 
 // ── World <-> Screen conversions ────────────────────────────────────
@@ -5196,7 +5197,7 @@ function swDrawMinimap() {
   const mini = document.getElementById('sw-mini');
   if (!mini) return;
   const mc = mini.getContext('2d');
-  const MW = 120, MH = 90;
+  const MW = SW_MINI_W, MH = SW_MINI_H;
   mc.clearRect(0, 0, MW, MH);
   mc.fillStyle = 'rgba(0,0,0,0.7)';
   mc.fillRect(0, 0, MW, MH);
@@ -5221,10 +5222,10 @@ function swDrawMinimap() {
     const tl = swScreenToWorld(0, 0);
     const br = swScreenToWorld(cvs.width, cvs.height);
     const mx = toMiniX(tl.x), my = toMiniY(tl.y);
-    const mw = toMiniX(br.x) - mx, mh2 = toMiniY(br.y) - my;
+    const mw = toMiniX(br.x) - mx, miniH = toMiniY(br.y) - my;
     mc.strokeStyle = 'rgba(255,255,255,0.55)';
     mc.lineWidth = 1;
-    mc.strokeRect(mx, my, mw, mh2);
+    mc.strokeRect(mx, my, mw, miniH);
   }
 }
 
@@ -5416,8 +5417,8 @@ function swInitEvents() {
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
       const WX_MIN = -900, WX_MAX = 900, WY_MIN = -900, WY_MAX = 600;
       const ww = WX_MAX - WX_MIN, wh = WY_MAX - WY_MIN;
-      sw_camX = WX_MIN + (mx / 120) * ww;
-      sw_camY = WY_MIN + (my / 90)  * wh;
+      sw_camX = WX_MIN + (mx / SW_MINI_W) * ww;
+      sw_camY = WY_MIN + (my / SW_MINI_H) * wh;
     });
   }
 
