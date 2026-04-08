@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#001428">
-<title>Zen Aquarium 🐠</title>
+<title>Zen Aquarium</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
@@ -314,11 +314,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
         <span class="slbl">Lvl</span>
         <span class="sval vl" id="lbl-lvl"></span>
         <div class="xpb"><div class="xpf" id="xp-bar"></div></div>
+        <span id="active-badge" style="display:none;position:absolute;top:-12px;right:0;font-size:8px;color:#fbbf24;font-weight:900;letter-spacing:0.5px;">ACTIVE</span>
       </div>
       <div class="stat"><span class="slbl">Coins</span><span class="sval v-money" id="lbl-cv"></span></div>
       <div class="stat"><span class="slbl">Water</span><span class="sval" id="wvc"></span></div>
       <div class="stat"><span class="slbl">Fish</span><span class="sval" id="lbl-fv"></span></div>
-      <div class="stat"><span class="slbl">Era</span><span class="sval" id="era-val">🌊 Tidepool</span></div>
+      <div class="stat"><span class="slbl">Era</span><span class="sval" id="era-val">Tidepool</span></div>
     </div>
     <button class="hbtn" id="modebtn" onclick="toggleMode()" style="align-self:flex-start; margin:0;"></button>
   </div>
@@ -522,7 +523,18 @@ const ICONS = {
   grass: svg('<path d="M12 22c-2-8-6-14-10-20c3 8 7 14 10 20z M12 22c0-8-2-15-4-20c2 8 3 15 4 20z M12 22c1-10 6-16 10-20c-3 8-7 14-10 20z" fill="currentColor"/>'),
   kelp: svg('<path d="M6 22c-2-4-2-10 0-14c1-3 5-5 5-5c-2 3-2 6 0 10l-2 2c0 3 2 4 1 7zM12 22c0-5 2-8 1-13c-2-4-1-7-1-7c1 2 2 5 2 8c2 2 1 6 0 12zM18 22c2-3 1-8-1-12c-1-3 1-6 2-8c-2 4-2 7 0 10c0 4-1 6-1 10z" fill="currentColor"/>'),
   coral_fan: svg('<path d="M12 22v-4m0 0c-4-4-6-8-4-12m4 12c3-3 6-7 4-11m-4 11c-2-3-4-6-2-9m2 9c2-2 3-5 1-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
-  fish_logo: svg('<path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/>')
+  fish_logo: svg('<path d="M12 5c-6 0-10 4-10 7s4 7 10 7c4 0 7-2 9-5l1 3l1-4c0-3 1-4 1-4l-3 1c-1-2-5-5-9-5z" fill="currentColor"/><circle cx="8" cy="11" r="1.5" fill="#000"/>'),
+  wave: svg('<path d="M2 12 C5 8 7 8 10 12 C13 16 15 16 18 12 C19 10 20 9 22 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  fish2: svg('<path d="M18 12 c-2-3-6-5-10-5 c-2 0-4 1-5 2 l3 3 l-3 3 c1 1 3 2 5 2 c4 0 8-2 10-5z" fill="currentColor"/><circle cx="10" cy="12" r="1.2" fill="#0f172a"/>'),
+  coral: svg('<path d="M12 22 v-6 M12 16 c-3-3-3-7 0-9 M12 16 c3-3 3-7 0-9 M7 22 v-4 M7 18 c-2-2-2-5 0-6 M17 22 v-4 M17 18 c2-2 2-5 0-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  moon: svg('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>'),
+  blossom: svg('<circle cx="12" cy="12" r="3" fill="currentColor"/><ellipse cx="12" cy="5" rx="2.5" ry="4" fill="currentColor"/><ellipse cx="12" cy="19" rx="2.5" ry="4" fill="currentColor"/><ellipse cx="5" cy="12" rx="4" ry="2.5" fill="currentColor"/><ellipse cx="19" cy="12" rx="4" ry="2.5" fill="currentColor"/>'),
+  rainbow: svg('<path d="M3 18 A9 9 0 0 1 21 18" fill="none" stroke="#f43f5e" stroke-width="2"/><path d="M5 18 A7 7 0 0 1 19 18" fill="none" stroke="#f97316" stroke-width="2"/><path d="M7 18 A5 5 0 0 1 17 18" fill="none" stroke="#22c55e" stroke-width="2"/><path d="M9 18 A3 3 0 0 1 15 18" fill="none" stroke="#3b82f6" stroke-width="2"/>'),
+  warning: svg('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="17" r="1" fill="currentColor"/>'),
+  eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>'),
+  palette: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><circle cx="14" cy="7" r="1.5" fill="currentColor"/><circle cx="17" cy="11.5" r="1.5" fill="currentColor"/><circle cx="15" cy="16" r="1.5" fill="currentColor"/><circle cx="10" cy="17" r="1.5" fill="currentColor"/><path d="M12 12 c2 0 4 2 4 4" fill="none" stroke="currentColor" stroke-width="1.5"/>'),
+  open_ocean: svg('<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 12 h20 M12 2 A10 10 0 0 1 12 22 M12 2 A10 10 0 0 0 12 22" fill="none" stroke="currentColor" stroke-width="1.5"/>'),
+  abyss_hole: svg('<circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="5" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="rgba(255,255,255,0.1)"/>')
 };
 
 // UI INJECTION
@@ -596,7 +608,7 @@ let W,H,lt=0;
 const maxLevel=50;
 
 // Simulation State (Moved up to fix TDZ bug)
-let playerLevel=1,totalCoins=100,isClean=false;
+let playerLevel=1,playerXP=0,totalCoins=100,isClean=false;
 let coins=100,fishList=[],foodList=[],bubbles=[],seaweeds=[],snails=[],particles=[],clams=[],eggs=[],marineSnow=[];
 let time=0,fid=0,algae=0,baseMaxFish=8;
 let _lastFrame=0, _dtAcc=0;
@@ -605,6 +617,7 @@ let _waterGrad=null, _waterGradAlgae=-1, _waterGradTheme='';
 let _rayGrads=null, _rayW=0, _rayH=0;
 let _loopRunning=true;
 let combo=0,comboTimer=0,maxCT=180;
+let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
@@ -641,12 +654,12 @@ const VISITOR_SPECIES = {
 };
 
 const ABYSSAL_EFFECTS = {
-  'Lanternfish':      '✨ Warm light pulses from this fish',
-  'Velvet Ray':       '🌑 Other fish give it space instinctively',
-  'Glass Eel':        '🌈 Prismatic light distorts around it',
-  'Abyssal Bloomer':  '🌸 Flower-shaped bubble clusters appear nearby',
-  'Starback':         '⭐ Sky pattern overlays the tank at night',
-  'The Echo':         '🔮 Mirrors the rarest fish you own — Aquapedia VII unlocked',
+  'Lanternfish':      'Warm light pulses from this fish',
+  'Velvet Ray':       'Other fish give it space instinctively',
+  'Glass Eel':        'Prismatic light distorts around it',
+  'Abyssal Bloomer':  'Flower-shaped bubble clusters appear nearby',
+  'Starback':         'Sky pattern overlays the tank at night',
+  'The Echo':         'Mirrors the rarest fish you own — Aquapedia VII unlocked',
 };
 
 const QUEST_HINTS = {
@@ -1042,7 +1055,7 @@ let saveTimer=0, lastEliteTs=0;
 function buildSave(){
   const sQuests = _openQuests ? Array.from(_openQuests) : [];
   return {
-    totalCoins, playerLevel, coins, algae, time, fid, baseMaxFish, lastEliteTs,
+    totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs,
     fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name})),
     eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut})),
     clams: clams.length,
@@ -1077,6 +1090,7 @@ function loadSave(){
 
 function applyState(s){
   coins=(s.coins!==undefined?s.coins:100);totalCoins=(s.totalCoins!==undefined?s.totalCoins:coins);playerLevel=(s.playerLevel!==undefined?s.playerLevel:1);algae=(s.algae!==undefined?s.algae:0);
+  playerXP=s.playerXP!==undefined?s.playerXP:XP_THRESHOLDS[Math.min((s.playerLevel||1)-1,49)];
   dailyStreak=(s.dailyStreak!==undefined?s.dailyStreak:0);lastDailyTs=(s.lastDailyTs!==undefined?s.lastDailyTs:0);completedOrders=(s.completedOrders!==undefined?s.completedOrders:0);codesRedeemed=(s.codesRedeemed!==undefined?s.codesRedeemed:0);
   claimedCodes=new Set(s.claimedCodes || []);
   ownedFlora = s.ownedFlora || ['seaweed','grass'];
@@ -1152,22 +1166,40 @@ function updateHUD(){
   const mF = baseMaxFish + (UPGRADES.tank.owned*4);
   document.getElementById('fv').textContent=`${fishList.length+eggs.length}/${mF}`;
   
-  let pct = 100;
-  const th = LEVEL_THRESHOLDS;
-  if(playerLevel < th.length) {
-    const base = th[playerLevel-1] || 0;
-    const next = th[playerLevel];
-    pct = Math.max(0, Math.min(100, ((totalCoins - base) / (next - base)) * 100));
+  let rawPct=100, xpBarColor='', xpBarShadow='';
+  const maxLvl=XP_THRESHOLDS.length;
+  if(playerLevel<maxLvl){
+    const base=XP_THRESHOLDS[playerLevel-1]||0;
+    const next=XP_THRESHOLDS[playerLevel];
+    rawPct=Math.max(0,Math.min(100,((playerXP-base)/(next-base))*100));
   }
-  const xpe = document.getElementById('xp-bar');
-  if(xpe) {
-    xpe.style.width = pct + '%';
-    if(playerLevel >= th.length) { 
-      xpe.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)'; 
-      xpe.style.boxShadow = '0 0 10px rgba(251,191,36,0.6)';
-    }
+  // Easing: fills fast at start, slow near end (sqrt curve)
+  const easedPct=Math.sqrt(rawPct/100)*100;
+  if(playerLevel>=maxLvl){
+    xpBarColor='linear-gradient(90deg,#fbbf24,#f59e0b)';
+    xpBarShadow='0 0 10px rgba(251,191,36,0.6)';
+  } else if(rawPct>=90){
+    xpBarColor='linear-gradient(90deg,#fbbf24,#ca8a04)';
+    xpBarShadow='0 0 8px rgba(251,191,36,0.8)';
+  } else if(rawPct>=60){
+    xpBarColor='linear-gradient(90deg,#0d9488,#06b6d4)';
+    xpBarShadow='';
+  } else {
+    xpBarColor=''; xpBarShadow='';
   }
-  const ERA_NAMES = ['🌊 Tidepool','🐠 Shallows','🪸 Coral Reef','🌑 Twilight Zone','🌊 Open Ocean','🕳 Abyss'];
+  const isActive=(Date.now()-_lastActiveFeed)<30000;
+  const xpe=document.getElementById('xp-bar');
+  if(xpe){
+    xpe.style.width=easedPct+'%';
+    xpe.style.background=xpBarColor;
+    xpe.style.boxShadow=xpBarShadow;
+    if(rawPct>=90&&playerLevel<maxLvl) xpe.title='Level up imminent!'; else xpe.title='';
+  }
+  const xpf=document.getElementById('xpf');
+  if(xpf){xpf.style.width=easedPct+'%'; xpf.style.background=xpBarColor;}
+  const activeBadge=document.getElementById('active-badge');
+  if(activeBadge) activeBadge.style.display=isActive?'inline':'none';
+  const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
   const eraEl = document.getElementById('era-val');
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
 }
@@ -1225,8 +1257,11 @@ function showDailyModal(){
 }
 function claimDaily(){
   const r=DR[Math.min(dailyStreak,DR.length-1)];
+  const idx=Math.min(dailyStreak,DR.length-1);
+  const xpReward=[30,30,60,60,80,80,200,200,500,500,500,1500][idx]||30;
   dailyStreak++;lastDailyTs=Date.now();
   addCoins(r,W/2,H/3,true);
+  giveXP(xpReward);
   document.getElementById('dmodal').classList.remove('show');
   saveGame();
 }
@@ -1373,6 +1408,7 @@ function updateEco(){
       computeColorBonus(_hf);
       if(_hf._colorBonus?.full) sm.homozyBred = (sm.homozyBred||0) + 1;
       sm.hatched++;if(e.isRareMut)sm.rares++;
+      giveXP(e.isRareMut?50:10);
       spawnJuice(e.x,e.y,'Hatched!','#4ade80',1);
       for(let b=0;b<4;b++)bubbles.push({x:e.x+(Math.random()-.5)*10,y:e.y,r:2,spd:2,ph:0,life:1});
       eggs.splice(i,1);
@@ -4119,7 +4155,7 @@ function buildOrders() {
 function resetSave(){
   if(confirm('Delete ALL progress and start fresh?\n\nThis cannot be undone.')){
      localStorage.clear();
-     coins=100;totalCoins=100;playerLevel=1;algae=0;
+     coins=100;totalCoins=100;playerLevel=1;playerXP=0;algae=0;
      fishList=[];eggs=[];foodList=[];bubbles=[];
      particles=[];isHarmony=false;combo=0;
      clams=[];snails=[];seaweeds=[];
