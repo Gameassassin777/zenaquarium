@@ -73,6 +73,17 @@
   .nb svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)) !important; }
   .nb.active { color: #0891b2 !important; }
   #nav { background: linear-gradient(to top, rgba(226,232,240,1.0) 0%, rgba(226,232,240,0.95) 20%, rgba(226,232,240,0.6) 60%, rgba(226,232,240,0) 100%) !important; }
+
+  /* Fish cards & upgrades — readable in light mode */
+  .ci { color: #334155 !important; filter: drop-shadow(0 0 4px rgba(0,0,0,.1)) !important; }
+  .cn { color: #0f172a !important; }
+  .cd { color: #475569 !important; }
+  .cown { color: #0891b2 !important; }
+  .f-row { color: #475569 !important; }
+  .f-personality { background: rgba(8,145,178,0.08) !important; border-color: rgba(8,145,178,0.2) !important; color: #0e7490 !important; text-shadow: none !important; }
+  .c-dot { border-color: rgba(0,0,0,0.2) !important; }
+  .gift-fish-row { background: rgba(0,0,0,0.06) !important; }
+  .gift-fish-row span { color: #1e293b !important; }
 }
 
 html,body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
@@ -842,7 +853,7 @@ for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
-const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
+const getGlobalLevelScale = () => Math.max(0.7, 1.0 - (playerLevel - 1) * 0.006);
 
 // DEFINITIONS & GENETICS
 const TYPES = {
@@ -1405,6 +1416,7 @@ function updateHUD(){
 }
 
 function calcOffline(s){
+  if(!s.ts) return null;
   const elapsed=Math.min((Date.now()-s.ts)/1000,8*3600);
   if(elapsed<90)return null;
   let total=0;const items=[];
@@ -1920,6 +1932,7 @@ function drawHeart(ctx, x, y, size, color) {
 }
 
 function drawFish(f){
+  if(!f.genes || !f.genes.c1?.[0] || !f.genes.c2?.[0]) return;
   const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
   // Validate gene colors, falling back to species defaults
   const _c1 = _safeColor(f.genes?.c1?.[0], def.c1);
@@ -3200,11 +3213,11 @@ function addCoins(amt,x,y,bonus=false){
   spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const XP_THRESHOLDS=[
-  0,120,280,500,800,1200,1750,2500,3500,5000,
-  7000,9500,13000,17500,23500,31000,40500,52000,66000,82000,
-  100000,119000,139000,161000,186000,215000,249000,289000,336000,391000,
-  455000,529000,615000,715000,831000,965000,1120000,1300000,1510000,1755000,
-  2040000,2370000,2750000,3185000,3685000,4260000,4915000,5660000,6505000,7460000
+  0,1200,2800,5000,8000,12000,17500,25000,35000,50000,
+  70000,95000,130000,175000,235000,310000,405000,520000,660000,820000,
+  1000000,1190000,1390000,1610000,1860000,2150000,2490000,2890000,3360000,3910000,
+  4550000,5290000,6150000,7150000,8310000,9650000,11200000,13000000,15100000,17550000,
+  20400000,23700000,27500000,31850000,36850000,42600000,49150000,56600000,65050000,74600000
 ];
 const LEVEL_UNLOCKS={
   2:['Market','Easy Orders','Neon Tetra'],3:['Fish Finder','Fish Count HUD'],
@@ -3835,7 +3848,7 @@ function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip
   if(!lk) c.onclick = () => {
     if(isEquipped) return;
     if(isOwned) { onEquip(); spawnJuice(W/2,H/2,ICONS.done+' Equipped!','var(--ui-accent)',1.4); }
-    else if(canBuy) { coins-=def.cost; sm.coinsSpent=(sm.coinsSpent||0)+def.cost; document.getElementById('cv').textContent=coins; onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
+    else if(canBuy) { coins-=def.cost; sm.coinsSpent=(sm.coinsSpent||0)+def.cost; document.getElementById('cv').textContent=formatCoins(coins); onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
     buildDecor(); saveGame();
   };
   return c;
@@ -4439,7 +4452,7 @@ function claimOrder(i) {
     const types=['guppy','tetra','betta','goldfish','angelfish'];
     const type=types[Math.floor(Math.random()*types.length)];
     const genes=generateMasterpieceGenes(type);
-    eggs.push({x:W/2,y:H-85,type,hatchTime:600,genes,isRareMut:true});
+    eggs.push({x:W/2,y:H-85,type,hatchTime:getEggHatchTime(type),genes,isRareMut:true});
     spawnJuice(W/2,H/3,ICONS.sparkle+` MASTERPIECE EGG DISCOVERED!`, '#a855f7', 2.5);
   }
 
