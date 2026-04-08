@@ -853,7 +853,7 @@ for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
-const getGlobalLevelScale = () => Math.max(0.45, 1.0 - (playerLevel - 1) * 0.05);
+const getGlobalLevelScale = () => Math.max(0.7, 1.0 - (playerLevel - 1) * 0.006);
 
 // DEFINITIONS & GENETICS
 const TYPES = {
