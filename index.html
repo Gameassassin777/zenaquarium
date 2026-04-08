@@ -4407,7 +4407,7 @@ function buildAquapedia() {
     Void:     { bg:'#22143e', border:'#4a2e80', label:'#c0a0e8' },
     Prismatic:{ bg:'#3a1028', border:'#7a2852', label:'#f0a8d0' },
   };
-  const BAND_SYM = { Crimson:'✦', Ember:'✶', Solar:'☀', Verdant:'✿', Abyssal:'〜', Void:'◈', Prismatic:'✧' };
+  const BAND_SYM = { Crimson:'C', Ember:'E', Solar:'S', Verdant:'V', Abyssal:'A', Void:'O', Prismatic:'P' };
   const nonPrismaticCount = COLOR_BANDS.filter(b => b.name !== 'Prismatic').length;
   const totalBands = COLOR_BANDS.length;
 
@@ -4497,7 +4497,7 @@ function buildAquapedia() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 6px;">
           <div style="font-family:Georgia,serif;font-size:9px;color:#8a7050;font-style:italic;">${seenCount} of ${totalBands} bands recorded</div>
           ${prismaticUnlocked
-            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">✧ Prismatic</div>`
+            ? `<div class="aq-prismatic-badge" style="font-family:Georgia,serif;font-size:9px;color:#9a3070;background:rgba(200,100,160,0.12);border:1px solid rgba(200,100,160,0.3);padding:3px 7px;border-radius:3px;letter-spacing:0.8px;white-space:nowrap;">Prismatic</div>`
             : (seenCount >= nonPrismaticCount && seenCount > 0
                 ? `<div style="font-family:Georgia,serif;font-size:9px;color:#8a6830;background:rgba(180,140,60,0.1);border:1px solid rgba(180,140,60,0.3);padding:3px 7px;border-radius:3px;font-style:italic;white-space:nowrap;">Almost...</div>`
                 : '')}
@@ -4924,7 +4924,6 @@ function buildShop(){
 
 function buildSupplies(){
   const ERA_NAMES = ['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'];
-  const ERA_EMOJI = ['🐚','🌊','🪸','🌑','🌏','🕳️'];
   const uc=document.getElementById('ucards');uc.innerHTML='';
   // Group upgrades by era
   const byEra = {};
@@ -4938,12 +4937,12 @@ function buildSupplies(){
   for(let era=0; era<=maxEra; era++){
     if(!byEra[era]) continue;
     const hd=document.createElement('div');hd.className='sechead';
-    hd.textContent=ERA_EMOJI[era]+' '+ERA_NAMES[era];
+    hd.textContent=ERA_NAMES[era];
     uc.appendChild(hd);
     for(const[id,u] of byEra[era]){
       const lk=currentEra<u.era,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
       const c=document.createElement('div');c.className=`card${can?' buyable':''}${full?' full':''}${lk?' locked':''}`;
-      if(lk) c.setAttribute('data-era-name','🔒 Requires: '+ERA_NAMES[u.era]);
+      if(lk) c.setAttribute('data-era-name','Requires: '+ERA_NAMES[u.era]);
       c.innerHTML=`<span class="ci">${u.icon}</span><span class="cn">${u.name}</span><span class="cd">${u.info}</span>${full?'<span class="cpr" style="color:#10b981">MAXED</span>':`<span class="cpr" style="display:flex;align-items:center;justify-content:center;gap:3px;">${ICONS.coin}${formatCoins(u.cost)}</span>`}<span class="cown">${u.owned}/${u.max}</span>`;
       if(can)c.onclick=()=>{
         coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++;
