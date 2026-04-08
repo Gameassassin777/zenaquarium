@@ -470,7 +470,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .aq-page-num{font-family:Georgia,serif;font-size:10px;color:#b09070;letter-spacing:1px;font-style:italic;}
 
 /* Fish preview canvas */
-.aq-fish-preview{display:block;margin:8px auto;border-radius:8px;background:rgba(180,160,130,0.08);}
+.aq-fish-preview{display:block;margin:12px auto;border-radius:8px;background:rgba(180,160,130,0.08);}
 
 /* ── Skill Web Overlay ── */
 #skill-web-overlay{position:fixed;inset:0;z-index:50;display:none;background:#000d1a;flex-direction:column;}
@@ -4053,7 +4053,7 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
   const cx = canvasW / 2, cy = canvasH / 2;
   pc.save();
   pc.translate(cx, cy);
-  const previewScale = Math.min((canvasW * 0.35) / s, (canvasH * 0.35) / s);
+  const previewScale = Math.min((canvasW * 0.45) / s, (canvasH * 0.45) / s);
   pc.scale(previewScale, previewScale);
   const _c1 = c1 || def.c1, _c2 = c2 || def.c2;
   const bg = pc.createLinearGradient(0, -s, 0, s);
@@ -4233,10 +4233,9 @@ function buildAquapedia() {
       return `<span style="font-family:Georgia,serif;font-size:8px;padding:1px 6px;background:${ink.bg};color:${ink.label};border:1px solid ${ink.border};border-radius:2px;font-style:italic;letter-spacing:0.3px;">${n}</span>`;
     }).join('');
 
-    // Determine fish preview colors from seen data or defaults
-    const _pf = seen.length > 0 ? fishList.find(f => f.type === key) : null;
-    const previewC1 = _pf ? _pf.genes.c1[0] : def.c1;
-    const previewC2 = _pf ? _pf.genes.c2[0] : def.c2;
+    // Determine fish preview colors from TYPES defaults only
+    const previewC1 = def.c1;
+    const previewC2 = def.c2;
 
     _bookPages.push(`
     <div style="padding:16px 18px 10px;${!discovered?'opacity:0.45;':''}overflow-y:auto;height:100%;box-sizing:border-box;">
@@ -4251,7 +4250,7 @@ function buildAquapedia() {
 
       <!-- Fish preview canvas placeholder -->
       <div class="aq-page-item" style="animation-delay:60ms;text-align:center;">
-        <canvas class="aq-fish-preview" data-fish-type="${key}" data-c1="${previewC1}" data-c2="${previewC2}" width="240" height="120" style="width:120px;height:60px;"></canvas>
+        <canvas class="aq-fish-preview" data-fish-type="${key}" data-c1="${previewC1}" data-c2="${previewC2}" width="320" height="240" style="width:160px;height:120px;"></canvas>
       </div>
 
       <!-- Status -->
@@ -4312,7 +4311,7 @@ function _drawBookPreviews(container) {
     const type = cvs.dataset.fishType;
     const c1 = cvs.dataset.c1;
     const c2 = cvs.dataset.c2;
-    const preview = drawFishPreview(type, c1, c2, 120, 60);
+    const preview = drawFishPreview(type, c1, c2, 160, 120);
     const pc = cvs.getContext('2d');
     pc.clearRect(0, 0, cvs.width, cvs.height);
     pc.drawImage(preview, 0, 0);
