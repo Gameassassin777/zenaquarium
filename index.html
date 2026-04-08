@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.2.5';
+const CUR_VER = '2.2.6';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -6342,7 +6342,20 @@ for (let i = 0; i < 40; i++) {
 function openSkillWeb() {
   sw_open = true;
   document.getElementById('skill-web-overlay').classList.add('open');
+  
+  // Explicitly close the Aquapedia Book Overlay if it is open
+  const bookOv = document.getElementById('book-overlay');
+  if(bookOv && !bookOv.classList.contains('book-closed')) {
+    if(typeof _cancelBookAnimations === 'function') _cancelBookAnimations();
+    bookOv.classList.add('book-closed');
+  }
+  
   closeAll(); // close shop panel
+  
+  // Hide the floating icon while the web is open
+  const swBtn = document.getElementById('btn-skillweb');
+  if(swBtn) swBtn.style.display = 'none';
+
   // Update era badge
   const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const eraEl = document.getElementById('sw-era');
@@ -6361,6 +6374,10 @@ function closeSkillWeb() {
   sw_open = false;
   document.getElementById('skill-web-overlay').classList.remove('open');
   if (sw_animRAF) { cancelAnimationFrame(sw_animRAF); sw_animRAF = null; }
+  
+  // Re-show the floating icon
+  const swBtn = document.getElementById('btn-skillweb');
+  if(swBtn) swBtn.style.display = '';
 }
 
 function swResizeCanvas() {
