@@ -3965,6 +3965,7 @@ function checkEraUnlock(){
     const abyssOk=i<5||(sm.visitorsTamed>=1);
     if(levelOk&&abyssOk&&i>currentEra){
       currentEra=i;
+      updateHUD();
       showEraAnnouncement(i);
       toast(ICONS.wave+' Era unlocked: '+['Tidepool','Shallows','Coral Reef','Twilight Zone','Open Ocean','Abyss'][i],'#a855f7');
       saveGame();
