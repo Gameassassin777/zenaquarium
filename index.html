@@ -508,11 +508,11 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 <div id="combo-ui"><div id="ctxt">Combo x1.0</div><div class="cbar"><div class="cfill" id="cfill"></div></div></div>
 
 <nav id="nav">
-  <button class="nb" id="nb-market" onclick="setTab('market')"><span class="ni" id="ic-nav-market"></span>Market</button>
+  <button class="nb" id="nb-fishshop" onclick="setTab('fishshop')"><span class="ni" id="ic-nav-fishshop"></span>Fish Shop</button>
+  <button class="nb" id="nb-supplies" onclick="setTab('supplies')"><span class="ni" id="ic-nav-supplies"></span>Supplies</button>
   <button class="nb" id="nb-decor"  onclick="setTab('decor')"><span class="ni" id="ic-nav-decor"></span>Decor</button>
   <button class="nb" id="nb-finder" onclick="setTab('finder')"><span class="ni" id="ic-nav-finder"></span>Finder</button>
   <button class="nb" id="nb-orders" onclick="setTab('orders')"><span class="ni" id="ic-nav-orders"></span>Orders</button>
-  <button class="nb" id="nb-shop"   onclick="setTab('shop')"><span class="ni" id="ic-nav-shop"></span>Shop</button>
   <button class="nb" id="nb-social" onclick="setTab('social')"><span class="ni" id="ic-nav-social"></span>Social</button>
 </nav>
 
@@ -526,9 +526,26 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 <div id="sov" onclick="closeAll()"></div>
 
-<div id="mpanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-market"></span><div style="display:flex;align-items:center;gap:15px;"><span style="color:#334155;font-size:10px">Live Rates</span><button class="xbtn" onclick="closeAll()"></button></div></div>
-  <div class="pscroll" id="mlist"></div>
+<div id="fspanel" class="panel">
+  <div class="ph"><span class="pt" id="ph-fishshop">Fish Shop</span><div style="display:flex;align-items:center;gap:15px;"><span style="color:#334155;font-size:10px;display:none" id="live-rates-label">Live Rates</span><button class="xbtn" onclick="closeAll()"></button></div></div>
+  <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:10px;flex-shrink:0;">
+    <button class="tabbtn active" onclick="switchFishShop('buy')" id="tab-buy">Buy</button>
+    <button class="tabbtn" onclick="switchFishShop('sell')" id="tab-sell">Sell</button>
+  </div>
+  <div class="pscroll" id="fishshop-buy">
+    <div class="cards" id="fcards"></div>
+  </div>
+  <div class="pscroll" id="fishshop-sell" style="display:none;">
+    <div id="mlist"></div>
+  </div>
+</div>
+
+<div id="suppanel" class="panel">
+  <div class="ph"><span class="pt" id="ph-supplies">Supplies</span><button class="xbtn" onclick="closeAll()"></button></div>
+  <button class="sw-open-btn" id="sw-open-btn" onclick="openSkillWeb()"><span id="sw-btn-icon"></span>Skill Web</button>
+  <div class="pscroll" id="supplies-scroll">
+    <div class="cards" id="ucards"></div>
+  </div>
 </div>
 
 <div id="dpanel" class="panel">
@@ -541,21 +558,6 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
     <div id="acc-bubbles"></div>
     <div id="acc-borders"></div>
     <div id="acc-flora"></div>
-  </div>
-</div>
-
-<div id="spanel" class="panel">
-  <div class="ph"><span class="pt" id="ph-shop"></span><button class="xbtn" onclick="closeAll()">${ICONS.close}</button></div>
-  <div class="s-tabs" style="display:flex;gap:10px;margin-bottom:10px;flex-shrink:0;">
-    <button class="tabbtn active" onclick="switchShop('fish')" id="tab-fish">Livestock</button>
-    <button class="tabbtn" onclick="switchShop('upgrades')" id="tab-upgrades">Supplies</button>
-  </div>
-  <button class="sw-open-btn" id="sw-open-btn" onclick="openSkillWeb()"><span id="sw-btn-icon"></span>Skill Web</button>
-  <div class="pscroll" id="shop-fish">
-    <div class="cards" id="fcards"></div>
-  </div>
-  <div class="pscroll" id="shop-upgrades" style="display:none;">
-    <div class="cards" id="ucards"></div>
   </div>
 </div>
 
@@ -879,15 +881,15 @@ const QUEST_HINTS = {
   feeds: 'Tap the tank to drop food for your fish.',
   harmonySec: 'Keep all fish fed (>60% hunger) and water quality above 85%.',
   cleaned: 'Switch to Clean mode and scrub the tank walls.',
-  marketSales: 'Sell fish from the Market tab.',
+  marketSales: 'Sell fish from the Fish Shop → Sell tab.',
   hatched: 'Breed fish using the Breeding Slate upgrade.',
   rares: 'UV Light upgrade increases rare mutation chance.',
   bonded: 'Tap individual fish to bond with them.',
   adults: 'Feed fish regularly — they grow to adult size over time.',
   totalCoins: 'Earn coins by feeding fish and completing quests.',
-  coinsSpent: 'Buy fish, upgrades, and cosmetics from the Shop.',
+  coinsSpent: 'Buy fish from the Fish Shop and supplies from the Supplies tab.',
   decor_owned: 'Purchase themes, floors, bubbles, and borders from Decor.',
-  upgrades_owned: 'Buy upgrades from the Shop → Supplies tab.',
+  upgrades_owned: 'Buy supplies and upgrades from the Supplies tab.',
   combo_trade: 'Raise the required fish type and deliver them here.',
   visitorsTamed: 'Feed visitors and gently tap them to build trust.',
   currentEra: 'Level up to unlock deeper ocean eras.',
@@ -1573,7 +1575,7 @@ function tickMarket() {
     if(marketRates[k] > 2.4) marketRates[k] -= 0.05;
     if(marketRates[k] < 0.6) marketRates[k] += 0.05;
   }
-  if(currentTab === 'market') buildMarket();
+  if(currentTab === 'fishshop') buildMarket();
 }
 
 function buildMarket() {
@@ -1662,7 +1664,7 @@ function sellFish(id, price) {
   fishList.splice(idx, 1);
   sm.marketSales = (sm.marketSales || 0) + 1;
   updateHUD();
-  if(currentTab === 'market') buildMarket();
+  if(currentTab === 'fishshop') buildMarket();
   if(currentTab === 'finder') buildFishFinder();
   saveGame();
 }
@@ -3753,7 +3755,7 @@ function checkLevel(){
   if(playerLevel>old){
     document.getElementById('lvl').textContent=playerLevel;
     spawnJuice(W/2,H/4,ICONS.star+' LEVEL UP!','var(--ui-accent)',2);
-    document.getElementById('nb-shop').classList.add('notify');
+    document.getElementById('nb-supplies').classList.add('notify');
     checkMilestones();
     const unlocks=(LEVEL_UNLOCKS[playerLevel]||['Higher Quest Multipliers','Increased Base Rewards']);
     document.getElementById('lvlnum').textContent=playerLevel;
@@ -3951,23 +3953,23 @@ function setTab(t){
   else {
     document.querySelectorAll('.panel').forEach(px => { px.classList.remove('open','full','dragging'); px.style.height=''; px.style.transform=''; });
     buildPanel(t);
-    const p = document.getElementById({market:'mpanel', decor:'dpanel', orders:'opanel', shop:'spanel', social:'socpanel', finder:'fpanel'}[t]);
+    const p = document.getElementById({fishshop:'fspanel', supplies:'suppanel', decor:'dpanel', orders:'opanel', social:'socpanel', finder:'fpanel'}[t]);
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
-    ['market','decor','orders','shop','social','finder'].forEach(id=>{
+    ['fishshop','supplies','decor','orders','social','finder'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
     });
-    if(t==='market') document.getElementById('nb-market').classList.remove('notify');
-    if(t==='shop') document.getElementById('nb-shop').classList.remove('notify');
+    if(t==='fishshop') document.getElementById('nb-fishshop').classList.remove('notify');
+    if(t==='supplies') document.getElementById('nb-supplies').classList.remove('notify');
     if(t==='orders') document.getElementById('nb-orders').classList.remove('notify');
   }
 }
 
 function buildPanel(t){
-  if(t==='market') buildMarket();
-  if(t==='shop') buildShop();
+  if(t==='fishshop') { buildShop(); buildMarket(); }
+  if(t==='supplies') buildSupplies();
   if(t==='decor') buildDecor();
   if(t==='orders') buildOrders();
   if(t==='social') buildSocial();
@@ -4639,11 +4641,13 @@ function applyBorder() {
   // This function is kept for compatibility (called at boot and on reset).
 }
 
-function switchShop(tab) {
-  document.getElementById('shop-fish').style.display = tab==='fish' ? 'block' : 'none';
-  document.getElementById('shop-upgrades').style.display = tab==='upgrades' ? 'block' : 'none';
-  document.getElementById('tab-fish').className = tab==='fish' ? 'tabbtn active' : 'tabbtn';
-  document.getElementById('tab-upgrades').className = tab==='upgrades' ? 'tabbtn active' : 'tabbtn';
+function switchFishShop(tab) {
+  document.getElementById('fishshop-buy').style.display = tab==='buy' ? 'block' : 'none';
+  document.getElementById('fishshop-sell').style.display = tab==='sell' ? 'block' : 'none';
+  document.getElementById('tab-buy').className = tab==='buy' ? 'tabbtn active' : 'tabbtn';
+  document.getElementById('tab-sell').className = tab==='sell' ? 'tabbtn active' : 'tabbtn';
+  const lr = document.getElementById('live-rates-label');
+  if(lr) lr.style.display = tab==='sell' ? '' : 'none';
 }
 
 function spawnFish(type) {
@@ -4698,6 +4702,9 @@ function buildShop(){
     };else if(full) c.style.opacity='.6'; else c.style.opacity='.4';
     lc.appendChild(c);
   }
+}
+
+function buildSupplies(){
   const uc=document.getElementById('ucards');uc.innerHTML='';
   for(const[id,u] of Object.entries(UPGRADES)){
     const lk=playerLevel<u.req,full=u.owned>=u.max,can=!full&&!lk&&coins>=u.cost;
@@ -4711,7 +4718,7 @@ function buildShop(){
       if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
       if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
       if(id==='coral') { ownedFlora.push('coral'); initDecor(); }
-      updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildShop(); saveGame();
+      updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildSupplies(); saveGame();
     };
     uc.appendChild(c);
   }
