@@ -2874,198 +2874,70 @@ function drawFish(f){
   else if(f.type==='octopus'){
     // Smooth contraction state: 0 = fully relaxed, 1 = peak contraction (jetting)
     const contractT = f._octoContractT !== undefined ? f._octoContractT : 0;
-    // Gentle breathing when relaxed — suppressed at peak contraction
-    const breathe = Math.sin(f.phase * 0.42) * 0.035 * (1 - contractT);
-    const opulse = 1 + breathe + contractT * 0.03;
-    // Mantle squish: narrows horizontally, elongates vertically during contraction
-    const msx = (1 - contractT * 0.42 + breathe * 0.5) * opulse;
-    const msy = (1 + contractT * 0.34 - breathe * 0.5) * opulse;
+    const breathe = Math.sin(f.phase * 0.5) * 0.05 * (1 - contractT);
+    const msx = 1 - contractT * 0.3 + breathe;
+    const msy = 1 + contractT * 0.2 - breathe;
 
     ctx.lineCap='round'; ctx.lineJoin='round';
 
-    // -- Webbing between arm bases — pulls inward during contraction --
-    const webScale = 1 - contractT * 0.28;
-    ctx.fillStyle = _c1 + '44';
-    ctx.beginPath();
-    ctx.moveTo(-s*0.55*msx, s*0.18*webScale);
-    ctx.bezierCurveTo(-s*0.7*msx, s*0.55*webScale, -s*0.35*msx, s*0.7*webScale, 0, s*0.62*webScale);
-    ctx.bezierCurveTo(s*0.35*msx, s*0.7*webScale, s*0.7*msx, s*0.55*webScale, s*0.55*msx, s*0.18*webScale);
-    ctx.quadraticCurveTo(0, s*0.4*webScale, -s*0.55*msx, s*0.18*webScale);
-    ctx.fill();
-
-    // -- 8 Arms --
+    // -- 8 Arms (sweeping and curling organically, trailing left) --
     for(let i=0; i<8; i++){
-      // fan arms from -80 to +80 degrees beneath the mantle
-      const baseAngle = (i/7 - 0.5) * Math.PI * 1.1 + Math.PI*0.5;
-      const bx = Math.cos(baseAngle) * s * 0.42 * msx;
-      const by = Math.sin(baseAngle) * s * 0.38 * webScale + s*0.28*msy;
+      const pct = i / 7; // 0.0 to 1.0 from left to right
+      const bx = (pct - 0.5) * s * 1.3 * msx;
+      const by = s * 0.2 * msy;
+      const wave = Math.sin(f.phase * (0.8 + i*0.1) + i * 0.5);
+      const curlDir = (pct < 0.5) ? -1 : 1; // outer arms curl aggressively outwards
+      const len = s * 1.4 * (1 - Math.abs(pct - 0.5) * 0.3); // center arms are slightly longer
+      const backTrail = -contractT * s * 1.5; 
+      const curlX = curlDir * s * 0.9 * Math.abs(pct - 0.5) * (1 - contractT * 0.8) + wave * s * 0.2 + backTrail;
+      const cp1x = bx + curlX * 0.4;
+      const cp1y = by + len * 0.5;
+      const endx = bx + curlX * 1.2;
+      const endy = by + len * (1 - contractT*0.4);
 
-      // independent phase per arm using f.id and arm index
-      const ph1 = f.phase + i * 0.72 + (f.id % 7) * 0.4;
-      const ph2 = f.phase * 1.25 + i * 0.55 + (f.id % 5) * 0.6;
-      const ph3 = f.phase * 0.85 + i * 0.9 + (f.id % 11) * 0.3;
-
-      // during contraction arms trail behind, otherwise wave organically
-      const jetDamp = 1 - contractT * 0.78;
-      const w1 = Math.sin(ph1) * s * 0.28 * jetDamp;
-      const w2 = Math.sin(ph2) * s * 0.22 * jetDamp;
-      const w3 = Math.sin(ph3) * s * 0.16 * jetDamp;
-
-      // front arms curl inward, back arms trail — curl reduced during contraction
-      const sideSign = (i < 4) ? -1 : 1;
-      const curlX = sideSign * s * 0.2 * (1 - contractT * 0.85);
-      // tentacles lean backward (negative X in local space) during contraction
-      const leanX = -contractT * s * 0.38;
-
-      // 3-segment bezier S-curve control points with backward lean during contraction
-      const cp1x = bx * 0.6 + w1 * 0.5 + leanX * 0.25,  cp1y = by + s * 0.45 + w1 * 0.4;
-      const cp2x = bx * 0.9 + w2 + leanX * 0.6,           cp2y = by + s * 0.95 + w2 * 0.6;
-      const cp3x = bx * 0.8 + w3 + curlX + leanX,          cp3y = by + s * 1.55 + w3 * 0.5;
-      const endx  = bx * 0.45 + w1 * 0.3 + curlX * 1.5 + leanX * 1.3;
-      const endy  = by + s * 2.1  + w3 * 0.3;
-
-      // thick arm (body color, wide at base)
-      ctx.lineWidth = s * 0.2;
-      ctx.strokeStyle = bg;
+      ctx.lineWidth = s * 0.28 * (1 - Math.abs(pct - 0.5) * 0.4);
+      ctx.strokeStyle = _c1;
       ctx.beginPath();
       ctx.moveTo(bx, by);
-      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
-      ctx.stroke();
-      // taper: mid segment
-      ctx.lineWidth = s * 0.13;
-      ctx.beginPath();
-      ctx.moveTo(cp2x, cp2y);
-      ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
+      ctx.quadraticCurveTo(cp1x, cp1y, endx, endy);
       ctx.stroke();
 
-      // color overlay on arm
-      ctx.lineWidth = s * 0.16;
-      ctx.strokeStyle = _c1 + 'dd';
+      ctx.lineWidth = ctx.lineWidth * 0.4;
+      ctx.strokeStyle = _c2;
       ctx.beginPath();
       ctx.moveTo(bx, by);
-      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
+      ctx.quadraticCurveTo(cp1x, cp1y, endx, endy);
       ctx.stroke();
-      ctx.lineWidth = s * 0.09;
-      ctx.strokeStyle = _c1 + 'bb';
-      ctx.beginPath();
-      ctx.moveTo(cp2x, cp2y);
-      ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
-      ctx.stroke();
-
-      // suckers — two rows of 7, sampled from the same piecewise bezier centerline that is rendered
-      const cubicPoint = (p0, p1, p2, p3, t) => {
-        const mt = 1 - t;
-        return mt*mt*mt*p0 + 3*mt*mt*t*p1 + 3*mt*t*t*p2 + t*t*t*p3;
-      };
-      const cubicDerivative = (p0, p1, p2, p3, t) => {
-        const mt = 1 - t;
-        return 3*mt*mt*(p1-p0) + 6*mt*t*(p2-p1) + 3*t*t*(p3-p2);
-      };
-      for(let j=1; j<=7; j++){
-        const t = j / 8;
-        let lt, p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y;
-        if(t < 0.5){
-          lt = t * 2;
-          p0x = bx;   p0y = by;
-          p1x = cp1x; p1y = cp1y;
-          p2x = cp2x; p2y = cp2y;
-          p3x = cp3x; p3y = cp3y;
-        }else{
-          lt = (t - 0.5) * 2;
-          p0x = cp2x; p0y = cp2y;
-          p1x = cp3x; p1y = cp3y;
-          p2x = endx; p2y = endy;
-          p3x = endx; p3y = endy;
-        }
-        const skx = cubicPoint(p0x, p1x, p2x, p3x, lt);
-        const sky = cubicPoint(p0y, p1y, p2y, p3y, lt);
-        // tangent on the same rendered segment for perpendicular row offset
-        const tdx = cubicDerivative(p0x, p1x, p2x, p3x, lt);
-        const tdy = cubicDerivative(p0y, p1y, p2y, p3y, lt);
-        const tlen = Math.hypot(tdx, tdy) || 1;
-        const roff = s * 0.03 * (1 - t * 0.4);
-        const nx = -tdy / tlen * roff, ny = tdx / tlen * roff;
-        const skr = s * 0.026 * (1 - t * 0.55);
-        ctx.fillStyle = '#ecd8f499'; ctx.strokeStyle = _c2 + 'bb'; ctx.lineWidth = skr * 0.4;
-        ctx.beginPath(); ctx.arc(skx + nx, sky + ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.arc(skx - nx, sky - ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-      }
     }
 
-    // -- Mantle (bulbous dome teardrop shape) --
-    const mg = ctx.createRadialGradient(-s*0.18*msx, -s*0.35*msy, s*0.05, 0, -s*0.22*msy, s*0.72);
-    mg.addColorStop(0, _c1);
-    mg.addColorStop(0.6, _c1);
-    mg.addColorStop(1, _c2);
-    ctx.fillStyle = mg;
+    // -- Mantle (Bulbous rounded head) --
+    ctx.fillStyle = _c1;
     ctx.beginPath();
-    // teardrop: wide dome top, narrowing at base
-    ctx.moveTo(0, s*0.32*msy);
-    ctx.bezierCurveTo(
-      -s*0.72*msx, s*0.28*msy,
-      -s*0.78*msx, -s*0.62*msy,
-       0,          -s*0.92*msy
-    );
-    ctx.bezierCurveTo(
-       s*0.78*msx, -s*0.62*msy,
-       s*0.72*msx,  s*0.28*msy,
-       0,           s*0.32*msy
-    );
-    ctx.closePath();
+    ctx.ellipse(0, -s * 0.4 * msy, s * 0.85 * msx, s * 0.9 * msy, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // mantle shading overlay
-    ctx.fillStyle = _c2 + '33';
+    // Mantle gradient shadow/highlight
+    ctx.fillStyle = _c2 + '55';
     ctx.beginPath();
-    ctx.moveTo(0, s*0.32*msy);
-    ctx.bezierCurveTo(-s*0.72*msx, s*0.28*msy, -s*0.78*msx, -s*0.62*msy, 0, -s*0.92*msy);
-    ctx.bezierCurveTo(s*0.78*msx, -s*0.62*msy, s*0.72*msx, s*0.28*msy, 0, s*0.32*msy);
-    ctx.closePath();
+    ctx.ellipse(-s * 0.2 * msx, -s * 0.6 * msy, s * 0.4 * msx, s * 0.45 * msy, Math.PI * 0.1, 0, Math.PI * 2);
     ctx.fill();
 
-    // chromatophore spots on mantle (3-5 spots)
-    const spotCount = 4 + (f.id % 2);
-    for(let sp=0; sp<spotCount; sp++){
-      const sa = (sp / spotCount) * Math.PI * 1.6 - Math.PI * 0.8;
-      const sr = s * (0.15 + (sp % 3) * 0.08);
-      const spx = Math.cos(sa) * s * 0.28 * msx;
-      const spy = Math.sin(sa) * s * 0.24 * msy - s * 0.32;
-      const spotPulse = 0.7 + Math.sin(f.phase * 0.6 + sp * 1.4) * 0.3;
-      ctx.fillStyle = (sp % 2 === 0 ? _c2 : _c1) + Math.floor(spotPulse * 80 + 40).toString(16).padStart(2,'0');
-      ctx.beginPath(); ctx.ellipse(spx, spy, sr * spotPulse, sr * 0.7 * spotPulse, sa * 0.3, 0, Math.PI*2);
-      ctx.fill();
-    }
+    // Chromatophores (little spots)
+    ctx.fillStyle = _c2;
+    ctx.beginPath(); ctx.ellipse(-s*0.35*msx, -s*0.9*msy, s*0.12, s*0.08, 0.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-s*0.05*msx, -s*1.1*msy, s*0.09, s*0.06, 0.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(s*0.3*msx,   -s*0.8*msy, s*0.15, s*0.1, -0.3, 0, Math.PI*2); ctx.fill();
 
-    // -- Siphon (funnel below eye, points backward) — scales with mantle --
-    ctx.fillStyle = _c2 + 'cc';
-    ctx.beginPath();
-    ctx.moveTo(s*0.22*msx, s*0.02*msy);
-    ctx.bezierCurveTo(s*0.38*msx, s*0.06*msy, s*0.45*msx, s*0.14*msy, s*0.38*msx, s*0.22*msy);
-    ctx.bezierCurveTo(s*0.3*msx, s*0.3*msy, s*0.18*msx, s*0.28*msy, s*0.15*msx, s*0.2*msy);
-    ctx.closePath();
-    ctx.fill();
-    // siphon opening tip
-    ctx.strokeStyle = _c2; ctx.lineWidth = s * 0.04;
-    ctx.beginPath(); ctx.moveTo(s*0.38*msx, s*0.22*msy); ctx.lineTo(s*0.48*msx, s*0.28*msy); ctx.stroke();
-
-    // -- Large expressive octopus eye — tracks mantle surface --
-    const ex = s * 0.35 * msx, ey = -s * 0.18 * msy;
-    const er = s * 0.16; // sclera radius
-    // sclera (white)
-    ctx.fillStyle = '#ffffffee';
-    ctx.beginPath(); ctx.ellipse(ex, ey, er, er*0.9, 0, 0, Math.PI*2); ctx.fill();
-    // dark iris
+    // -- Eye (Large 3/4 profile eye facing right) --
+    const eyeX = s * 0.4 * msx;
+    const eyeY = -s * 0.2 * msy;
+    const er = s * 0.16;
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath(); ctx.ellipse(eyeX, eyeY, s * 0.25, s * 0.25, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = _c2 + 'ee';
-    ctx.beginPath(); ctx.ellipse(ex, ey, er*0.72, er*0.65, 0, 0, Math.PI*2); ctx.fill();
-    // horizontal slit pupil
-    ctx.fillStyle = '#111111ee';
-    ctx.beginPath(); ctx.ellipse(ex, ey, er*0.55, er*0.22, 0, 0, Math.PI*2); ctx.fill();
-    // pupil highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.beginPath(); ctx.ellipse(ex - er*0.18, ey - er*0.22, er*0.14, er*0.1, -Math.PI/5, 0, Math.PI*2); ctx.fill();
-    // eye ring
-    ctx.strokeStyle = '#000000aa'; ctx.lineWidth = s * 0.025;
-    ctx.beginPath(); ctx.ellipse(ex, ey, er, er*0.9, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(eyeX, eyeY, s * 0.18, s * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#020617';
+    ctx.beginPath(); ctx.ellipse(eyeX + s*0.05, eyeY, s * 0.14, s * 0.05, 0, 0, Math.PI * 2); ctx.fill();
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.05;
