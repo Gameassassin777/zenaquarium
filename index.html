@@ -499,20 +499,20 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   <div class="pscroll" id="flist"></div>
 </div>
 
-<button id="book-fab" onclick="toggleBook()" title="Aquapedia"><span id="ic-book-fab"></span></button>
+<button id="book-fab" onclick="toggleBook()" title="Aquapedia" aria-label="Open Aquapedia"><span id="ic-book-fab"></span></button>
 
 <div id="book-overlay" class="book-closed" onclick="if(event.target===this)toggleBook()">
   <div id="book-container">
     <div id="book-spine"></div>
     <div id="book-page">
-      <button class="book-close" onclick="toggleBook()">&times;</button>
+      <button class="book-close" onclick="toggleBook()" aria-label="Close Aquapedia">&times;</button>
       <div id="book-content">
         <div id="aqlist"></div>
       </div>
       <div id="book-nav">
-        <button class="book-nav-btn" id="book-prev" onclick="bookFlip(-1)">&#9664; Prev</button>
+        <button class="book-nav-btn" id="book-prev" onclick="bookFlip(-1)" aria-label="Previous page">&#9664; Prev</button>
         <span id="book-page-num" style="font-family:Georgia,serif;font-size:11px;color:#8a7050;"></span>
-        <button class="book-nav-btn" id="book-next" onclick="bookFlip(1)">Next &#9654;</button>
+        <button class="book-nav-btn" id="book-next" onclick="bookFlip(1)" aria-label="Next page">Next &#9654;</button>
       </div>
     </div>
   </div>
@@ -3691,6 +3691,13 @@ function toggleBook(){
     ov.classList.add('book-closed');
   }
 }
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    const ov = document.getElementById('book-overlay');
+    if(ov && !ov.classList.contains('book-closed')) toggleBook();
+  }
+});
 
 let _bookPage = 0;
 function bookFlip(dir){
