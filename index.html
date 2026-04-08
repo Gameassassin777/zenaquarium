@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.2.6';
+const CUR_VER = '2.2.7';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -6168,82 +6168,7 @@ SW_CLUSTERS.forEach(cl => {
 function swHexRgb(hex) {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
-const SW_TREE_POS = {};
-
-// Explicit world-coordinate positions for every node.
-// Each cluster's "entry" node sits at the cluster's (cx,cy) so the
-// inter-cluster connector line lands right on the first node.
-// Chains flow AWAY from the Core; branch nodes are offset ±110 on the
-// perpendicular axis so the split is immediately readable.
-function swBuildTreeLayout() {
-  const POS = {
-    // ── Core (0,0): 8 nodes in a circle, r=130 ──────────────────
-    c_flakes:    {x:   0, y:-130},
-    c_snail:     {x:  92, y: -92},
-    c_autofeed:  {x: 130, y:   0},
-    c_tank:      {x:  92, y:  92},
-    c_filter:    {x:   0, y: 130},
-    c_nest:      {x: -92, y:  92},
-    c_clam:      {x:-130, y:   0},
-    c_heater:    {x: -92, y: -92},
-
-    // ── Shallows (cx=580, cy=-50): entry at cluster center, chain flows UP ──
-    d_tidal:     {x: 580, y:  -50},   // entry
-    d_swift:     {x: 690, y:  -50},   // branch right
-    d_plankton:  {x: 580, y: -140},
-    d_kelp:      {x: 690, y: -140},   // branch right
-    d_coral:     {x: 690, y: -230},
-    d_vent:      {x: 580, y: -230},
-    d_dome:      {x: 580, y: -320},
-    d_lens:      {x: 580, y: -410},
-    d_kelp_f:    {x: 580, y: -500},
-    d_midnight:  {x: 580, y: -590},
-
-    // ── Evolution (cx=580, cy=300): entry at cluster center, chain flows DOWN ──
-    e_breed:     {x: 580, y:  300},   // entry
-    e_splice:    {x: 580, y:  390},
-    e_chroma:    {x: 580, y:  480},
-    e_apex:      {x: 580, y:  570},
-    e_prism:     {x: 580, y:  660},
-    e_frenzy:    {x: 580, y:  750},
-    e_mythic:    {x: 580, y:  840},
-    e_trans:     {x: 580, y:  930},
-
-    // ── Alchemy (cx=-580, cy=-50): entry at cluster center, chain flows UP ──
-    a_market:    {x:-580, y:  -50},   // entry
-    a_arb:       {x:-580, y: -140},
-    a_symb:      {x:-690, y: -140},   // branch left
-    a_magnet:    {x:-580, y: -230},
-    a_obelisk:   {x:-690, y: -230},   // branch left
-    a_overflow:  {x:-580, y: -320},
-    a_gold:      {x:-580, y: -410},
-    a_phil:      {x:-580, y: -500},
-    a_eco:       {x:-580, y: -590},
-    a_loop:      {x:-580, y: -680},
-
-    // ── Singularity (cx=-580, cy=300): entry at cluster center, chain flows DOWN ──
-    s_quantum:   {x:-580, y:  300},   // entry
-    s_resonance: {x:-690, y:  300},   // branch left
-    s_dark:      {x:-580, y:  390},
-    s_horizon:   {x:-580, y:  480},
-    s_anti:      {x:-580, y:  570},
-    s_warp:      {x:-580, y:  660},
-    s_point:     {x:-580, y:  750},
-
-    // ── Prestige (cx=0, cy=-480): entry at cluster center, chain flows UP ──
-    p_aura:      {x:   0, y: -480},   // entry
-    p_chron:     {x:   0, y: -570},
-    p_bloom:     {x:   0, y: -660},
-    p_primordial:{x:-110, y: -660},   // branch left
-    p_cosmic:    {x:   0, y: -750},
-    p_omega:     {x:   0, y: -840},
-  };
-
-  // Copy every defined position into SW_TREE_POS.
-  // Any node not listed here falls back to angle/dist in swNodePos().
-  Object.assign(SW_TREE_POS, POS);
-}
-swBuildTreeLayout();
+// SW_TREE_POS and old tree layout logic deleted to prefer native geometric cartesian coordinates
 
 // State
 const SW_NODE_OWNED = {};      // nodeId -> purchase count (0..max)
@@ -6252,7 +6177,6 @@ const sw_revealed   = new Set(); // cluster ids already revealed
 
 // Compute world position for a node given its parent cluster
 function swNodePos(nd, cl) {
-  if (SW_TREE_POS[nd.id]) return SW_TREE_POS[nd.id];
   if (nd.x !== undefined && nd.y !== undefined) return { x: cl.cx + nd.x, y: cl.cy + nd.y };
   const rad = (nd.angle * Math.PI) / 180;
   return {
@@ -6355,6 +6279,9 @@ function openSkillWeb() {
   // Hide the floating icon while the web is open
   const swBtn = document.getElementById('btn-skillweb');
   if(swBtn) swBtn.style.display = 'none';
+  
+  const bookFab = document.getElementById('book-fab');
+  if(bookFab) bookFab.style.display = 'none';
 
   // Update era badge
   const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
@@ -6375,9 +6302,12 @@ function closeSkillWeb() {
   document.getElementById('skill-web-overlay').classList.remove('open');
   if (sw_animRAF) { cancelAnimationFrame(sw_animRAF); sw_animRAF = null; }
   
-  // Re-show the floating icon
+  // Re-show the floating icons
   const swBtn = document.getElementById('btn-skillweb');
   if(swBtn) swBtn.style.display = '';
+  
+  const bookFab = document.getElementById('book-fab');
+  if(bookFab) bookFab.style.display = '';
 }
 
 function swResizeCanvas() {
