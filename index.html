@@ -1273,6 +1273,7 @@ function updateHUD(){
 }
 
 function calcOffline(s){
+  if(!s.ts) return null;
   const elapsed=Math.min((Date.now()-s.ts)/1000,8*3600);
   if(elapsed<90)return null;
   let total=0;const items=[];
@@ -1788,6 +1789,7 @@ function drawHeart(ctx, x, y, size, color) {
 }
 
 function drawFish(f){
+  if(!f.genes || !f.genes.c1 || !f.genes.c2) return;
   const def=TYPES[f.type],dir=f.vx>=0?1:-1,s=def.sz,eating=f.eat>0;
   // Use accumulated phase to prevent flickering (Ground logic speed)
   const wag = Math.sin(f.phase) * (s * 0.35);
@@ -3064,11 +3066,11 @@ function addCoins(amt,x,y,bonus=false){
   spawnJuice(x,y,`+${formatCoins(amt)}`,bonus?'#fbbf24':'var(--ui-accent)',1+Math.min(amt*.01,.6));
 }
 const XP_THRESHOLDS=[
-  0,120,280,500,800,1200,1750,2500,3500,5000,
-  7000,9500,13000,17500,23500,31000,40500,52000,66000,82000,
-  100000,119000,139000,161000,186000,215000,249000,289000,336000,391000,
-  455000,529000,615000,715000,831000,965000,1120000,1300000,1510000,1755000,
-  2040000,2370000,2750000,3185000,3685000,4260000,4915000,5660000,6505000,7460000
+  0,1200,2800,5000,8000,12000,17500,25000,35000,50000,
+  70000,95000,130000,175000,235000,310000,405000,520000,660000,820000,
+  1000000,1190000,1390000,1610000,1860000,2150000,2490000,2890000,3360000,3910000,
+  4550000,5290000,6150000,7150000,8310000,9650000,11200000,13000000,15100000,17550000,
+  20400000,23700000,27500000,31850000,36850000,42600000,49150000,56600000,65050000,74600000
 ];
 const LEVEL_UNLOCKS={
   2:['Market','Easy Orders','Neon Tetra'],3:['Fish Finder','Fish Count HUD'],
@@ -3314,6 +3316,9 @@ function setTab(t){
     if(p) { p.classList.add('open'); p.classList.remove('full'); p.style.height=''; p.style.transform=''; }
     document.getElementById('sov').classList.add('open');
     document.getElementById('sov').style.opacity='';
+    // Hide book button when any panel is open
+    const bookBtn = document.getElementById('nb-aqua');
+    if(bookBtn && t !== 'aqua') bookBtn.style.display = 'none';
     ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>{
       const el = document.getElementById('nb-'+id);
       if(el) el.classList.toggle('active',id===t);
@@ -3518,6 +3523,9 @@ function closeAll(){
   });
   document.getElementById('sov').classList.remove('open');
   document.getElementById('sov').style.opacity='';
+  // Restore book button visibility
+  const bookBtn = document.getElementById('nb-aqua');
+  if(bookBtn) bookBtn.style.display = '';
   ['market','decor','orders','shop','social','finder','aqua'].forEach(id=>document.getElementById('nb-'+id).classList.remove('active'));
   currentTab='tank';
 }
@@ -3642,7 +3650,7 @@ function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip
   if(!lk) c.onclick = () => {
     if(isEquipped) return;
     if(isOwned) { onEquip(); spawnJuice(W/2,H/2,ICONS.done+' Equipped!','var(--ui-accent)',1.4); }
-    else if(canBuy) { coins-=def.cost; sm.coinsSpent=(sm.coinsSpent||0)+def.cost; document.getElementById('cv').textContent=coins; onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
+    else if(canBuy) { coins-=def.cost; sm.coinsSpent=(sm.coinsSpent||0)+def.cost; document.getElementById('cv').textContent=formatCoins(coins); onBuy(); spawnJuice(W/2,H/2,ICONS.star+' Unlocked!','#10b981',1.4); }
     buildDecor(); saveGame();
   };
   return c;
@@ -4246,7 +4254,7 @@ function claimOrder(i) {
     const types=['guppy','tetra','betta','goldfish','angelfish'];
     const type=types[Math.floor(Math.random()*types.length)];
     const genes=generateMasterpieceGenes(type);
-    eggs.push({x:W/2,y:H-85,type,hatchTime:600,genes,isRareMut:true});
+    eggs.push({x:W/2,y:H-85,type,hatchTime:getEggHatchTime(type),genes,isRareMut:true});
     spawnJuice(W/2,H/3,ICONS.sparkle+` MASTERPIECE EGG DISCOVERED!`, '#a855f7', 2.5);
   }
 
