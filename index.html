@@ -479,7 +479,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #swc{flex:1;width:100%;touch-action:none;}
 #sw-close{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:51;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f8fafc;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;}
 #sw-close:hover{background:rgba(255,255,255,0.18);}
-#sw-mini{position:absolute;bottom:max(80px,calc(env(safe-area-inset-bottom,0px) + 16px));right:max(16px,env(safe-area-inset-right,0px));width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
+#sw-mini{position:absolute;bottom:max(80px,calc(env(safe-area-inset-bottom,0px) + 16px));left:max(16px,env(safe-area-inset-left,0px));width:120px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.6);cursor:pointer;}
 #sw-era{position:absolute;top:max(16px,env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));z-index:51;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:0.5px;pointer-events:none;}
 #sw-tip{position:absolute;pointer-events:none;background:rgba(0,13,26,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f8fafc;max-width:200px;display:none;z-index:52;}
 .sw-open-btn{display:flex;align-items:center;gap:6px;background:rgba(103,232,249,0.12);border:1px solid rgba(103,232,249,0.3);color:#67e8f9;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;width:100%;justify-content:center;margin-bottom:10px;flex-shrink:0;}
@@ -1506,7 +1506,7 @@ function updateHUD(){
   if(eraEl) eraEl.textContent = ERA_NAMES[currentEra] || ERA_NAMES[0];
 
   const bookFab = document.getElementById('book-fab');
-  if(bookFab) bookFab.style.display = (playerLevel >= 3) ? 'flex' : 'none';
+  if(bookFab) bookFab.style.display = (playerLevel >= 3 && !sw_open) ? 'flex' : 'none';
 }
 
 function calcOffline(s){
@@ -2949,37 +2949,50 @@ function drawFish(f){
     ctx.beginPath(); ctx.ellipse(eyeX + s*0.05, eyeY, s * 0.14, s * 0.05, 0, 0, Math.PI * 2); ctx.fill();
   }
   else if(f.type==='turtle'){
-    const hdY = Math.sin(time*0.05+f.id)*s*.05;
+    const hdY = Math.sin(time*0.05+f.id)*s*.06;
     const stroke = Math.sin(f.phase * 2.5);
-    ctx.fillStyle=_c1+'aa';
-    ctx.beginPath();ctx.ellipse(-s*.55, -s*.22, s*.22, s*.08, -Math.PI/5 - stroke*.2, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-s*.55, s*.42, s*.22, s*.08, Math.PI/5 + stroke*.2, 0, Math.PI*2);ctx.fill();
+
+    // ── Tail ──
+    ctx.fillStyle=_c1+'cc';
+    ctx.beginPath();ctx.ellipse(-s*.9, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
+
+    // ── Rear flippers (drawn behind shell) ──
+    ctx.fillStyle=_c1+'bb';
+    ctx.beginPath();ctx.ellipse(-s*.45, -s*.38, s*.30, s*.09, -Math.PI/5 - stroke*.25, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.45,  s*.38, s*.30, s*.09,  Math.PI/5 + stroke*.25, 0, Math.PI*2);ctx.fill();
+
+    // ── Front flippers (drawn behind shell) ──
     ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.25, -s*.42, s*.48, s*.13, -Math.PI/6 + stroke*0.55, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.25, s*.6, s*.48, s*.13, Math.PI/6 - stroke*0.55, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-s*.82, s*.1, s*.15, s*.06, 0, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.9, hdY, s*.35, s*.25, -Math.PI/12, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.30, -s*.44, s*.52, s*.12, -Math.PI/6 + stroke*.5, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.30,  s*.44, s*.52, s*.12,  Math.PI/6 - stroke*.5, 0, Math.PI*2);ctx.fill();
 
-    ctx.fillStyle=_c2+'ee';
-    ctx.beginPath();ctx.ellipse(0, s*.1, s*.85, s*.18, 0, 0, Math.PI*2);ctx.fill();
+    // ── Head ──
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.ellipse(s*.88, hdY, s*.32, s*.22, -Math.PI/12, 0, Math.PI*2);ctx.fill();
 
-    const sg = ctx.createRadialGradient(-s*.2, -s*.25, s*.05, 0, s*.1, s*.88);
+    // ── Shell plastron (belly, centered) ──
+    ctx.fillStyle=_c2+'cc';
+    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.20, 0, 0, Math.PI*2);ctx.fill();
+
+    // ── Shell carapace (top dome, centered) ──
+    const sg = ctx.createRadialGradient(-s*.15, -s*.22, s*.05, 0, 0, s*.88);
     sg.addColorStop(0, _c2+'ff');
-    sg.addColorStop(0.5, _c1+'88');
-    sg.addColorStop(1, _c1+'dd');
+    sg.addColorStop(0.45, _c1+'cc');
+    sg.addColorStop(1, _c1+'88');
     ctx.fillStyle=sg;
-    ctx.beginPath();ctx.ellipse(0, s*.1, s*.85, s*.48, 0, Math.PI, Math.PI*2);
-    ctx.closePath(); ctx.fill();
+    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.46, 0, Math.PI, Math.PI*2);
+    ctx.closePath();ctx.fill();
 
-    ctx.strokeStyle=_c2+'88'; ctx.lineWidth=Math.max(1, s*0.04);
-    ctx.beginPath(); ctx.moveTo(-s*.65, -s*.05); ctx.quadraticCurveTo(0, -s*.38, s*.65, -s*.05); ctx.stroke();
-    for(let i=-1; i<=1; i+=2){
-      ctx.beginPath(); ctx.moveTo(0, -s*.38); ctx.lineTo(i*s*.38, -s*.22); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(i*s*.38, -s*.22); ctx.lineTo(i*s*.62, -s*.05); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(i*s*.38, -s*.22); ctx.lineTo(i*s*.28, s*.05); ctx.stroke();
+    // ── Shell scute pattern ──
+    ctx.strokeStyle=_c2+'66'; ctx.lineWidth=Math.max(1, s*0.035);
+    ctx.beginPath();ctx.moveTo(-s*.60, 0);ctx.quadraticCurveTo(0, -s*.36, s*.60, 0);ctx.stroke();
+    for(let i=-1;i<=1;i+=2){
+      ctx.beginPath();ctx.moveTo(0,-s*.36);ctx.lineTo(i*s*.36,-s*.20);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.60,0);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.26, s*.06);ctx.stroke();
     }
 
-    drawEye(ctx, s*1.0, hdY - s*.05, s*.06);
+    drawEye(ctx, s*.95, hdY - s*.04, s*.06);
   }
   else if(f.type==='whaleshark'){
     ctx.fillStyle=bg;
@@ -4651,7 +4664,7 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH, time) {
     discus:     [1.7, 1.2, 1.2, 1.2],
     jellyfish:  [0.9, 0.9, 1.2, 2.2],
     octopus:    [1.0, 1.0, 1.1, 2.6],
-    turtle:     [1.0, 1.4, 0.7, 0.9],
+    turtle:     [1.15, 1.35, 0.65, 0.65],
     whaleshark: [2.5, 2.2, 1.0, 1.0],
     narwhal:    [2.3, 3.5, 1.0, 1.0],
     lionfish:   [1.9, 1.8, 1.8, 2.9],
@@ -4759,7 +4772,7 @@ function buildAquapedia() {
   // ── Species pages (one per type) ──
   let pageIdx = 1;
   for(const [key, def] of Object.entries(TYPES)) {
-    const seen = sm.aqSeen?.[key] || [];
+    const seen = (sm.aqSeen?.[key] || []).filter(n => BAND_INK[n]); // strip stale band names
     const prismaticUnlocked = hasPrismaticUnlocked(key);
     const seenCount = seen.length;
     const discovered = def.req <= playerLevel;
@@ -4787,8 +4800,9 @@ function buildAquapedia() {
       </div>`;
     }).join('');
 
-    // Seen band labels
-    const seenLabels = seen.map(n => {
+    // Seen band labels — filter out stale band names from old saves
+    const _fallbackInk = { bg:'#2a2a2a', border:'#444', label:'#aaa' };
+    const seenLabels = seen.filter(n => BAND_INK[n]).map(n => {
       const ink = BAND_INK[n];
       return `<span style="font-family:Georgia,serif;font-size:8px;padding:1px 6px;background:${ink.bg};color:${ink.label};border:1px solid ${ink.border};border-radius:2px;font-style:italic;letter-spacing:0.3px;">${n}</span>`;
     }).join('');
@@ -4873,27 +4887,56 @@ function _drawBookPreviews(container) {
     const c1 = cvs.dataset.c1;
     const c2 = cvs.dataset.c2;
     const seen = parseInt(cvs.dataset.seen, 10) || 0;
+    const pc = cvs.getContext('2d');
+
+    // Helper: render directly onto existing canvas — no per-frame allocation
+    const renderInto = (t) => {
+      try {
+        pc.clearRect(0, 0, cvs.width, cvs.height);
+        pc.save();
+        pc.scale(2, 2); // match 2x retina sizing
+        const def = TYPES[type];
+        if (!def) { pc.restore(); return; }
+        const FISH_BOUNDS = {
+          guppy:[2.5,1.0,1.5,1.5], tetra:[1.7,1.0,0.5,0.5], seahorse:[0.7,0.5,1.0,1.8],
+          goldfish:[2.5,1.2,1.2,1.6], angelfish:[1.9,0.8,1.7,3.2], discus:[1.7,1.2,1.2,1.2],
+          jellyfish:[0.9,0.9,1.2,2.2], octopus:[1.0,1.0,1.1,2.6], turtle:[1.15,1.35,0.65,0.65],
+          whaleshark:[2.5,2.2,1.0,1.0], narwhal:[2.3,3.5,1.0,1.0], lionfish:[1.9,1.8,1.8,2.9],
+          idol:[4.3,1.7,2.4,1.2], betta:[3.8,1.0,2.8,2.8],
+        };
+        const s = def.sz;
+        const [bL,bR,bT,bB] = FISH_BOUNDS[type] || [2,2,2,2];
+        const W2 = 160, H2 = 120;
+        const fs = Math.min((W2*0.88)/((bL+bR)*s), (H2*0.88)/((bT+bB)*s));
+        const fishX = W2/2 - (bR-bL)/2*s*fs;
+        const fishY = H2/2 - (bB-bT)/2*s*fs;
+        const mockFish = {
+          type, key:null, isVisitor:false, isEcho:false, def,
+          x:fishX, y:fishY, vx:1, vy:0, phase:t||0,
+          scale: fs/getGlobalLevelScale(),
+          genes:{ c1:[c1||def.c1, c1||def.c1], c2:[c2||def.c2], trait:['normal','normal'], szMod:1 },
+          hunger:100, bonded:0, eat:0, id:1, _octoContractT:0,
+        };
+        const savedCtx = ctx;
+        ctx = pc;
+        try { drawFish(mockFish); } finally { ctx = savedCtx; }
+        pc.restore();
+      } catch(e) { /* swallow draw errors so Aquapedia never crashes on open */ }
+    };
 
     if (seen > 0) {
-      // Animated preview for unlocked species
+      // Animated: draw to existing canvas each frame — no per-frame canvas allocation
       const anim = { running: true, t: 0, frameId: 0 };
       const draw = () => {
         if (!anim.running) return;
         anim.t += 0.04;
-        const preview = drawFishPreview(type, c1, c2, 160, 120, anim.t);
-        const pc = cvs.getContext('2d');
-        pc.clearRect(0, 0, cvs.width, cvs.height);
-        pc.drawImage(preview, 0, 0);
+        renderInto(anim.t);
         anim.frameId = requestAnimationFrame(draw);
       };
       anim.frameId = requestAnimationFrame(draw);
       _bookAnimations.push(anim);
     } else {
-      // Static preview for locked/undiscovered species
-      const preview = drawFishPreview(type, c1, c2, 160, 120);
-      const pc = cvs.getContext('2d');
-      pc.clearRect(0, 0, cvs.width, cvs.height);
-      pc.drawImage(preview, 0, 0);
+      renderInto(0);
     }
   });
 }
