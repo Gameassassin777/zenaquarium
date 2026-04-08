@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.3.0';
+const CUR_VER = '2.3.2';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1728,8 +1728,10 @@ function updateEco(){
   if(isHarmony)sm.harmonySec+=1/60;
 
   if(UPGRADES.autofeed.owned>0&&time%240===0&&foodList.length<fishList.length){
-    // Drop food at random horizontal points to disperse fish evenly
-    foodList.push({x:W*0.1 + Math.random()*(W*0.8), y:20, vy:0, vx:(Math.random()-.5)*.5, life:1, eaten:false});
+    // Teleport food to a random spot anywhere in the swim zone
+    const afX = W*0.1 + Math.random()*(W*0.8);
+    const afY = 90 + Math.random()*(SWIM_BOT()-110);
+    foodList.push({x:afX, y:afY, vy:0.3+Math.random()*0.3, vx:(Math.random()-.5)*.5, life:1, eaten:false});
   }
   
   const now = Date.now();
