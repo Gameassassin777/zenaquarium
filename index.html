@@ -2854,16 +2854,23 @@ function drawFish(f){
       ctx.bezierCurveTo(cp3x, cp3y, endx, endy, endx, endy);
       ctx.stroke();
 
-      // suckers (5 dots per arm along inner curve, shrinking toward tip)
-      ctx.strokeStyle = _c2 + 'cc';
-      for(let j=1; j<=5; j++){
-        const t = j / 5.5;
-        const sx = bx*(1-t) + (cp1x*(1-t)*t + cp2x*t*(1-t) + cp3x*t*t)*3 + endx*t*t*t;
-        const sy = by*(1-t) + (cp1y*(1-t)*t + cp2y*t*(1-t) + cp3y*t*t)*3 + endy*t*t*t;
-        const sr = s * 0.032 * (1 - t * 0.55);
-        ctx.lineWidth = sr * 0.5;
-        ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2);
-        ctx.stroke();
+      // suckers — two rows of 7, correctly placed using cubic bezier formula
+      for(let j=1; j<=7; j++){
+        const t = j / 8;
+        const mt = 1 - t;
+        // correct cubic bezier: B(t) = mt³·P0 + 3·mt²·t·P1 + 3·mt·t²·P2 + t³·P3
+        const skx = mt*mt*mt*bx + 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*endx;
+        const sky = mt*mt*mt*by + 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*endy;
+        // tangent at t for perpendicular row offset
+        const tdx = 3*mt*mt*(cp1x-bx) + 6*mt*t*(cp2x-cp1x) + 3*t*t*(endx-cp2x);
+        const tdy = 3*mt*mt*(cp1y-by) + 6*mt*t*(cp2y-cp1y) + 3*t*t*(endy-cp2y);
+        const tlen = Math.hypot(tdx, tdy) || 1;
+        const roff = s * 0.03 * (1 - t * 0.4);
+        const nx = -tdy / tlen * roff, ny = tdx / tlen * roff;
+        const skr = s * 0.026 * (1 - t * 0.55);
+        ctx.fillStyle = '#ecd8f499'; ctx.strokeStyle = _c2 + 'bb'; ctx.lineWidth = skr * 0.4;
+        ctx.beginPath(); ctx.arc(skx + nx, sky + ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(skx - nx, sky - ny, skr, 0, Math.PI*2); ctx.fill(); ctx.stroke();
       }
     }
 
@@ -4330,12 +4337,29 @@ function drawFishPreview(type, c1, c2, canvasW, canvasH) {
     pc.moveTo(-s * .7, -s * .2); pc.bezierCurveTo(-s * .7, -s * 1, s * .7, -s * 1, s * .7, -s * .2);
     pc.quadraticCurveTo(0, 0, -s * .7, -s * .2); pc.fill();
   } else if (type === 'octopus') {
-    pc.strokeStyle = bg; pc.lineCap = 'round';
-    for (let i = 0; i < 4; i++) { pc.lineWidth = s * .2; const a = (i / 3) * Math.PI * .8 - Math.PI * .4;
-      pc.beginPath(); pc.moveTo(0, s * .2); pc.quadraticCurveTo(Math.cos(a) * s, s, Math.cos(a) * s * 1.2, s * 1.8); pc.stroke(); }
-    pc.fillStyle = bg; pc.beginPath(); pc.ellipse(-s * .3, -s * .2, s * .8, s * .6, -Math.PI / 12, 0, Math.PI * 2); pc.fill();
-    pc.beginPath(); pc.ellipse(s * .3, 0, s * .5, s * .4, Math.PI / 12, 0, Math.PI * 2); pc.fill();
-    drawEye(pc, s * .5, -s * .1, s * .08);
+    pc.lineCap = 'round'; pc.lineJoin = 'round';
+    // 8 arms fanning beneath the mantle (matches main render angles)
+    for (let i = 0; i < 8; i++) {
+      const ba = (i / 7 - 0.5) * Math.PI * 1.1 + Math.PI * 0.5;
+      const abx = Math.cos(ba) * s * 0.38, aby = Math.sin(ba) * s * 0.3 + s * 0.22;
+      const aex = abx * 0.3, aey = aby + s * 1.7;
+      pc.strokeStyle = bg; pc.lineWidth = s * 0.17;
+      pc.beginPath(); pc.moveTo(abx, aby);
+      pc.bezierCurveTo(abx * 0.7, aby + s * 0.45, abx * 0.5, aby + s * 0.95, aex, aey); pc.stroke();
+      pc.strokeStyle = _c1 + 'bb'; pc.lineWidth = s * 0.11;
+      pc.beginPath(); pc.moveTo(abx, aby);
+      pc.bezierCurveTo(abx * 0.7, aby + s * 0.45, abx * 0.5, aby + s * 0.95, aex, aey); pc.stroke();
+    }
+    // teardrop mantle matching main render shape
+    pc.fillStyle = bg; pc.beginPath();
+    pc.moveTo(0, s * 0.28);
+    pc.bezierCurveTo(-s * 0.65, s * 0.22, -s * 0.72, -s * 0.56, 0, -s * 0.88);
+    pc.bezierCurveTo(s * 0.72, -s * 0.56, s * 0.65, s * 0.22, 0, s * 0.28); pc.fill();
+    pc.fillStyle = _c1 + '55'; pc.beginPath();
+    pc.moveTo(0, s * 0.28);
+    pc.bezierCurveTo(-s * 0.65, s * 0.22, -s * 0.72, -s * 0.56, 0, -s * 0.88);
+    pc.bezierCurveTo(s * 0.72, -s * 0.56, s * 0.65, s * 0.22, 0, s * 0.28); pc.fill();
+    drawEye(pc, s * 0.32, -s * 0.16, s * 0.1);
   } else if (type === 'turtle') {
     pc.fillStyle = _c1; pc.beginPath(); pc.ellipse(s * .9, 0, s * .35, s * .25, 0, 0, Math.PI * 2); pc.fill();
     pc.fillStyle = bg; pc.beginPath(); pc.ellipse(0, s * .1, s * .95, s * .5, 0, Math.PI, Math.PI * 2); pc.closePath(); pc.fill();
