@@ -3256,68 +3256,62 @@ function drawFish(f){
     }
     ctx.restore();
 
-    // ── 8 short arms — tight bundle, each curls at the tip ──
+    // ── 8 short arms — chunky tapered shapes, tight forward-facing bundle ──
     ctx.lineCap='round';
     for(let i=0; i<8; i++){
       const t = i/7;
-      // Spread: outermost arms splay more, inner ones stay close to center
-      const spread = (-0.5 + t) * Math.PI * 0.55;
-      const armLen = s*(0.38 + Math.abs(t-0.5)*0.08); // inner slightly longer
-      const wave = Math.sin(f.phase*1.6 + i*0.8) * s*.05;
-      // Taper thickness: outermost arms are thinner
-      ctx.lineWidth = s*(0.13 - Math.abs(t-0.5)*0.08);
-      ctx.strokeStyle = (i<2||i>5) ? _c1+'99' : _c1+'cc'; // outer arms slightly translucent
-      const ox = s*.76 + Math.cos(spread)*armLen;
-      const oy = Math.sin(spread)*armLen + wave;
-      // Control point bends the arm slightly inward at mid-length, then curls tip
-      const cx1 = s*.76 + Math.cos(spread)*armLen*.45 - Math.sin(spread)*s*.06;
-      const cy1 = Math.sin(spread)*armLen*.45 + Math.cos(spread)*s*.06 + wave*.4;
+      // Tight spread — max ~30° from center, so they face forward not sideways
+      const spread = (-0.5 + t) * Math.PI * 0.28;
+      const armLen = s*(0.30 + (1-Math.abs(t-0.5)*2)*0.06); // center arms fractionally longer
+      const curl = Math.sin(f.phase*1.2 + i*0.9) * s*.04;
+      // Draw as filled tapered shape (wide at base, pointed at tip) — looks chunky, not wireframe
+      const baseW = s*(0.10 - Math.abs(t-0.5)*0.04);
+      const bx = s*.76, by = 0;
+      const ex = bx + Math.cos(spread)*armLen;
+      const ey = Math.sin(spread)*armLen + curl;
+      const nx = -Math.sin(spread), ny = Math.cos(spread); // normal
+      ctx.fillStyle = (i===0||i===7) ? _c1+'88' : _c1+'bb';
       ctx.beginPath();
-      ctx.moveTo(s*.76, 0);
-      ctx.quadraticCurveTo(cx1, cy1, ox, oy);
-      ctx.stroke();
-      // Sucker row — small dots along each arm
-      if(i>=2 && i<=5) { // only visible on inner arms
-        ctx.fillStyle = _c2+'88';
-        for(let j=1; j<=3; j++){
-          const jt = j/4;
-          const sx2 = s*.76 + Math.cos(spread)*armLen*jt;
-          const sy2 = Math.sin(spread)*armLen*jt + wave*jt;
-          ctx.beginPath();ctx.arc(sx2, sy2, s*.02, 0, Math.PI*2);ctx.fill();
-        }
-      }
+      ctx.moveTo(bx + nx*baseW,    by + ny*baseW);
+      ctx.quadraticCurveTo(bx + Math.cos(spread)*armLen*.6 + nx*baseW*.5,
+                           by + Math.sin(spread)*armLen*.6 + ny*baseW*.5 + curl*.5,
+                           ex, ey);
+      ctx.quadraticCurveTo(bx + Math.cos(spread)*armLen*.6 - nx*baseW*.5,
+                           by + Math.sin(spread)*armLen*.6 - ny*baseW*.5 + curl*.5,
+                           bx - nx*baseW, by - ny*baseW);
+      ctx.closePath(); ctx.fill();
     }
 
-    // ── 2 long feeding tentacles — shoot from center of arm bundle ──
-    // Real cuttlefish: thin stalk, widens into a flat spatula club with suckers
-    const tExtend = (Math.sin(f.phase*.45)+1)*.5; // slow 0..1 pulse
-    const tLen = s*(0.9 + tExtend*0.7); // long and variable
+    // ── 2 feeding tentacles — thick, looping, whip-like with a blob club ──
+    // Tucked alongside the arm bundle; loop outward then curve back inward at tip
+    const tPhase = f.phase * 0.5;
+    const tExtend = (Math.sin(tPhase)+1)*0.5;
     for(let side=-1; side<=1; side+=2){
-      const tSplay = side * (0.08 + tExtend*0.06); // slight splay when extended
-      const tipX = s*.76 + tLen;
-      const tipY = tSplay*s + paddle*(0.6+tExtend*.4);
-      const cpX  = s*.76 + tLen*.55;
-      const cpY  = tSplay*s*.4 + paddle*.3;
-
-      // Thin stalk
-      ctx.strokeStyle = _c2+'aa'; ctx.lineWidth = s*.04;
+      const baseX = s*.76, baseY = side*s*.06;
+      // Stalk curves forward then arcs back slightly — like a lasso
+      const midX = s*(1.05 + tExtend*.25);
+      const midY = side*s*(0.22 + tExtend*.10) + paddle*0.5;
+      const tipX = s*(0.95 + tExtend*.30);
+      const tipY = side*s*(0.38 + tExtend*.14) + paddle*0.8;
+      // Stalk — drawn thick enough to look substantial, not antenna-thin
+      ctx.strokeStyle = _c1+'cc'; ctx.lineWidth = s*.07; ctx.lineCap='round';
       ctx.beginPath();
-      ctx.moveTo(s*.76, side*s*.03);
-      ctx.quadraticCurveTo(cpX, cpY, tipX - s*.14, tipY - side*s*.02);
+      ctx.moveTo(baseX, baseY);
+      ctx.bezierCurveTo(midX, baseY + (midY-baseY)*.4,
+                        midX, midY,
+                        tipX, tipY);
       ctx.stroke();
-
-      // Spatula club — flattened oval, wider than the stalk
-      ctx.save();
-      ctx.translate(tipX, tipY);
-      ctx.rotate(Math.atan2(tipY - cpY, tipX - cpX));
-      ctx.fillStyle = _c2+'cc';
-      ctx.beginPath();ctx.ellipse(0, 0, s*.16, s*.06, 0, 0, Math.PI*2);ctx.fill();
-      // Sucker pads on club (4 dots in a row)
-      ctx.fillStyle = _c1+'99';
-      for(let k=-1; k<=2; k++){
-        ctx.beginPath();ctx.arc(k*s*.04, 0, s*.018, 0, Math.PI*2);ctx.fill();
-      }
-      ctx.restore();
+      // Club — chunky teardrop blob at the end
+      const clubR = s*(0.11 + tExtend*.03);
+      ctx.fillStyle = _c2+'dd';
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, clubR, 0, Math.PI*2);
+      ctx.fill();
+      // Highlight on club
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath();
+      ctx.arc(tipX - clubR*.25, tipY - clubR*.25, clubR*.4, 0, Math.PI*2);
+      ctx.fill();
     }
 
     // ── Head ──
