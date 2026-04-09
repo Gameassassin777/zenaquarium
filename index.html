@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.4.1';
+const CUR_VER = '2.5.0';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -836,7 +836,7 @@ let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
-let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[]};
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[],visitorsEncountered:{}};
 let currentEra = 0;
 let visitorList = [];
 let _lastVisitorCheck = 0;
@@ -940,8 +940,14 @@ const TYPES = {
   whaleshark:{name:'Whale Shark',      icon:ICONS.tank, cost:180000,    val:22000,  c1:'#1e40af',c2:'#93c5fd',sz:55,spd:0.9,req:10, rare:{c1:'#f0fdf4',c2:'#d1fae5'}},
   narwhal:   {name:'Narwhal',          icon:ICONS.tank, cost:450000,    val:50000,  c1:'#e0f2fe',c2:'#7dd3fc',sz:48,spd:1.6,req:11, rare:{c1:'#fbbf24',c2:'#fef9c3'}},
   lionfish:  {name:'Crimson Lionfish',  icon:ICONS.tank, cost:1000000,  val:110000, c1:'#dc2626',c2:'#7f1d1d',sz:38,spd:0.7,req:12, rare:{c1:'#f0abfc',c2:'#a21caf'}},
-  seahorse:  {name:'Coral Seahorse',    icon:ICONS.tank, cost:2500000,  val:250000, c1:'#fbbf24',c2:'#b45309',sz:30,spd:0.5,req:13, rare:{c1:'#22d3ee',c2:'#0891b2'}},
-  idol:      {name:'Moorish Idol',      icon:ICONS.tank, cost:6000000,  val:550000, c1:'#fef08a',c2:'#1e293b',sz:44,spd:0.9,req:14, rare:{c1:'#a855f7',c2:'#fbbf24'}}
+  seahorse:  {name:'Coral Seahorse',    icon:ICONS.tank, cost:2500000,   val:250000,  c1:'#fbbf24',c2:'#b45309',sz:30,spd:0.5,req:13, rare:{c1:'#22d3ee',c2:'#0891b2'}},
+  idol:      {name:'Moorish Idol',      icon:ICONS.tank, cost:6000000,   val:550000,  c1:'#fef08a',c2:'#1e293b',sz:44,spd:0.9,req:14, rare:{c1:'#a855f7',c2:'#fbbf24'}},
+  mantaray:  {name:'Manta Ray',         icon:ICONS.ocean, cost:15000000,  val:1200000, c1:'#1e293b',c2:'#7dd3fc',sz:55,spd:0.7,req:15, rare:{c1:'#c084fc',c2:'#a855f7'}},
+  cuttlefish:{name:'Giant Cuttlefish',  icon:ICONS.tank,  cost:35000000,  val:2500000, c1:'#b45309',c2:'#422006',sz:36,spd:0.6,req:16, rare:{c1:'#06b6d4',c2:'#0e7490'}},
+  pufferfish:{name:'Porcupine Puffer',  icon:ICONS.tank,  cost:80000000,  val:5500000, c1:'#ca8a04',c2:'#854d0e',sz:32,spd:0.5,req:17, rare:{c1:'#f9a8d4',c2:'#db2777'}},
+  dragoneel: {name:'Dragon Moray Eel',  icon:ICONS.tank,  cost:180000000, val:12000000,c1:'#7c2d12',c2:'#fbbf24',sz:50,spd:1.1,req:18, rare:{c1:'#4ade80',c2:'#166534'}},
+  seadragon: {name:'Leafy Seadragon',   icon:ICONS.reef,  cost:400000000, val:26000000,c1:'#16a34a',c2:'#fbbf24',sz:38,spd:0.4,req:19, rare:{c1:'#f43f5e',c2:'#9f1239'}},
+  colossalsquid:{name:'Colossal Squid', icon:ICONS.abyss, cost:900000000, val:55000000,c1:'#3b0764',c2:'#c084fc',sz:62,spd:0.8,req:20, rare:{c1:'#f8fafc',c2:'#94a3b8'}}
 };
 
 let ownedFlora = ['seaweed', 'grass'];
@@ -1359,7 +1365,8 @@ function buildSave(){
   const sQuests = _openQuests ? Array.from(_openQuests) : [];
   return {
     totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs,
-    fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name})),
+    fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name,
+      ...(f.isVisitor && f.key ? {isVisitor:true, key:f.key} : {})})),
     eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut})),
     clams: clams.length,
     sm, curTheme, curFloor, curBubble, curBorder, currentOrders, completedOrders,
@@ -1411,6 +1418,7 @@ function applyState(s){
   sm.abyssalTamed = sm.abyssalTamed || 0;
   sm.homozyBred = sm.homozyBred || 0;
   sm.aqSeen = sm.aqSeen || {};
+  sm.visitorsEncountered = sm.visitorsEncountered || {};
   questStreak = s.questStreak || 0;
   // Migrate old orders that lack tier info — regenerate them
   currentOrders=(s.currentOrders&&s.currentOrders.length)?s.currentOrders:[];
@@ -1437,13 +1445,19 @@ function applyState(s){
   }
 
   for(const f of(s.fishList || s.fish || [])) {
-    const def=TYPES[f.type];if(!def)continue;
-    const genes = f.genes || generateRandomGenes(f.type);
+    // Tamed visitors have isVisitor+key saved; their type is not in TYPES
+    const isTamedVisitor = f.isVisitor && f.key && VISITOR_SPECIES[f.key];
+    const def = TYPES[f.type];
+    if(!def && !isTamedVisitor) continue;
+    const vDef = isTamedVisitor ? VISITOR_SPECIES[f.key] : null;
+    const spd = def ? def.spd : vDef.spd;
+    const genes = f.genes || (def ? generateRandomGenes(f.type) : {c1:[vDef.c1,vDef.c1],c2:[vDef.c2,vDef.c2],trait:['active','active'],szMod:1});
     fishList.push({id:fid++,type:f.type,x:80+Math.random()*(W-160),y:110+Math.random()*(SWIM_BOT()-150),
-      vx:(Math.random()-.5)*def.spd,vy:(Math.random()-.5)*.5,phase:Math.random()*Math.PI*2,
+      vx:(Math.random()-.5)*spd,vy:(Math.random()-.5)*.5,phase:Math.random()*Math.PI*2,
       timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger!==undefined?f.hunger:80,age:f.age!==undefined?f.age:5000,
       scale:Math.min(1,(f.age!==undefined?f.age:5000)/20000),bonded:f.bonded!==undefined?f.bonded:0, bcd:f.bcd!==undefined?f.bcd:0,
-      genes, isRare: (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2), name:f.name});
+      genes, isRare: def ? (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2) : false, name:f.name,
+      ...(isTamedVisitor ? {isVisitor:true, key:f.key, def:vDef, _sz:vDef.sz} : {})});
     computeColorBonus(fishList[fishList.length-1]);
   }
 
@@ -3019,19 +3033,23 @@ function drawFish(f){
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.06;
-    const stroke = -Math.sin(f.phase * 2.5);
+    // Slower, gentler flap (phase * 1.4 instead of 2.5)
+    const stroke = -Math.sin(f.phase * 1.4);
 
     // ── Tail ──
     ctx.fillStyle=_c1+'cc';
     ctx.beginPath();ctx.ellipse(-s*.9, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
 
-    // ── Single pair of flippers — anchored at body sides, sweep backward like real sea turtles ──
-    // Anchor sits at the body edge (±0.38s at x=0.10s). Major axis angle ~135° in canvas
-    // coords = long axis points upper-left (backward+outward from the body). Flap animates up/down.
     ctx.fillStyle=_c1+'dd';
-    const bA = Math.PI * 0.75; // 135° — sweeps the tip backward toward the tail
-    ctx.beginPath();ctx.ellipse(s*.10, -s*.38, s*.58, s*.10, -(bA + stroke*.32), 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.10,  s*.38, s*.58, s*.10,  (bA + stroke*.32), 0, Math.PI*2);ctx.fill();
+    // ── Rear flipper (near tail, x≈-0.40s) — short stubby, angled backward ──
+    // Angle ~160° keeps tip pointing rearward+outward, shorter major axis
+    ctx.beginPath();ctx.ellipse(-s*.40, -s*.30, s*.38, s*.08, -(Math.PI*0.88 + stroke*.20), 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.40,  s*.30, s*.38, s*.08,  (Math.PI*0.88 + stroke*.20), 0, Math.PI*2);ctx.fill();
+
+    // ── Front flipper (near head, x≈+0.25s) — longer, sweeps upward-backward ──
+    // Angle ~125° sweeps the tip up and backward like a real sea turtle stroke
+    ctx.beginPath();ctx.ellipse(s*.25, -s*.28, s*.50, s*.09, -(Math.PI*0.69 + stroke*.28), 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.25,  s*.28, s*.50, s*.09,  (Math.PI*0.69 + stroke*.28), 0, Math.PI*2);ctx.fill();
 
     // ── Head ──
     ctx.fillStyle=_c1;
@@ -3105,7 +3123,198 @@ function drawFish(f){
 
     drawEye(ctx, s*1.1, -s*.05, s*.05);
   }
-  
+  else if(f.type==='mantaray'){
+    // Wide diamond wing body — viewed from above-ish, swimming horizontally
+    ctx.fillStyle=_c2+'cc';
+    // Tail — thin whip
+    ctx.strokeStyle=_c1; ctx.lineWidth=s*.07; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-s*1.0,0);ctx.quadraticCurveTo(-s*1.8,wag*.8,-s*2.4,wag*1.4);ctx.stroke();
+    // Wing tips animate slightly
+    const wf=paddle*.18;
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.6,0);
+    ctx.bezierCurveTo(s*.4,-s*1.8+wag*.3,-s*.6,-s*1.9+wf,-s*1.0,0);
+    ctx.bezierCurveTo(-s*.6,s*1.9-wf,s*.4,s*1.8-wag*.3,s*.6,0);
+    ctx.fill();
+    // Ventral stripe
+    ctx.strokeStyle=_c2+'55'; ctx.lineWidth=s*.18;
+    ctx.beginPath();ctx.moveTo(s*.5,0);ctx.lineTo(-s*.7,0);ctx.stroke();
+    // Cephalic fins at front (horn-like)
+    ctx.fillStyle=_c1+'aa';
+    ctx.beginPath();ctx.ellipse(s*.65,-s*.18,s*.18,s*.07,-Math.PI/5+wf*.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.65, s*.18,s*.18,s*.07, Math.PI/5-wf*.5,0,Math.PI*2);ctx.fill();
+    // Spots
+    ctx.fillStyle=_c2+'66';
+    for(let i=0;i<6;i++){ctx.beginPath();ctx.arc(-s*.2+i*s*.18*Math.cos(i),-s*.1+i*s*.08*Math.sin(i),s*.05,0,Math.PI*2);ctx.fill();}
+    drawEye(ctx, s*.55, -s*.12, s*.07);
+  }
+  else if(f.type==='cuttlefish'){
+    // Oval mantle with undulating fin skirt, large eyes, colour-shifting
+    const ripple = Math.sin(f.phase*1.8)*s*.08;
+    // Fin skirt around body
+    ctx.strokeStyle=_c1+'88'; ctx.lineWidth=s*.12; ctx.lineCap='round';
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2;
+      const or=s*.95+Math.sin(f.phase*2+i)*s*.12;
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.55,Math.sin(a)*s*.35);ctx.lineTo(Math.cos(a)*or,Math.sin(a)*or*.65);ctx.stroke();
+    }
+    // Body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,s*.72,s*.45,0,0,Math.PI*2);ctx.fill();
+    // Chromatophore pattern (wave of color bands)
+    ctx.save();ctx.beginPath();ctx.ellipse(0,0,s*.72,s*.45,0,0,Math.PI*2);ctx.clip();
+    ctx.fillStyle=_c1+'55';
+    for(let i=0;i<4;i++){
+      ctx.beginPath();ctx.ellipse(-s*.5+i*s*.33+ripple,0,s*.12,s*.45,0,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+    // Tentacles — two long, several short
+    ctx.strokeStyle=_c1+'cc'; ctx.lineWidth=s*.09;
+    ctx.beginPath();ctx.moveTo(s*.6,s*.08);ctx.quadraticCurveTo(s*1.1,s*.1+wag*.6,s*1.5,s*.2+wag);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.6,-s*.08);ctx.quadraticCurveTo(s*1.1,-s*.1-wag*.6,s*1.5,-s*.2-wag);ctx.stroke();
+    ctx.lineWidth=s*.05;
+    for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(s*.58,i*s*.08);ctx.quadraticCurveTo(s*.9,i*s*.12+wag*.3,s*1.2,i*s*.15+wag*.5);ctx.stroke();}
+    // W-shaped pupil (distinctive cuttlefish eye)
+    const eX=s*.18, eY=-s*.1;
+    ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.ellipse(eX,eY,s*.22,s*.18,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#020617';
+    ctx.beginPath();ctx.moveTo(eX-s*.14,eY);ctx.quadraticCurveTo(eX-s*.07,eY-s*.09,eX,eY);ctx.quadraticCurveTo(eX+s*.07,eY-s*.09,eX+s*.14,eY);ctx.lineWidth=s*.05;ctx.strokeStyle='#020617';ctx.stroke();
+  }
+  else if(f.type==='pufferfish'){
+    // Round spiky body, small tail, big eyes
+    const puff = 1 + Math.sin(f.phase*0.5)*0.05; // slight breathing inflate
+    // Spines
+    ctx.strokeStyle=_c2; ctx.lineCap='round'; ctx.lineWidth=s*.05;
+    for(let i=0;i<16;i++){
+      const a=(i/16)*Math.PI*2;
+      const ir=s*.7*puff, or2=s*(0.95+Math.sin(i*2.1)*0.12)*puff;
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*ir,Math.sin(a)*ir);ctx.lineTo(Math.cos(a)*or2,Math.sin(a)*or2);ctx.stroke();
+    }
+    // Body
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.arc(0,0,s*.7*puff,0,Math.PI*2);ctx.fill();
+    // Belly lighter patch
+    ctx.fillStyle=_c2+'44';
+    ctx.beginPath();ctx.ellipse(0,s*.2,s*.4,s*.3,0,0,Math.PI*2);ctx.fill();
+    // Pattern dots on back
+    ctx.fillStyle=_c1+'88';
+    for(let i=0;i<7;i++){ctx.beginPath();ctx.arc(-s*.3+i*s*.1,(-s*.25+Math.sin(i)*s*.1)*puff,s*.06,0,Math.PI*2);ctx.fill();}
+    // Small tail
+    ctx.fillStyle=_c1+'cc';
+    ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*1.1,-s*.3+wag);ctx.lineTo(-s*1.1,s*.3+wag);ctx.closePath();ctx.fill();
+    // Pectoral fins
+    ctx.fillStyle=_c1+'66';
+    ctx.beginPath();ctx.ellipse(s*.1,-s*.55*puff,s*.2,s*.08,Math.PI/5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.1, s*.55*puff,s*.2,s*.08,-Math.PI/5,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, s*.42, -s*.22, s*.14);
+  }
+  else if(f.type==='dragoneel'){
+    // Long sinuous eel body — S-curve swimming, dragon head
+    ctx.lineCap='round';
+    const bodyW=s*.28;
+    const sx2=s*1.0, sy2=wag*0.8;
+    const mx=-s*.2, my=wag*-1.2;
+    const ex=-s*1.6, ey2=wag*1.6;
+    // Body gradient along length
+    const eg=ctx.createLinearGradient(sx2,0,ex,0);
+    eg.addColorStop(0,_c1); eg.addColorStop(0.5,bg); eg.addColorStop(1,_c2+'88');
+    // Draw eel body as thick bezier stroke
+    ctx.strokeStyle=eg; ctx.lineWidth=bodyW;
+    ctx.beginPath();ctx.moveTo(sx2,sy2);ctx.bezierCurveTo(mx*0.3,my*0.4,mx,my,ex,ey2);ctx.stroke();
+    // Dorsal fin stripe
+    ctx.strokeStyle=_c2+'99'; ctx.lineWidth=s*.09;
+    ctx.beginPath();ctx.moveTo(sx2,sy2);ctx.bezierCurveTo(mx*0.3,my*0.4-s*.12,mx,my-s*.12,ex,ey2-s*.08);ctx.stroke();
+    // Pattern: yellow-orange spots on dark body
+    ctx.fillStyle=_c2+'cc';
+    for(let i=0;i<8;i++){
+      const t=i/7;
+      const bx=sx2+(mx-sx2)*t*1.2, by=sy2+(ey2-sy2)*t*(0.5+t*.5);
+      ctx.beginPath();ctx.arc(bx,by,s*.07,0,Math.PI*2);ctx.fill();
+    }
+    // Tail tip
+    ctx.fillStyle=_c1+'aa';
+    ctx.beginPath();ctx.moveTo(ex,ey2);ctx.lineTo(ex-s*.3,ey2-s*.18+wag*.5);ctx.lineTo(ex-s*.3,ey2+s*.18+wag*.5);ctx.closePath();ctx.fill();
+    // Dragon-like head
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.ellipse(sx2+s*.28,sy2,s*.35,s*.2,-Math.PI/10,0,Math.PI*2);ctx.fill();
+    // Jaw slightly open
+    ctx.fillStyle=_c2+'88';
+    ctx.beginPath();ctx.ellipse(sx2+s*.42,sy2+s*.1,s*.2,s*.08,Math.PI/12,0,Math.PI*2);ctx.fill();
+    drawEye(ctx, sx2+s*.38, sy2-s*.08, s*.07);
+  }
+  else if(f.type==='seadragon'){
+    // Like a seahorse but with elaborate leaf-like appendages
+    const bob = Math.sin(f.phase*0.6)*s*.06;
+    ctx.translate(0, bob);
+    // Leaf appendages — drawn before body so they appear attached
+    ctx.fillStyle=_c1+'99';
+    const leafPos=[
+      [s*.1,-s*.5,-Math.PI/6],[s*.0,-s*.25,Math.PI/5],[-s*.05, s*.1,-Math.PI/8],
+      [s*.1,-s*.5, Math.PI/6],[s*.02,-s*.3,-Math.PI/4],[s*.0, s*.0, Math.PI/3],
+    ];
+    for(const [lx,ly,la] of leafPos){
+      ctx.save();ctx.translate(lx,ly);ctx.rotate(la+paddle*.12);
+      ctx.beginPath();ctx.ellipse(0,0,s*.22,s*.06,0,0,Math.PI*2);
+      ctx.fillStyle=_c1+(Math.random()<.5?'aa':'77');ctx.fill();
+      ctx.restore();
+    }
+    // Body — sinuous column
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.15,-s*.55);
+    ctx.quadraticCurveTo(-s*.25,-s*.15,-s*.2,s*.3);
+    ctx.quadraticCurveTo(-s*.35,s*1.0,s*.1,s*1.1);
+    ctx.quadraticCurveTo(s*.35,s*.9,s*.2,s*.3);
+    ctx.quadraticCurveTo(s*.3,-s*.15,s*.35,-s*.55);
+    ctx.closePath();ctx.fill();
+    // Rings
+    ctx.strokeStyle=_c2+'55'; ctx.lineWidth=Math.max(1,s*.03);
+    for(let i=0;i<7;i++){const ry=-s*.5+i*s*.22;ctx.beginPath();ctx.moveTo(-s*.2,ry);ctx.lineTo(s*.28,ry);ctx.stroke();}
+    // Head
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.ellipse(s*.25,-s*.65,s*.22,s*.14,Math.PI/10,0,Math.PI*2);ctx.fill();
+    // Snout
+    ctx.strokeStyle=_c1; ctx.lineWidth=s*.08;
+    ctx.beginPath();ctx.moveTo(s*.32,-s*.7);ctx.lineTo(s*.72,-s*.85+paddle*.3);ctx.stroke();
+    drawEye(ctx, s*.2,-s*.72,s*.06);
+  }
+  else if(f.type==='colossalsquid'){
+    // Large squid: torpedo mantle, 8 arms + 2 long tentacles, big eyes
+    const pulse2=Math.sin(f.phase*.7)*0.06;
+    // Mantle fin
+    ctx.fillStyle=_c2+'aa';
+    ctx.beginPath();ctx.moveTo(-s*.8,0);ctx.lineTo(-s*1.3,-s*.5+wag*.4);ctx.lineTo(-s*1.3,s*.5+wag*.4);ctx.closePath();ctx.fill();
+    // Mantle
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(-s*.1,0,s*(1.0+pulse2),s*(0.42-pulse2*.3),0,0,Math.PI*2);ctx.fill();
+    // Dark blotch pattern
+    ctx.fillStyle=_c1+'44';
+    for(let i=0;i<5;i++){ctx.beginPath();ctx.ellipse(-s*.5+i*s*.28,(-s*.15+Math.sin(i)*s*.1),s*.1,s*.2,i*.5,0,Math.PI*2);ctx.fill();}
+    // Arms — 8 short, radiating from front
+    ctx.strokeStyle=_c1+'bb'; ctx.lineCap='round';
+    for(let i=0;i<8;i++){
+      const a=-Math.PI*.5+(i/7)*Math.PI;
+      const len=s*(0.55+Math.abs(Math.sin(i*.8+f.phase*.5))*.15);
+      ctx.lineWidth=s*(0.14-i*.006);
+      ctx.beginPath();ctx.moveTo(s*.78,0);
+      ctx.quadraticCurveTo(s*.78+Math.cos(a)*len*.5,Math.sin(a)*len*.4+wag*.2,s*.78+Math.cos(a)*len,Math.sin(a)*len+wag*.4);
+      ctx.stroke();
+    }
+    // Two long hunting tentacles
+    ctx.strokeStyle=_c1+'88'; ctx.lineWidth=s*.07;
+    ctx.beginPath();ctx.moveTo(s*.78,-s*.04);ctx.quadraticCurveTo(s*1.3,-s*.1+wag*.5,s*1.7,-s*.05+wag);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.78, s*.04);ctx.quadraticCurveTo(s*1.3, s*.1-wag*.5,s*1.7, s*.05-wag);ctx.stroke();
+    // Tentacle clubs (wider tips)
+    ctx.fillStyle=_c2+'cc';
+    ctx.beginPath();ctx.ellipse(s*1.7,-s*.05+wag,s*.1,s*.05,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*1.7, s*.05-wag,s*.1,s*.05,0,0,Math.PI*2);ctx.fill();
+    // Large eyes
+    ctx.fillStyle='#f8fafc'; ctx.beginPath();ctx.ellipse(s*.65,-s*.2,s*.2,s*.2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#020617'; ctx.beginPath();ctx.ellipse(s*.68,-s*.2,s*.13,s*.13,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.beginPath();ctx.arc(s*.62,-s*.24,s*.04,0,Math.PI*2);ctx.fill();
+  }
+
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = s*0.1;
   ctx.beginPath();
@@ -4298,12 +4507,12 @@ const LEVEL_UNLOCKS={
   12:['Crimson Lionfish','Sunset Bay Theme','Crystal Cavern Theme'],
   13:['Coral Seahorse','Volcanic Rock Floor','Pearl Sands Floor'],
   14:['Moorish Idol','Emerald Bubbles'],
-  15:['Era — Twilight Zone','Gold Frame Border','Aurora Border'],
-  16:['Lava Vent Theme','Cherry Blossom Theme'],
-  17:['Arctic Ice Floor','Golden Gravel Floor'],
-  18:['Rainbow Bubbles'],
-  19:['Pulse Border'],
-  20:['Era — The Abyss','Bioluminescent Theme','Cosmic Void Theme'],
+  15:['Manta Ray','Era — Twilight Zone','Gold Frame Border','Aurora Border'],
+  16:['Giant Cuttlefish','Lava Vent Theme','Cherry Blossom Theme'],
+  17:['Porcupine Puffer','Arctic Ice Floor','Golden Gravel Floor'],
+  18:['Dragon Moray Eel','Rainbow Bubbles'],
+  19:['Leafy Seadragon','Pulse Border'],
+  20:['Colossal Squid','Era — The Abyss','Bioluminescent Theme','Cosmic Void Theme'],
   21:['Obsidian Glass Floor','Bismuth Cluster Floor'],
   22:['Crystal Bubbles','Plasma Bubbles'],
   23:['Electric Blue Border','Nebula Border'],
@@ -4450,6 +4659,9 @@ function spawnVisitor(key, def, echoCopy) {
   };
   computeColorBonus(v);
   visitorList.push(v);
+  // Record first encounter for Aquapedia
+  if(!sm.visitorsEncountered[key]) sm.visitorsEncountered[key] = {};
+  sm.visitorsEncountered[key].seen = true;
   toast(ICONS.eye+' '+def.name+' spotted...','#6366f1');
 }
 
@@ -4501,6 +4713,9 @@ function tameVisitor(idx) {
     visitorList.splice(idx, 1);
     return;
   }
+  // For visitor species that don't exist in TYPES, keep isVisitor+key so drawFish
+  // continues using the visitor renderer instead of falling through to a generic shape.
+  const isTamedVisitor = !TYPES[v.type];
   const newFish = {
     id: fid++,
     type: v.echoCopy || v.type,
@@ -4510,12 +4725,18 @@ function tameVisitor(idx) {
     scale: 1.0, bonded: 3600, bcd: 0,
     genes: v.genes, isRare: def.abyssal || false,
     name: def.name, isAbyssal: def.abyssal || false, isEcho: def.isEcho || false,
+    // Preserve visitor identity so the correct renderer is used after taming
+    isVisitor: isTamedVisitor ? true : undefined,
+    key: isTamedVisitor ? v.type : undefined,
+    def: isTamedVisitor ? def : undefined,
+    _sz: isTamedVisitor ? def.sz : undefined,
   };
   computeColorBonus(newFish);
   recordAqEntry(newFish);
   fishList.push(newFish);
   visitorList.splice(idx, 1);
   sm.visitorsTamed = (sm.visitorsTamed || 0) + 1;
+  if(isTamedVisitor) { if(!sm.visitorsEncountered[v.key]) sm.visitorsEncountered[v.key]={}; sm.visitorsEncountered[v.key].tamed = true; }
   if(def.abyssal) sm.abyssalTamed = (sm.abyssalTamed || 0) + 1;
   giveXP(def.abyssal?300:100);
   spawnJuice(newFish.x, newFish.y - 30, ICONS.sparkle+' '+def.name+' Tamed!', '#a855f7', 2.0);
@@ -4925,6 +5146,83 @@ function buildAquapedia() {
     pageIdx++;
   }
 
+  // ── Special Encounters divider page ──
+  _bookPages.push(`
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:24px 18px;">
+    <div class="aq-page-item" style="animation-delay:0ms;">
+      <div style="font-family:Georgia,serif;font-size:9px;letter-spacing:3px;color:#6a5080;text-transform:uppercase;margin-bottom:6px;">Volume II</div>
+      <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#4a2060;letter-spacing:1.5px;">Special Encounters</div>
+      <div style="font-family:Georgia,serif;font-size:8px;color:#8a70a0;font-style:italic;margin-top:8px;max-width:220px;line-height:1.5;">"Rare visitors from the deep — some may be tamed."</div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:100ms;">
+      <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,#9060c0,transparent);margin:16px auto 12px;"></div>
+    </div>
+    <div class="aq-page-item" style="animation-delay:180ms;">
+      <div style="font-family:Georgia,serif;font-size:8px;color:#9070a8;letter-spacing:1.5px;">${Object.keys(VISITOR_SPECIES).length} Encounters Catalogued</div>
+    </div>
+  </div>`);
+
+  // ── One page per visitor species ──
+  const VISITOR_LORE = {
+    seahare:      'A soft-bodied mollusc that releases purple ink when startled. Its parapodia fan the water as it glides.',
+    mantisshrimp: 'Eyes with 16 colour receptors — sees light humans cannot. Clubs strike faster than a bullet.',
+    nudibranch:   'A dorid nudibranch that absorbs stinging cells from its prey and repurposes them as its own defence.',
+    oarfish:      'The world\'s longest bony fish. Rarely seen alive — its appearance once signalled earthquakes in legend.',
+    sunfish:      'The heaviest bony fish alive, drifting near the surface to warm its massive disc-like body in the sun.',
+    scorpionfish: 'Masters of camouflage — they wait motionless for prey, indistinguishable from fallen leaves.',
+    frogfish:     'Painted in gaudy patterns, it walks on its pectoral fins and lunges faster than any other fish.',
+    vampiresquid: 'Neither squid nor octopus — a living fossil from the Jurassic. It feeds on marine snow in the deep.',
+    glassfish:    'Nearly transparent, its spine visible through the body. Schools shimmer like liquid glass in motion.',
+    ribbonfish:   'The Ribbon Eel passes through three distinct colour phases during its lifetime, even changing sex.',
+    lanternfish:  'Millions migrate vertically each night — one of the largest daily animal migrations on Earth.',
+    velvetray:    'An abyssal ray that glides through the black water with slow, meditative wingbeats.',
+    glasseel:     'The juvenile form of the European eel, crossing entire oceans to reach its freshwater home.',
+    abyssalbloomer:'A jellyfish-like creature that blooms in vast pulses deep below the twilight zone.',
+    starback:     'Tiny and luminous, star-shaped markings glow faintly to confuse predators in the dark.',
+    theecho:      'Not a species — a reflection. It mirrors the rarest fish in your aquarium and then vanishes.',
+  };
+  const VISITOR_ERA_LABEL = { 1:'Shallows Era', 2:'Open Ocean Era', 3:'Twilight Zone', 4:'Midnight Zone', 5:'The Abyss' };
+
+  for(const [key, vDef] of Object.entries(VISITOR_SPECIES)) {
+    const enc = sm.visitorsEncountered?.[key] || {};
+    const seen = !!enc.seen;
+    const tamed = !!enc.tamed;
+    const isAbyssal = !!vDef.abyssal;
+    const eraLabel = VISITOR_ERA_LABEL[vDef.era] || 'Unknown Depths';
+    const lore = VISITOR_LORE[key] || 'A mysterious visitor from the deep ocean.';
+    const rarity = vDef.rarity <= 0.05 ? 'Mythic' : vDef.rarity <= 0.15 ? 'Very Rare' : vDef.rarity <= 0.3 ? 'Rare' : 'Uncommon';
+    const rarityCol = vDef.rarity <= 0.05 ? '#f0a8d0' : vDef.rarity <= 0.15 ? '#c084fc' : vDef.rarity <= 0.3 ? '#60a5fa' : '#94a3b8';
+
+    _bookPages.push(`
+    <div style="padding:14px 18px 10px;overflow-y:auto;height:100%;box-sizing:border-box;">
+      <div style="position:relative;text-align:center;margin-bottom:6px;">
+        <div class="aq-ink-blot" style="background:radial-gradient(ellipse,${vDef.c1}66,transparent 70%);"></div>
+        <div class="aq-page-item" style="animation-delay:0ms;position:relative;z-index:1;">
+          <div style="font-family:Georgia,serif;font-weight:700;font-size:15px;color:${seen?'#4a2060':'#8a7090'};letter-spacing:0.5px;margin-top:2px;">${seen ? vDef.name : '???'}</div>
+          <div style="font-family:Georgia,serif;font-size:8px;color:#9070a8;font-style:italic;letter-spacing:1px;margin-top:2px;">${eraLabel}</div>
+        </div>
+      </div>
+
+      <div class="aq-page-item" style="animation-delay:60ms;text-align:center;">
+        <canvas class="aq-visitor-preview" data-visitor-key="${key}" data-c1="${vDef.c1}" data-c2="${vDef.c2}" data-seen="${seen?1:0}" width="320" height="200" style="width:160px;height:100px;opacity:${seen?1:0.25};"></canvas>
+      </div>
+
+      <div class="aq-page-item" style="animation-delay:120ms;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 4px;">
+          <span style="font-family:Georgia,serif;font-size:8px;color:${rarityCol};border:1px solid ${rarityCol}44;padding:2px 6px;border-radius:2px;">${rarity}</span>
+          ${tamed ? `<span style="font-family:Georgia,serif;font-size:8px;color:#4ade80;border:1px solid #4ade8044;padding:2px 6px;border-radius:2px;">Tamed ✓</span>` : seen ? `<span style="font-family:Georgia,serif;font-size:8px;color:#fbbf24;border:1px solid #fbbf2444;padding:2px 6px;border-radius:2px;">Encountered</span>` : `<span style="font-family:Georgia,serif;font-size:8px;color:#6b7280;padding:2px 6px;">Not yet encountered</span>`}
+        </div>
+      </div>
+
+      <div class="aq-page-item" style="animation-delay:180ms;">
+        <div style="height:1px;background:linear-gradient(90deg,transparent,${vDef.c1}66,transparent);margin:4px 0 8px;"></div>
+        <p style="font-family:Georgia,serif;font-size:9px;color:${seen?'#5a3828':'#8a7080'};line-height:1.6;font-style:italic;margin:0;">${seen ? lore : 'Encounter this visitor to unlock its entry.'}</p>
+      </div>
+
+      ${isAbyssal ? `<div class="aq-page-item" style="animation-delay:240ms;margin-top:8px;"><div style="font-family:Georgia,serif;font-size:8px;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);padding:4px 8px;border-radius:3px;text-align:center;">Abyssal Entity</div></div>` : ''}
+    </div>`);
+  }
+
   // Initialize to first page
   _bookPage = 0;
   _renderBookPage();
@@ -4974,6 +5272,8 @@ function _drawBookPreviews(container) {
           jellyfish:[0.9,0.9,1.2,2.2], octopus:[1.0,1.0,1.1,2.6], turtle:[1.15,1.35,0.65,0.65],
           whaleshark:[2.5,2.2,1.0,1.0], narwhal:[2.3,3.5,1.0,1.0], lionfish:[1.9,1.8,1.8,2.9],
           idol:[4.3,1.7,2.4,1.2], betta:[3.8,1.0,2.8,2.8],
+          mantaray:[1.1,1.1,2.0,2.0], cuttlefish:[1.3,1.7,1.0,1.0], pufferfish:[1.3,1.3,1.3,1.3],
+          dragoneel:[2.0,2.0,0.8,0.8], seadragon:[1.0,0.8,0.7,1.3], colossalsquid:[1.2,2.2,0.7,0.7],
         };
         const s = def.sz;
         const [bL,bR,bT,bB] = FISH_BOUNDS[type] || [2,2,2,2];
@@ -5008,6 +5308,57 @@ function _drawBookPreviews(container) {
       _bookAnimations.push(anim);
     } else {
       renderInto(0);
+    }
+  });
+
+  // ── Visitor species previews ──
+  container.querySelectorAll('canvas.aq-visitor-preview').forEach(cvs => {
+    const key = cvs.dataset.visitorKey;
+    const c1 = cvs.dataset.c1;
+    const c2 = cvs.dataset.c2;
+    const seen = parseInt(cvs.dataset.seen, 10) || 0;
+    const vDef = VISITOR_SPECIES[key];
+    if(!vDef) return;
+    const pc = cvs.getContext('2d');
+    const W2 = 160, H2 = 100;
+    const s = vDef.sz || 20;
+    const VISITOR_BOUNDS = {
+      seahare:[1.0,1.5,0.8,0.8], mantisshrimp:[1.5,1.5,0.6,0.6], nudibranch:[1.2,1.2,0.6,0.6],
+      oarfish:[1.5,2.5,0.4,0.4], sunfish:[1.2,1.2,0.9,0.9], scorpionfish:[1.4,1.2,0.8,0.8],
+      frogfish:[1.2,1.2,0.8,0.8], vampiresquid:[1.0,1.5,0.8,1.2], glassfish:[1.5,1.0,0.5,0.5],
+      ribbonfish:[1.5,2.0,0.6,0.6], lanternfish:[1.5,1.0,0.5,0.5], velvetray:[1.0,1.0,1.5,1.5],
+      glasseel:[2.0,2.0,0.4,0.4], abyssalbloomer:[1.0,1.0,1.2,1.2], starback:[1.2,1.0,0.5,0.5],
+      theecho:[1.0,1.0,0.5,0.5],
+    };
+    const [bL,bR,bT,bB] = VISITOR_BOUNDS[key] || [1.5,1.5,1.0,1.0];
+    const fs = s > 0 ? Math.min((W2*0.82)/((bL+bR)*s), (H2*0.82)/((bT+bB)*s)) : 1;
+    const fishX = W2/2 - (bR-bL)/2*s*fs;
+    const fishY = H2/2 - (bB-bT)/2*s*fs;
+    const renderV = (t) => {
+      try {
+        pc.clearRect(0,0,cvs.width,cvs.height);
+        pc.save(); pc.scale(2,2);
+        const mockFish = {
+          type: 'guppy', key, isVisitor: true, isEcho: false,
+          def: vDef, _sz: s,
+          x: fishX, y: fishY, vx:1, vy:0, phase: t||0,
+          scale: fs/getGlobalLevelScale(),
+          genes:{ c1:[c1||vDef.c1,c1||vDef.c1], c2:[c2||vDef.c2,c2||vDef.c2], trait:['active','active'], szMod:1 },
+          hunger:100, bonded:0, eat:0, id:1, _octoContractT:0,
+        };
+        const savedCtx = ctx;
+        ctx = pc;
+        try { drawFish(mockFish); } finally { ctx = savedCtx; }
+        pc.restore();
+      } catch(e) {}
+    };
+    if(seen > 0) {
+      const anim = { running:true, t:0, frameId:0 };
+      const draw = () => { if(!anim.running) return; anim.t+=0.04; renderV(anim.t); anim.frameId=requestAnimationFrame(draw); };
+      anim.frameId = requestAnimationFrame(draw);
+      _bookAnimations.push(anim);
+    } else {
+      renderV(0);
     }
   });
 }
