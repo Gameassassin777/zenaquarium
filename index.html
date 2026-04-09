@@ -681,6 +681,44 @@ function setupPWA(){
   localStorage.setItem('zen_v', CUR_VER);
   return false;
 }
+function forceReload() {
+  saveGame();
+  localStorage.removeItem('zen_v');
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(rs => {
+      Promise.all(rs.map(r => r.unregister())).then(() => location.reload(true));
+    }).catch(() => location.reload(true));
+  } else {
+    location.reload(true);
+  }
+}
+
+function checkForUpdate() {
+  const btn = document.getElementById('btn-check-update');
+  const status = document.getElementById('update-status');
+  if(btn) btn.disabled = true;
+  if(status) status.textContent = 'Checking...';
+  fetch(location.href + '?v=' + Date.now(), { cache:'no-store' })
+    .then(r => r.text())
+    .then(txt => {
+      const match = txt.match(/const CUR_VER = ['"]([\d.]+)['"]/);
+      const remote = match ? match[1] : null;
+      if(!remote) {
+        if(status) status.textContent = 'Could not reach server.';
+      } else if(remote === CUR_VER) {
+        if(status) status.textContent = `✓ Already on latest (v${CUR_VER})`;
+      } else {
+        if(status) status.innerHTML = `New version v${remote} available! Updating...`;
+        setTimeout(forceReload, 800);
+      }
+      if(btn) btn.disabled = false;
+    })
+    .catch(() => {
+      if(status) status.textContent = 'No connection. Try Force Reload.';
+      if(btn) btn.disabled = false;
+    });
+}
+
 const _stopBoot = setupPWA();
 if (_stopBoot) {
   document.body.style.background = '#001428';
@@ -5969,6 +6007,20 @@ function buildSocial(){
       <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; gap:10px;">
         <div style="font-size:10px; color:#94a3b8; line-height:1.4;">Progress is saved locally.<br>Take care of your fish!</div>
         <button onclick="resetSave()" class="cbtn" style="background:rgba(239,68,68,0.2); color:#fca5a5; border-color:rgba(239,68,68,0.4);">Reset Account</button>
+      </div>
+    </div>
+
+    <div class="ocard" style="margin-bottom:15px; border:1px solid rgba(103,232,249,0.2); background:rgba(103,232,249,0.04);">
+      <div class="otop" style="padding-bottom:10px; border-bottom:1px solid var(--border);">
+        <div class="otitle" style="font-size:13px; display:flex; align-items:center; gap:6px; color:#67e8f9;">${ICONS.gear} App Update</div>
+      </div>
+      <div style="padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:10px; color:#94a3b8; line-height:1.6;">Running <span style="color:#67e8f9; font-family:monospace;">v${CUR_VER}</span>. On iOS the browser caches aggressively — tap below to clear the cache and reload the latest version. Your save data is never affected.</div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button id="btn-check-update" class="cbtn" style="flex:1; background:rgba(103,232,249,0.12); border-color:rgba(103,232,249,0.35); color:#67e8f9; font-weight:600;" onclick="checkForUpdate()">Check for Update</button>
+          <button class="cbtn" style="flex:1; background:rgba(103,232,249,0.06); border-color:rgba(103,232,249,0.2); color:#94a3b8; font-weight:600;" onclick="forceReload()">Force Reload</button>
+        </div>
+        <div id="update-status" style="font-size:10px; text-align:center; color:#64748b; min-height:14px;"></div>
       </div>
     </div>
 
