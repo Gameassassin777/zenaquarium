@@ -3150,36 +3150,124 @@ function drawFish(f){
     drawEye(ctx, s*.55, -s*.12, s*.07);
   }
   else if(f.type==='cuttlefish'){
-    // Oval mantle with undulating fin skirt, large eyes, colour-shifting
-    const ripple = Math.sin(f.phase*1.8)*s*.08;
-    // Fin skirt around body
-    ctx.strokeStyle=_c1+'88'; ctx.lineWidth=s*.12; ctx.lineCap='round';
-    for(let i=0;i<8;i++){
-      const a=(i/8)*Math.PI*2;
-      const or=s*.95+Math.sin(f.phase*2+i)*s*.12;
-      ctx.beginPath();ctx.moveTo(Math.cos(a)*s*.55,Math.sin(a)*s*.35);ctx.lineTo(Math.cos(a)*or,Math.sin(a)*or*.65);ctx.stroke();
+    // Real cuttlefish: horizontal torpedo mantle, lateral fin ribbon along each side,
+    // 8 short arms + 2 long feeding tentacles at the front, chromatophore bands, W pupil
+    const FIN_SEGS = 10;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+
+    // ── Lateral undulating fin ribbons (one per side, running the body length) ──
+    // Each segment is a filled trapezoid slice; wave ripples forward-to-back
+    for(const side of [-1, 1]) {
+      ctx.beginPath();
+      // top edge of fin (body side)
+      ctx.moveTo(-s*.85, side*s*.32);
+      for(let i=0; i<=FIN_SEGS; i++){
+        const t = i/FIN_SEGS;
+        const bx = -s*.85 + t*s*1.65;
+        const bodyY = side*s*.32;
+        ctx.lineTo(bx, bodyY);
+      }
+      // bottom edge of fin (outer rippling edge, swept back)
+      for(let i=FIN_SEGS; i>=0; i--){
+        const t = i/FIN_SEGS;
+        const bx = -s*.85 + t*s*1.65;
+        const wave = Math.sin(f.phase*2.2 - t*Math.PI*2.5) * s*.18;
+        const finH = s*(0.28 - 0.14*Math.abs(t-0.5)*2); // tapers at both ends
+        ctx.lineTo(bx, side*(s*.32 + finH) + wave);
+      }
+      ctx.closePath();
+      ctx.fillStyle = _c1+'66';
+      ctx.fill();
+      // Fin edge highlight
+      ctx.beginPath();
+      for(let i=0; i<=FIN_SEGS; i++){
+        const t = i/FIN_SEGS;
+        const bx = -s*.85 + t*s*1.65;
+        const wave = Math.sin(f.phase*2.2 - t*Math.PI*2.5) * s*.18;
+        const finH = s*(0.28 - 0.14*Math.abs(t-0.5)*2);
+        if(i===0) ctx.moveTo(bx, side*(s*.32+finH)+wave);
+        else ctx.lineTo(bx, side*(s*.32+finH)+wave);
+      }
+      ctx.strokeStyle = _c2+'88'; ctx.lineWidth = s*.04; ctx.stroke();
     }
-    // Body
-    ctx.fillStyle=bg;
-    ctx.beginPath();ctx.ellipse(0,0,s*.72,s*.45,0,0,Math.PI*2);ctx.fill();
-    // Chromatophore pattern (wave of color bands)
-    ctx.save();ctx.beginPath();ctx.ellipse(0,0,s*.72,s*.45,0,0,Math.PI*2);ctx.clip();
-    ctx.fillStyle=_c1+'55';
-    for(let i=0;i<4;i++){
-      ctx.beginPath();ctx.ellipse(-s*.5+i*s*.33+ripple,0,s*.12,s*.45,0,0,Math.PI*2);ctx.fill();
+
+    // ── Mantle body ──
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.moveTo(s*.85, 0);
+    ctx.bezierCurveTo(s*.9, -s*.28, s*.1, -s*.42, -s*.6, -s*.36);
+    ctx.bezierCurveTo(-s*.95, -s*.22, -s*.95, s*.22, -s*.6, s*.36);
+    ctx.bezierCurveTo(s*.1, s*.42, s*.9, s*.28, s*.85, 0);
+    ctx.fill();
+
+    // ── Chromatophore bands (animated color wash) ──
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(s*.85, 0);
+    ctx.bezierCurveTo(s*.9, -s*.28, s*.1, -s*.42, -s*.6, -s*.36);
+    ctx.bezierCurveTo(-s*.95, -s*.22, -s*.95, s*.22, -s*.6, s*.36);
+    ctx.bezierCurveTo(s*.1, s*.42, s*.9, s*.28, s*.85, 0);
+    ctx.clip();
+    const cPhase = f.phase * 0.9;
+    for(let i=0; i<5; i++){
+      const cx3 = -s*.7 + i*s*.38 + Math.sin(cPhase+i)*s*.06;
+      ctx.fillStyle = (i%2===0 ? _c1 : _c2)+'44';
+      ctx.beginPath();ctx.ellipse(cx3,0,s*.16,s*.42,0,0,Math.PI*2);ctx.fill();
     }
     ctx.restore();
-    // Tentacles — two long, several short
-    ctx.strokeStyle=_c1+'cc'; ctx.lineWidth=s*.09;
-    ctx.beginPath();ctx.moveTo(s*.6,s*.08);ctx.quadraticCurveTo(s*1.1,s*.1+wag*.6,s*1.5,s*.2+wag);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(s*.6,-s*.08);ctx.quadraticCurveTo(s*1.1,-s*.1-wag*.6,s*1.5,-s*.2-wag);ctx.stroke();
-    ctx.lineWidth=s*.05;
-    for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(s*.58,i*s*.08);ctx.quadraticCurveTo(s*.9,i*s*.12+wag*.3,s*1.2,i*s*.15+wag*.5);ctx.stroke();}
-    // W-shaped pupil (distinctive cuttlefish eye)
-    const eX=s*.18, eY=-s*.1;
-    ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.ellipse(eX,eY,s*.22,s*.18,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#020617';
-    ctx.beginPath();ctx.moveTo(eX-s*.14,eY);ctx.quadraticCurveTo(eX-s*.07,eY-s*.09,eX,eY);ctx.quadraticCurveTo(eX+s*.07,eY-s*.09,eX+s*.14,eY);ctx.lineWidth=s*.05;ctx.strokeStyle='#020617';ctx.stroke();
+
+    // ── 8 short arms fanned at front ──
+    ctx.strokeStyle = _c1+'bb'; ctx.lineCap='round';
+    for(let i=0; i<8; i++){
+      const t = i/7; // 0..1
+      const a = (-0.55 + t*1.1) * Math.PI * 0.42; // fan spread
+      const len = s*(0.42 + Math.sin(f.phase*1.4 + i*.7)*.06);
+      ctx.lineWidth = s*(0.1 - i*0.004);
+      ctx.beginPath();
+      ctx.moveTo(s*.72, 0);
+      ctx.quadraticCurveTo(
+        s*.72 + Math.cos(a)*len*.55, Math.sin(a)*len*.55 + paddle*.3,
+        s*.72 + Math.cos(a)*len,     Math.sin(a)*len     + paddle*.5
+      );
+      ctx.stroke();
+    }
+
+    // ── 2 long feeding tentacles (tucked between arms, extend on slow pulse) ──
+    const tExtend = (Math.sin(f.phase*.5)+1)*.5; // 0..1 extension cycle
+    ctx.strokeStyle = _c2+'99'; ctx.lineWidth = s*.06;
+    for(const side of [-1,1]){
+      ctx.beginPath();
+      ctx.moveTo(s*.74, side*s*.04);
+      ctx.bezierCurveTo(
+        s*(1.0 + tExtend*.4), side*s*(.06+tExtend*.08),
+        s*(1.2 + tExtend*.5), side*s*(.1+tExtend*.12) + paddle,
+        s*(1.35+ tExtend*.6), side*s*(.14+tExtend*.16) + paddle*1.4
+      );
+      ctx.stroke();
+      // Club at tip
+      ctx.fillStyle = _c2+'cc';
+      ctx.beginPath();ctx.ellipse(
+        s*(1.35+tExtend*.6), side*s*(.14+tExtend*.16)+paddle*1.4,
+        s*.08, s*.04, a||0, 0, Math.PI*2
+      );ctx.fill();
+    }
+
+    // ── Head ──
+    ctx.fillStyle = bg;
+    ctx.beginPath();ctx.ellipse(s*.65,0,s*.28,s*.22,0,0,Math.PI*2);ctx.fill();
+
+    // ── W-shaped pupil (cuttlefish signature) ──
+    const eX=s*.68, eY=-s*.06;
+    ctx.fillStyle='#f8fafc';ctx.beginPath();ctx.ellipse(eX,eY,s*.18,s*.15,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e2e8f0';ctx.beginPath();ctx.ellipse(eX,eY,s*.13,s*.13,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#020617'; ctx.lineWidth=s*.04; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(eX-s*.1,eY+s*.02);
+    ctx.lineTo(eX-s*.05,eY-s*.07);
+    ctx.lineTo(eX,eY+s*.02);
+    ctx.lineTo(eX+s*.05,eY-s*.07);
+    ctx.lineTo(eX+s*.1,eY+s*.02);
+    ctx.stroke();
   }
   else if(f.type==='pufferfish'){
     // Round spiky body, small tail, big eyes
