@@ -3256,62 +3256,44 @@ function drawFish(f){
     }
     ctx.restore();
 
-    // ── 8 short arms — chunky tapered shapes, tight forward-facing bundle ──
+    // ── 8 arms — chunky filled tapers, tight forward fan, two center ones longer ──
     ctx.lineCap='round';
     for(let i=0; i<8; i++){
       const t = i/7;
-      // Tight spread — max ~30° from center, so they face forward not sideways
-      const spread = (-0.5 + t) * Math.PI * 0.28;
-      const armLen = s*(0.55 + (1-Math.abs(t-0.5)*2)*0.10); // center arms fractionally longer
-      const curl = Math.sin(f.phase*1.2 + i*0.9) * s*.04;
-      // Draw as filled tapered shape (wide at base, pointed at tip) — looks chunky, not wireframe
-      const baseW = s*(0.10 - Math.abs(t-0.5)*0.04);
+      const centerDist = Math.abs(t - 0.5) * 2; // 0 at center, 1 at edges
+      // Tight forward spread, outermost ~25° from axis
+      const spread = (-0.5 + t) * Math.PI * 0.25;
+      // Center pair noticeably longer — they're the "feeding tentacles" integrated
+      const armLen = s*(0.55 + (1 - centerDist) * 0.35);
+      const curl = Math.sin(f.phase*1.1 + i*0.75) * s*.05;
+      const baseW = s*(0.13 - centerDist*0.04);
       const bx = s*.76, by = 0;
       const ex = bx + Math.cos(spread)*armLen;
       const ey = Math.sin(spread)*armLen + curl;
-      const nx = -Math.sin(spread), ny = Math.cos(spread); // normal
-      ctx.fillStyle = (i===0||i===7) ? _c1+'88' : _c1+'bb';
+      const nx = -Math.sin(spread), ny = Math.cos(spread);
+      // Outer arms slightly more transparent
+      ctx.fillStyle = centerDist > 0.7 ? _c1+'77' : centerDist > 0.3 ? _c1+'aa' : _c1+'cc';
       ctx.beginPath();
-      ctx.moveTo(bx + nx*baseW,    by + ny*baseW);
-      ctx.quadraticCurveTo(bx + Math.cos(spread)*armLen*.6 + nx*baseW*.5,
-                           by + Math.sin(spread)*armLen*.6 + ny*baseW*.5 + curl*.5,
-                           ex, ey);
-      ctx.quadraticCurveTo(bx + Math.cos(spread)*armLen*.6 - nx*baseW*.5,
-                           by + Math.sin(spread)*armLen*.6 - ny*baseW*.5 + curl*.5,
-                           bx - nx*baseW, by - ny*baseW);
+      ctx.moveTo(bx + nx*baseW, by + ny*baseW);
+      ctx.quadraticCurveTo(
+        bx + Math.cos(spread)*armLen*.55 + nx*baseW*.4,
+        by + Math.sin(spread)*armLen*.55 + ny*baseW*.4 + curl*.5,
+        ex, ey
+      );
+      ctx.quadraticCurveTo(
+        bx + Math.cos(spread)*armLen*.55 - nx*baseW*.4,
+        by + Math.sin(spread)*armLen*.55 - ny*baseW*.4 + curl*.5,
+        bx - nx*baseW, by - ny*baseW
+      );
       ctx.closePath(); ctx.fill();
-    }
-
-    // ── 2 feeding tentacles — thick, looping, whip-like with a blob club ──
-    // Tucked alongside the arm bundle; loop outward then curve back inward at tip
-    const tPhase = f.phase * 0.5;
-    const tExtend = (Math.sin(tPhase)+1)*0.5;
-    for(let side=-1; side<=1; side+=2){
-      const baseX = s*.76, baseY = side*s*.06;
-      // Stalk curves forward then arcs back slightly — like a lasso
-      const midX = s*(1.45 + tExtend*.40);
-      const midY = side*s*(0.30 + tExtend*.14) + paddle*0.6;
-      const tipX = s*(1.35 + tExtend*.50);
-      const tipY = side*s*(0.55 + tExtend*.20) + paddle*1.0;
-      // Stalk — drawn thick enough to look substantial, not antenna-thin
-      ctx.strokeStyle = _c1+'cc'; ctx.lineWidth = s*.07; ctx.lineCap='round';
-      ctx.beginPath();
-      ctx.moveTo(baseX, baseY);
-      ctx.bezierCurveTo(midX, baseY + (midY-baseY)*.4,
-                        midX, midY,
-                        tipX, tipY);
-      ctx.stroke();
-      // Club — chunky teardrop blob at the end
-      const clubR = s*(0.11 + tExtend*.03);
-      ctx.fillStyle = _c2+'dd';
-      ctx.beginPath();
-      ctx.arc(tipX, tipY, clubR, 0, Math.PI*2);
-      ctx.fill();
-      // Highlight on club
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.beginPath();
-      ctx.arc(tipX - clubR*.25, tipY - clubR*.25, clubR*.4, 0, Math.PI*2);
-      ctx.fill();
+      // Sucker dots on the inner face of each arm
+      ctx.fillStyle = _c2+'66';
+      for(let j=1; j<=3; j++){
+        const jt = j/4;
+        ctx.beginPath();
+        ctx.arc(bx + Math.cos(spread)*armLen*jt, Math.sin(spread)*armLen*jt + curl*jt, s*.025, 0, Math.PI*2);
+        ctx.fill();
+      }
     }
 
     // ── Head ──
