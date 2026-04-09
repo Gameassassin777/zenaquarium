@@ -4713,12 +4713,11 @@ function tameVisitor(idx) {
     visitorList.splice(idx, 1);
     return;
   }
-  // For visitor species that don't exist in TYPES, keep isVisitor+key so drawFish
-  // continues using the visitor renderer instead of falling through to a generic shape.
-  const isTamedVisitor = !TYPES[v.type];
+  // v.type is 'guppy' placeholder for all non-echo visitors; use v.key to detect real visitor species
+  const isTamedVisitor = v.isVisitor && !!VISITOR_SPECIES[v.key];
   const newFish = {
     id: fid++,
-    type: v.echoCopy || v.type,
+    type: v.echoCopy || v.type,  // 'guppy' placeholder keeps drawFish from crashing; isVisitor+key picks renderer
     x: v.x, y: v.y, vx: v.vx, vy: v.vy,
     phase: v.phase, timer: 0, eat: 0,
     hunger: 100, age: 30000, birthTime: Date.now() - 30000*16.666,
@@ -4727,7 +4726,7 @@ function tameVisitor(idx) {
     name: def.name, isAbyssal: def.abyssal || false, isEcho: def.isEcho || false,
     // Preserve visitor identity so the correct renderer is used after taming
     isVisitor: isTamedVisitor ? true : undefined,
-    key: isTamedVisitor ? v.type : undefined,
+    key: isTamedVisitor ? v.key : undefined,   // was v.type — wrong, that's 'guppy'
     def: isTamedVisitor ? def : undefined,
     _sz: isTamedVisitor ? def.sz : undefined,
   };
