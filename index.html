@@ -3019,22 +3019,19 @@ function drawFish(f){
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.06;
-    // Reversed flap direction vs original
     const stroke = -Math.sin(f.phase * 2.5);
 
     // ── Tail ──
     ctx.fillStyle=_c1+'cc';
     ctx.beginPath();ctx.ellipse(-s*.9, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
 
-    // ── Rear flippers (drawn behind shell, pulled closer to body) ──
-    ctx.fillStyle=_c1+'bb';
-    ctx.beginPath();ctx.ellipse(-s*.45, -s*.30, s*.30, s*.09, -Math.PI/5 - stroke*.25, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-s*.45,  s*.30, s*.30, s*.09,  Math.PI/5 + stroke*.25, 0, Math.PI*2);ctx.fill();
-
-    // ── Front flippers (drawn behind shell, pulled closer to body) ──
-    ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.30, -s*.36, s*.52, s*.12, -Math.PI/6 + stroke*.5, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.30,  s*.36, s*.52, s*.12,  Math.PI/6 - stroke*.5, 0, Math.PI*2);ctx.fill();
+    // ── Single pair of flippers — anchored at body sides, sweep backward like real sea turtles ──
+    // Anchor sits at the body edge (±0.38s at x=0.10s). Major axis angle ~135° in canvas
+    // coords = long axis points upper-left (backward+outward from the body). Flap animates up/down.
+    ctx.fillStyle=_c1+'dd';
+    const bA = Math.PI * 0.75; // 135° — sweeps the tip backward toward the tail
+    ctx.beginPath();ctx.ellipse(s*.10, -s*.38, s*.58, s*.10, -(bA + stroke*.32), 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.10,  s*.38, s*.58, s*.10,  (bA + stroke*.32), 0, Math.PI*2);ctx.fill();
 
     // ── Head ──
     ctx.fillStyle=_c1;
