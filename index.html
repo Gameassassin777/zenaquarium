@@ -1483,8 +1483,10 @@ function applyState(s){
 // Abbreviate large numbers for HUD display
 function formatCoins(n) {
   if (n === undefined || isNaN(n)) return "0";
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e15) return (n / 1e15).toFixed(2) + 'Qa';
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return (n / 1e6).toFixed(2) + 'M';
   if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
   return Math.floor(n).toLocaleString('en-US');
 }
@@ -7423,9 +7425,11 @@ function swDrawAll() {
 }
 
 function swFmtCost(n) {
-  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
-  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  if (n >= 1e15) return (n/1e15).toFixed(1) + 'Qa';
+  if (n >= 1e12) return (n/1e12).toFixed(1) + 'T';
+  if (n >= 1e9)  return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6)  return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3)  return (n/1e3).toFixed(1) + 'K';
   return String(Math.round(n));
 }
 
