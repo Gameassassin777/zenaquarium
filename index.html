@@ -3256,40 +3256,68 @@ function drawFish(f){
     }
     ctx.restore();
 
-    // ── 8 short arms fanned at front ──
-    ctx.strokeStyle = _c1+'bb'; ctx.lineCap='round';
+    // ── 8 short arms — tight bundle, each curls at the tip ──
+    ctx.lineCap='round';
     for(let i=0; i<8; i++){
-      const t = i/7; // 0..1
-      const a = (-0.55 + t*1.1) * Math.PI * 0.42; // fan spread
-      const len = s*(0.42 + Math.sin(f.phase*1.4 + i*.7)*.06);
-      ctx.lineWidth = s*(0.1 - i*0.004);
+      const t = i/7;
+      // Spread: outermost arms splay more, inner ones stay close to center
+      const spread = (-0.5 + t) * Math.PI * 0.55;
+      const armLen = s*(0.38 + Math.abs(t-0.5)*0.08); // inner slightly longer
+      const wave = Math.sin(f.phase*1.6 + i*0.8) * s*.05;
+      // Taper thickness: outermost arms are thinner
+      ctx.lineWidth = s*(0.13 - Math.abs(t-0.5)*0.08);
+      ctx.strokeStyle = (i<2||i>5) ? _c1+'99' : _c1+'cc'; // outer arms slightly translucent
+      const ox = s*.76 + Math.cos(spread)*armLen;
+      const oy = Math.sin(spread)*armLen + wave;
+      // Control point bends the arm slightly inward at mid-length, then curls tip
+      const cx1 = s*.76 + Math.cos(spread)*armLen*.45 - Math.sin(spread)*s*.06;
+      const cy1 = Math.sin(spread)*armLen*.45 + Math.cos(spread)*s*.06 + wave*.4;
       ctx.beginPath();
-      ctx.moveTo(s*.72, 0);
-      ctx.quadraticCurveTo(
-        s*.72 + Math.cos(a)*len*.55, Math.sin(a)*len*.55 + paddle*.3,
-        s*.72 + Math.cos(a)*len,     Math.sin(a)*len     + paddle*.5
-      );
+      ctx.moveTo(s*.76, 0);
+      ctx.quadraticCurveTo(cx1, cy1, ox, oy);
       ctx.stroke();
+      // Sucker row — small dots along each arm
+      if(i>=2 && i<=5) { // only visible on inner arms
+        ctx.fillStyle = _c2+'88';
+        for(let j=1; j<=3; j++){
+          const jt = j/4;
+          const sx2 = s*.76 + Math.cos(spread)*armLen*jt;
+          const sy2 = Math.sin(spread)*armLen*jt + wave*jt;
+          ctx.beginPath();ctx.arc(sx2, sy2, s*.02, 0, Math.PI*2);ctx.fill();
+        }
+      }
     }
 
-    // ── 2 long feeding tentacles (tucked between arms, extend on slow pulse) ──
-    const tExtend = (Math.sin(f.phase*.5)+1)*.5; // 0..1 extension cycle
-    ctx.strokeStyle = _c2+'99'; ctx.lineWidth = s*.06;
-    for(const side of [-1,1]){
+    // ── 2 long feeding tentacles — shoot from center of arm bundle ──
+    // Real cuttlefish: thin stalk, widens into a flat spatula club with suckers
+    const tExtend = (Math.sin(f.phase*.45)+1)*.5; // slow 0..1 pulse
+    const tLen = s*(0.9 + tExtend*0.7); // long and variable
+    for(let side=-1; side<=1; side+=2){
+      const tSplay = side * (0.08 + tExtend*0.06); // slight splay when extended
+      const tipX = s*.76 + tLen;
+      const tipY = tSplay*s + paddle*(0.6+tExtend*.4);
+      const cpX  = s*.76 + tLen*.55;
+      const cpY  = tSplay*s*.4 + paddle*.3;
+
+      // Thin stalk
+      ctx.strokeStyle = _c2+'aa'; ctx.lineWidth = s*.04;
       ctx.beginPath();
-      ctx.moveTo(s*.74, side*s*.04);
-      ctx.bezierCurveTo(
-        s*(1.0 + tExtend*.4), side*s*(.06+tExtend*.08),
-        s*(1.2 + tExtend*.5), side*s*(.1+tExtend*.12) + paddle,
-        s*(1.35+ tExtend*.6), side*s*(.14+tExtend*.16) + paddle*1.4
-      );
+      ctx.moveTo(s*.76, side*s*.03);
+      ctx.quadraticCurveTo(cpX, cpY, tipX - s*.14, tipY - side*s*.02);
       ctx.stroke();
-      // Club at tip
+
+      // Spatula club — flattened oval, wider than the stalk
+      ctx.save();
+      ctx.translate(tipX, tipY);
+      ctx.rotate(Math.atan2(tipY - cpY, tipX - cpX));
       ctx.fillStyle = _c2+'cc';
-      ctx.beginPath();ctx.ellipse(
-        s*(1.35+tExtend*.6), side*s*(.14+tExtend*.16)+paddle*1.4,
-        s*.08, s*.04, 0, 0, Math.PI*2
-      );ctx.fill();
+      ctx.beginPath();ctx.ellipse(0, 0, s*.16, s*.06, 0, 0, Math.PI*2);ctx.fill();
+      // Sucker pads on club (4 dots in a row)
+      ctx.fillStyle = _c1+'99';
+      for(let k=-1; k<=2; k++){
+        ctx.beginPath();ctx.arc(k*s*.04, 0, s*.018, 0, Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
     }
 
     // ── Head ──
