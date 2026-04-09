@@ -3262,7 +3262,7 @@ function drawFish(f){
       const t = i/7;
       // Tight spread — max ~30° from center, so they face forward not sideways
       const spread = (-0.5 + t) * Math.PI * 0.28;
-      const armLen = s*(0.30 + (1-Math.abs(t-0.5)*2)*0.06); // center arms fractionally longer
+      const armLen = s*(0.55 + (1-Math.abs(t-0.5)*2)*0.10); // center arms fractionally longer
       const curl = Math.sin(f.phase*1.2 + i*0.9) * s*.04;
       // Draw as filled tapered shape (wide at base, pointed at tip) — looks chunky, not wireframe
       const baseW = s*(0.10 - Math.abs(t-0.5)*0.04);
@@ -3289,10 +3289,10 @@ function drawFish(f){
     for(let side=-1; side<=1; side+=2){
       const baseX = s*.76, baseY = side*s*.06;
       // Stalk curves forward then arcs back slightly — like a lasso
-      const midX = s*(1.05 + tExtend*.25);
-      const midY = side*s*(0.22 + tExtend*.10) + paddle*0.5;
-      const tipX = s*(0.95 + tExtend*.30);
-      const tipY = side*s*(0.38 + tExtend*.14) + paddle*0.8;
+      const midX = s*(1.45 + tExtend*.40);
+      const midY = side*s*(0.30 + tExtend*.14) + paddle*0.6;
+      const tipX = s*(1.35 + tExtend*.50);
+      const tipY = side*s*(0.55 + tExtend*.20) + paddle*1.0;
       // Stalk — drawn thick enough to look substantial, not antenna-thin
       ctx.strokeStyle = _c1+'cc'; ctx.lineWidth = s*.07; ctx.lineCap='round';
       ctx.beginPath();
