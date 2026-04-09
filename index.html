@@ -327,7 +327,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
 /* ── Aquapedia Book UI ── */
 #book-fab{
-  position:fixed;bottom:90px;right:16px;z-index:50;
+  position:fixed;bottom:calc(58px + env(safe-area-inset-bottom,0px));right:16px;z-index:50;
   width:48px;height:48px;border-radius:50%;border:2px solid rgba(224,184,90,0.5);
   background:linear-gradient(145deg,rgba(30,18,8,0.92),rgba(50,30,12,0.95));
   color:#e0b85a;font-size:20px;cursor:pointer;
@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.3.2';
+const CUR_VER = '2.4.0';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1101,10 +1101,16 @@ function computeColorBonus(f) {
   if(!f.genes || !f.genes.c1) { f._colorBonus = null; return; }
   const band1 = getColorBand(f.genes.c1[0]);
   const band2 = getColorBand(f.genes.c1[1]);
-  if(band1 && band2 && band1.name === band2.name) {
-    f._colorBonus = { band: band1.name, bonus: band1.bonus, val: band1.bonusVal, full: true, desc: band1.desc };
-  } else if(band1) {
-    f._colorBonus = { band: band1.name, bonus: band1.bonus, val: 1 + (band1.bonusVal - 1) * 0.6, full: false, desc: band1.desc };
+  // Prismatic band gives no gameplay bonus until all other bands have been seen for this species
+  const _isPrism1 = band1?.name === 'Prismatic';
+  const _isPrism2 = band2?.name === 'Prismatic';
+  const _prismOk = f.type && hasPrismaticUnlocked(f.type);
+  const eb1 = (_isPrism1 && !_prismOk) ? null : band1;
+  const eb2 = (_isPrism2 && !_prismOk) ? null : band2;
+  if(eb1 && eb2 && eb1.name === eb2.name) {
+    f._colorBonus = { band: eb1.name, bonus: eb1.bonus, val: eb1.bonusVal, full: true, desc: eb1.desc };
+  } else if(eb1) {
+    f._colorBonus = { band: eb1.name, bonus: eb1.bonus, val: 1 + (eb1.bonusVal - 1) * 0.6, full: false, desc: eb1.desc };
   } else {
     f._colorBonus = null;
   }
@@ -1180,23 +1186,27 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   }
   
   // ── Breeding color drift: each allele shifts slightly from parent ──
-  // Small drift on every offspring (natural variation)
-  c1[0] = _shiftColor(c1[0], 15, 0.08, 0.06);
-  c1[1] = _shiftColor(c1[1], 15, 0.08, 0.06);
-  c2[0] = _shiftColor(c2[0], 12, 0.06, 0.05);
-  c2[1] = _shiftColor(c2[1], 12, 0.06, 0.05);
-  // 20% chance of a larger "wild drift" on one color for more dramatic variation
-  if(Math.random() < 0.20) {
+  // e_chroma: +50% drift range, mastery → up to +125% range
+  const _chromaM = typeof swMastery === 'function' ? swMastery('e_chroma') : 0;
+  const chromaScale = swGetBonus('chroma') > 0 ? (1.5 + _chromaM * 0.25) : 1.0;
+  c1[0] = _shiftColor(c1[0], 15*chromaScale, 0.08*chromaScale, 0.06*chromaScale);
+  c1[1] = _shiftColor(c1[1], 15*chromaScale, 0.08*chromaScale, 0.06*chromaScale);
+  c2[0] = _shiftColor(c2[0], 12*chromaScale, 0.06*chromaScale, 0.05*chromaScale);
+  c2[1] = _shiftColor(c2[1], 12*chromaScale, 0.06*chromaScale, 0.05*chromaScale);
+  // 20% chance of a larger "wild drift" (e_chroma raises this to 40%)
+  const wildChance = swGetBonus('chroma') > 0 ? 0.40 : 0.20;
+  if(Math.random() < wildChance) {
     const pick = Math.floor(Math.random()*4);
-    if(pick===0) c1[0] = _shiftColor(c1[0], 45, 0.2, 0.15);
-    else if(pick===1) c1[1] = _shiftColor(c1[1], 45, 0.2, 0.15);
-    else if(pick===2) c2[0] = _shiftColor(c2[0], 40, 0.18, 0.12);
-    else c2[1] = _shiftColor(c2[1], 40, 0.18, 0.12);
+    if(pick===0) c1[0] = _shiftColor(c1[0], 45*chromaScale, 0.2*chromaScale, 0.15*chromaScale);
+    else if(pick===1) c1[1] = _shiftColor(c1[1], 45*chromaScale, 0.2*chromaScale, 0.15*chromaScale);
+    else if(pick===2) c2[0] = _shiftColor(c2[0], 40*chromaScale, 0.18*chromaScale, 0.12*chromaScale);
+    else c2[1] = _shiftColor(c2[1], 40*chromaScale, 0.18*chromaScale, 0.12*chromaScale);
   }
-  
-  // Default gravity — 40% pull back toward species base each generation
+
+  // Default gravity — 40% pull back toward species base (e_chroma reduces gravity to 20%)
+  const gravityChance = swGetBonus('chroma') > 0 ? 0.20 : 0.40;
   const applyGravity = (col, baseCol) => {
-    if(Math.random() < 0.40) return _shiftColor(baseCol, 8, 0.05, 0.04);
+    if(Math.random() < gravityChance) return _shiftColor(baseCol, 8, 0.05, 0.04);
     return col;
   };
   c1[0] = applyGravity(c1[0], typeDef.c1);
@@ -1507,6 +1517,16 @@ function updateHUD(){
 
   const bookFab = document.getElementById('book-fab');
   if(bookFab) bookFab.style.display = (playerLevel >= 3 && !sw_open) ? 'flex' : 'none';
+
+  // Progressive UI reveal: unlock nav tabs as the player levels up
+  const _nb = (id, minLvl) => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = playerLevel >= minLvl ? '' : 'none';
+  };
+  _nb('nb-supplies', 2);   // Upgrades at level 2
+  _nb('nb-orders',   3);   // Orders at level 3
+  _nb('nb-finder',   4);   // Finder at level 4
+  _nb('nb-social',   5);   // Social at level 5
 }
 
 function calcOffline(s){
@@ -1519,8 +1539,17 @@ function calcOffline(s){
   const sc=(s.upgrades && s.upgrades.snail) || 0;
   const snailMult = (s.upgrades && s.upgrades.nutrientdiffuser > 0) ? 1.5 : 1;
   if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale*snailMult);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
-  const clamMult = (s.upgrades && s.upgrades.voidsiphon > 0) ? 1.5 : 1;
-  if((s.clams || 0)>0){const e=Math.floor(s.clams*.5*elapsed*lvlScale*clamMult);total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});}
+  // Clam offline: scale with best fish value so clams stay meaningful
+  if((s.clams || 0)>0){
+    const fish2 = s.fishList || s.fish || [];
+    const bestFV = fish2.length > 0 ? Math.max(...fish2.map(f => (TYPES[f.type]?.val||1))) : 1;
+    const lensBonus = (s.sw_owned && s.sw_owned['d_lens'] > 0) ? 2 : 1;
+    const clamRate = Math.max(0.5, bestFV * 0.12) * lensBonus;
+    // 4800 frames @ ~60fps = 80s per payout
+    const clamTicks = Math.floor(elapsed / 80);
+    const e = Math.floor(clamRate * clamTicks * s.clams * lvlScale);
+    total+=e;if(e>0)items.push({icon:ICONS.clam,label:'Pearl clam yielded',coins:e});
+  }
   const fish=s.fishList || s.fish || [];
   if(fish.length>0){
     let fishEarnings = 0;
@@ -1591,14 +1620,18 @@ function getJuvAge(f) {
 // MARKET
 function tickMarket() {
   surgeTimer++;
-  if(surgeTimer > 180 * 60) { // Every 3 mins @ 60fps
+  // arb_eng: surge cycle is 2x longer (surge stays active twice as long)
+  const surgeInterval = swGetBonus('arb_eng') > 0 ? 360 * 60 : 180 * 60;
+  if(surgeTimer > surgeInterval) {
     surgeTimer = 0;
     const ks = Object.keys(TYPES);
     surgingType = ks[Math.floor(Math.random()*ks.length)];
     toast(ICONS.market + ` Market Surge: ${TYPES[surgingType].name} prices are UP!`, '#f59e0b');
   }
+  // a_market / mkt_insight: market rates drift more slowly (stable prices)
+  const driftScale = swGetBonus('mkt_insight') > 0 ? 0.35 : 1.0;
   for(let k in marketRates) {
-    const drift = (Math.random() - 0.5) * 0.08;
+    const drift = (Math.random() - 0.5) * 0.08 * driftScale;
     marketRates[k] += drift;
     if(marketRates[k] > 2.4) marketRates[k] -= 0.05;
     if(marketRates[k] < 0.6) marketRates[k] += 0.05;
@@ -1826,43 +1859,65 @@ function triggerEat(f,fd,def){
 
   const rareMult  = f.isRare ? 2 : 1;
   const bondMult   = f.bonded > 0 ? 1.3 : 1;
-  const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? 1.15 : 1;
-  const flakesMult = UPGRADES.flakes.owned > 0 ? 1.5 : 1;
+  // Mastery-scaled bonuses
+  const _heatM = swMastery('c_heater');
+  const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? (1.15 + _heatM * 0.08) : 1;
+  const _flkM = swMastery('c_flakes');
+  const flakesMult = UPGRADES.flakes.owned > 0 ? (1.5 + _flkM * 0.25) : 1;
   const magpumpBonus = (UPGRADES.magpump && UPGRADES.magpump.owned > 0 && isHarmony) ? 0.5 : 0;
   const harmonyMult= isHarmony ? (1.3 + magpumpBonus) : 1;
   let goldMult   = isGold ? 1.3 : 1;
   const isBredGold = isGold && f.isRare;
   if (isBredGold) goldMult = 20;
-  
+
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
-  const algaePen   = Math.max(0, (90 - algae) / 90);
-  // symbiotic: +10% when algae < 20
-  const symbioticMult = (UPGRADES.symbiotic && UPGRADES.symbiotic.owned > 0 && algae < 20) ? 1.1 : 1;
-  // obelisk: +2% per unique species owned
+  // antimatter: no coin loss from dirty tanks, algae penalty still reduces (but not zeroed)
+  const _antiOwned = swGetBonus('antimatter') > 0;
+  const algaePen = _antiOwned ? Math.max(0.3, (90 - algae) / 90) : Math.max(0, (90 - algae) / 90);
+  // symbiotic: +10% when algae < 20, mastery scales bonus
+  const _symbM = swMastery('a_symb');
+  const symbioticMult = (UPGRADES.symbiotic && UPGRADES.symbiotic.owned > 0 && algae < 20) ? (1.1 + _symbM * 0.08) : 1;
+  // obelisk: +2% per unique species, mastery scales per-species %
   const uniqueSpecies = new Set(fishList.map(fish => fish.type)).size;
-  const obeliskMult = (UPGRADES.obelisk && UPGRADES.obelisk.owned > 0) ? (1 + uniqueSpecies * 0.02) : 1;
-  // skill web: midnight +15% all income, apex +20% for adults, gold_cat +10%
+  const _obelM = swMastery('a_obelisk');
+  const obeliskMult = (UPGRADES.obelisk && UPGRADES.obelisk.owned > 0) ? (1 + uniqueSpecies * (0.02 + _obelM * 0.01)) : 1;
+  // midnight: +15% per stack (mastery scales via swGetBonus)
   const midnightMult = 1 + swGetBonus('midnight') * 0.15;
-  const apexMult = (f.scale >= 1 && swGetBonus('apex') > 0) ? 1.2 : 1;
-  const goldCatMult = swGetBonus('gold_cat') > 0 ? 1.1 : 1;
-  // mythic_lin: rare fish earn 3x
-  const mythicMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? 3 : 1;
-  
-  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen * symbioticMult * obeliskMult * midnightMult * apexMult * goldCatMult * mythicMult;
-  // resonance raises the combo cap from 2.5x to 3.5x
-  const multCap = (UPGRADES.resonance && UPGRADES.resonance.owned > 0) ? 3.5 : 2.5;
+  // apex: +20% for adults, mastery scales up to +44%
+  const _apexM = swMastery('e_apex');
+  const apexMult = (f.scale >= 1 && swGetBonus('apex') > 0) ? (1.2 + _apexM * 0.08) : 1;
+  // gold_cat: +10% all income, mastery scales
+  const _goldM = swMastery('a_gold');
+  const goldCatMult = swGetBonus('gold_cat') > 0 ? (1.1 + _goldM * 0.07) : 1;
+  // mythic_lin: rare fish earn 3x, mastery → 4x/5x/6x
+  const _mythM = swMastery('e_mythic');
+  const mythicMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? (3 + _mythM) : 1;
+  // dark_mat: fish in lower half of tank earn 1.5x, mastery → 2x/2.5x/3x
+  const _darkM = swMastery('s_dark');
+  const darkMult = (swGetBonus('dark_mat') > 0 && f.y > H * 0.55) ? (1.5 + _darkM * 0.5) : 1;
+  // sing_pt: global +5% income bonus, mastery → +8%/+12%/+17%
+  const _singPtM = swMastery('s_point');
+  const singPtMult = swGetBonus('sing_pt') > 0 ? (1.05 + _singPtM * 0.04) : 1;
+
+  const rawMult    = rareMult * bondMult * heaterMult * flakesMult * harmonyMult * goldMult * algaePen * symbioticMult * obeliskMult * midnightMult * apexMult * goldCatMult * mythicMult * darkMult * singPtMult;
+  // resonance raises the combo cap from 2.5x, mastery → 4.0/4.5/5.0
+  const _resM = swMastery('s_resonance');
+  const multCap = (UPGRADES.resonance && UPGRADES.resonance.owned > 0) ? (3.5 + _resM * 0.5) : 2.5;
   // If it's a Legendary (Bred Gold), bypass the cap to allow the full 20x+ bonus
   const cappedMult = isBredGold ? rawMult : Math.min(rawMult, multCap);
-  // singularity: +100% income (x2); primordialspark: all fish income x3 (stacks multiplicatively)
+  // singularity: +100% income (x2); eco_sing: +100% income (x2); primordialspark: all fish income x3 (stacks)
   const singMult = (UPGRADES.singularity && UPGRADES.singularity.owned > 0) ? 2 : 1;
+  const ecoSingMult = swGetBonus('eco_sing') > 0 ? 2 : 1;
   const primordialMult = (UPGRADES.primordialspark && UPGRADES.primordialspark.owned > 0) ? 3 : 1;
   let feedBonus = 1.0;
   if(f._colorBonus?.bonus === 'feedMult') feedBonus = f._colorBonus.val;
-  // prism_lock: doubles the comboMult bonus from Prismatic band fish
-  const prismBonus = (f._colorBonus?.bonus === 'comboMult') ? (f._colorBonus.val * (swGetBonus('prism_lock') > 0 ? 2 : 1)) : 1;
-  // coin_mag: +50% passive coins earned on feed (compensates for no tap-range system)
-  const coinMagMult = swGetBonus('coin_mag') > 0 ? 1.5 : 1;
-  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * primordialMult);
+  // prism_lock: doubles comboMult bonus, mastery → 2.8x/3.6x/4.4x
+  const _prismM = swMastery('e_prism');
+  const prismBonus = (f._colorBonus?.bonus === 'comboMult') ? (f._colorBonus.val * (swGetBonus('prism_lock') > 0 ? (2 + _prismM * 0.8) : 1)) : 1;
+  // coin_mag: +50% on feed, mastery → +70%/+90%/+120%
+  const _magM = swMastery('a_magnet');
+  const coinMagMult = swGetBonus('coin_mag') > 0 ? (1.5 + _magM * 0.23) : 1;
+  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * ecoSingMult * primordialMult);
   if (total > 0) {
     if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
@@ -1896,6 +1951,9 @@ function updateFish(f){
   if(UPGRADES.oxygen && UPGRADES.oxygen.owned > 0) hDrain *= 0.8;
   if(trait === 'lazy') hDrain *= 0.8;
   if(trait === 'active') hDrain *= 1.2;
+  // dome mastery: reduces online hunger drain (M1 -15%, M2 -30%, M3 -45%)
+  const _domeM = typeof swMastery === 'function' ? swMastery('d_dome') : 0;
+  if(swGetBonus('dome') > 0 && _domeM > 0) hDrain *= (1 - _domeM * 0.15);
   f.hunger=Math.max(0,f.hunger-hDrain);
   
   const sm2=(f.hunger<25)?.6:(isHarmony?1.2:1);
@@ -2113,7 +2171,14 @@ function updateSnail(s){
       if(s.y>H-85){ s.y=H-85; s.wall='floor'; s.dir=-1; s.x=W-15; }
     }
   }
-  if(s.timer%450===0){const snailCoin=isHarmony?5:2;addCoins(UPGRADES.nutrientdiffuser&&UPGRADES.nutrientdiffuser.owned>0?Math.ceil(snailCoin*1.5):snailCoin,s.x,s.y-20,isHarmony);}
+  if(s.timer%450===0){
+    // Scale snail income with player level; mastery on c_snail adds +15% per level
+    const _snailM = typeof swMastery === 'function' ? swMastery('c_snail') : 0;
+    const snailLvlScale = Math.max(1, playerLevel * (1 + _snailM * 0.15));
+    const snailBase = (isHarmony ? 5 : 2) * snailLvlScale;
+    const snailCoin = Math.ceil(UPGRADES.nutrientdiffuser&&UPGRADES.nutrientdiffuser.owned>0 ? snailBase*1.5 : snailBase);
+    addCoins(snailCoin, s.x, s.y-20, isHarmony);
+  }
 }
 
 function drawSnail(s){
@@ -2952,49 +3017,51 @@ function drawFish(f){
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.06;
-    const stroke = Math.sin(f.phase * 2.5);
+    // Slower flap (÷2.5), reversed direction (negated)
+    const stroke = -Math.sin(f.phase * 1.0);
 
     // ── Tail ──
     ctx.fillStyle=_c1+'cc';
-    ctx.beginPath();ctx.ellipse(-s*.9, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.90, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
 
-    // ── Rear flippers (drawn behind shell) ──
-    ctx.fillStyle=_c1+'bb';
-    ctx.beginPath();ctx.ellipse(-s*.45, -s*.38, s*.30, s*.09, -Math.PI/5 - stroke*.25, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-s*.45,  s*.38, s*.30, s*.09,  Math.PI/5 + stroke*.25, 0, Math.PI*2);ctx.fill();
+    // ── Rear flippers — behind body, centers at the shell edge so body seals the base ──
+    // At x=-0.50s the body edge is at y≈±0.318s; center at ±0.32s so body covers the inner half
+    ctx.fillStyle=_c1+'aa';
+    ctx.beginPath();ctx.ellipse(-s*.50, -s*.32, s*.28, s*.09, -Math.PI/5 + stroke*.20, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.50,  s*.32, s*.28, s*.09,  Math.PI/5 - stroke*.20, 0, Math.PI*2);ctx.fill();
 
-    // ── Front flippers (drawn behind shell) ──
+    // ── Main body oval — opaque, covers rear flipper bases cleanly ──
     ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.30, -s*.44, s*.52, s*.12, -Math.PI/6 + stroke*.5, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.30,  s*.44, s*.52, s*.12,  Math.PI/6 - stroke*.5, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.38, 0, 0, Math.PI*2);ctx.fill();
+
+    // ── Belly highlight ──
+    ctx.fillStyle=_c2+'99';
+    ctx.beginPath();ctx.ellipse(s*.05, 0, s*.58, s*.17, 0, 0, Math.PI*2);ctx.fill();
+
+    // ── Shell scute lines on body ──
+    ctx.strokeStyle=_c2+'88'; ctx.lineWidth=Math.max(1, s*0.038);
+    ctx.beginPath();ctx.moveTo(-s*.55, 0);ctx.quadraticCurveTo(0, -s*.28, s*.55, 0);ctx.stroke();
+    for(let i=-1;i<=1;i+=2){
+      ctx.beginPath();ctx.moveTo(0,-s*.28);ctx.lineTo(i*s*.32,-s*.18);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.32,-s*.18);ctx.lineTo(i*s*.55,0);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.32,-s*.18);ctx.lineTo(i*s*.24, s*.10);ctx.stroke();
+    }
+
+    // ── Front flippers — drawn over body, angled from body edge so they look grown-in ──
+    // At x=0.22s the body edge is at y≈±0.354s; draw flipper anchored there
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.ellipse(s*.22, -s*.35, s*.50, s*.11, -Math.PI/5 - stroke*.22, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.22,  s*.35, s*.50, s*.11,  Math.PI/5 + stroke*.22, 0, Math.PI*2);ctx.fill();
+    // Blend edge where flipper meets body
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.ellipse(s*.22, -s*.35, s*.18, s*.14, 0, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.22,  s*.35, s*.18, s*.14, 0, 0, Math.PI*2);ctx.fill();
 
     // ── Head ──
     ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.88, hdY, s*.32, s*.22, -Math.PI/12, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.88, hdY, s*.30, s*.21, -Math.PI/14, 0, Math.PI*2);ctx.fill();
 
-    // ── Shell plastron (belly, centered) ──
-    ctx.fillStyle=_c2+'cc';
-    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.20, 0, 0, Math.PI*2);ctx.fill();
-
-    // ── Shell carapace (top dome, centered) ──
-    const sg = ctx.createRadialGradient(-s*.15, -s*.22, s*.05, 0, 0, s*.88);
-    sg.addColorStop(0, _c2+'ff');
-    sg.addColorStop(0.45, _c1+'cc');
-    sg.addColorStop(1, _c1+'88');
-    ctx.fillStyle=sg;
-    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.46, 0, Math.PI, Math.PI*2);
-    ctx.closePath();ctx.fill();
-
-    // ── Shell scute pattern ──
-    ctx.strokeStyle=_c2+'66'; ctx.lineWidth=Math.max(1, s*0.035);
-    ctx.beginPath();ctx.moveTo(-s*.60, 0);ctx.quadraticCurveTo(0, -s*.36, s*.60, 0);ctx.stroke();
-    for(let i=-1;i<=1;i+=2){
-      ctx.beginPath();ctx.moveTo(0,-s*.36);ctx.lineTo(i*s*.36,-s*.20);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.60,0);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.26, s*.06);ctx.stroke();
-    }
-
-    drawEye(ctx, s*.95, hdY - s*.04, s*.06);
+    drawEye(ctx, s*.94, hdY - s*.04, s*.055);
   }
   else if(f.type==='whaleshark'){
     ctx.fillStyle=bg;
@@ -3778,9 +3845,13 @@ try {
     ctx.restore();
 
     if(c.timer%4800===0) {
-      const clamBase = swGetBonus('lens') > 0 ? 90 : 45;
+      // Clam income scales with player level and highest fish value so it stays relevant
+      const _clamM = typeof swMastery === 'function' ? swMastery('c_clam') : 0;
+      const bestFishVal = fishList.length > 0 ? Math.max(...fishList.map(f => (TYPES[f.type]?.val||1))) : 1;
+      const clamScale = Math.max(1, bestFishVal * 0.12 * (1 + _clamM * 0.4));
+      const clamBase = Math.ceil(clamScale * (swGetBonus('lens') > 0 ? 2 : 1));
       addCoins(clamBase, c.x, FOOD_FL(c.x)-30, true);
-      spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL!','#38bdf8',1.5);
+      spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL! +' + formatCoins(clamBase),'#38bdf8',1.5);
     }
   }
 
@@ -6024,80 +6095,80 @@ const SW_CLUSTERS = [
   {
     id: 'core', name: 'Core', req: 1, cx: 0, cy: 300, color: '#67e8f9',  // origin bottom
     nodes: [
-      { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: 'Double base coin value',             cost: 500,      max: 1, req: [], effect: 'flakes',   x: -60, y: 0 },
-      { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income + eats algae',        cost: 350,      max: 5, req: [], effect: 'snail',    x: 120,  y: -50 },
-      { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food automatically',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', x: -150, y: -90 },
-      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity (cost ×20 per stack)',  cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    x: 150,  y: -140 },
-      { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', x: -90, y: -190 },
-      { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  x: 120,  y: -240 },
-      { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Passive gold + filters water',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', x: -120, y: -290 },
-      { id: 'c_heater',   name: 'Water Heater',     desc: '+25% coin value for all fish',       cost: 50000,    max: 1, req: ['c_clam'],   effect: 'heater',  x: 0,   y: -350 }
+      { id: 'c_flakes',   name: 'Gourmet Flakes',  desc: '+50% base coin value. Mastery: +25% more per level.',             cost: 500,      max: 1, req: [], effect: 'flakes',   x: -60, y: 0 },
+      { id: 'c_snail',    name: 'Mystery Snail',    desc: 'Passive income scales with player level. Mastery: +15% income per level.',        cost: 350,      max: 5, req: [], effect: 'snail',    x: 120,  y: -50 },
+      { id: 'c_autofeed', name: 'Auto-Feeder',      desc: 'Drops food anywhere in the tank automatically.',           cost: 2000,     max: 1, req: ['c_flakes'], effect: 'autofeed', x: -150, y: -90 },
+      { id: 'c_tank',     name: 'Tank Expansion',   desc: '+3 max fish capacity (cost ×20 per stack).',  cost: 3000,     max: 5, req: ['c_snail'],  effect: 'tank',    x: 150,  y: -140 },
+      { id: 'c_nest',     name: 'Breeding Slate',   desc: 'Adult fish naturally breed in harmony.',         cost: 12000,    max: 1, req: ['c_autofeed'], effect: 'nest', x: -90, y: -190 },
+      { id: 'c_filter',   name: 'Power Filter',     desc: 'Auto-reduces algae each tick.',                 cost: 8000,     max: 1, req: ['c_tank'],   effect: 'filter',  x: 120,  y: -240 },
+      { id: 'c_clam',     name: 'Pearl Clam',       desc: 'Pays out coins based on your best fish value. Mastery: +40% per level.',       cost: 25000,    max: 3, req: ['c_filter', 'c_nest'], effect: 'clam', x: -120, y: -290 },
+      { id: 'c_heater',   name: 'Water Heater',     desc: '+15% coin value for all fish. Mastery: +8% more per level.',       cost: 50000,    max: 1, req: ['c_clam'],   effect: 'heater',  x: 0,   y: -350 }
     ]
   },
   {
     id: 'deep', name: 'Shallows', req: 8, cx: 0, cy: -150, color: '#3b82f6',  // trunk grows up
     nodes: [
-      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% passive coins per minute',      cost: 250000,   max: 3, req: ['c_heater'], effect: 'tidal',       x: 0,   y: 0 },
-      { id: 'd_swift',    name: 'Swift Current',     desc: 'Fish swim 30% faster',              cost: 1500000,  max: 1, req: ['d_tidal'],    effect: 'tidalcurrent', x: -120, y: -60 },
-      { id: 'd_plankton', name: 'Luminescent Plankton', desc: 'Passive XP drip',               cost: 750000,   max: 3, req: ['d_tidal'],    effect: 'plankton', x: 90,  y: -110 },
-      { id: 'd_kelp',     name: 'Purple Kelp',         desc: 'Unlocks Purple Kelp in tank',    cost: 500000,   max: 1, req: ['d_tidal'],    effect: 'kelp',     x: -150, y: -160 },
-      { id: 'd_coral',    name: 'Fan Coral',           desc: 'Unlocks Fan Coral in tank',      cost: 1200000,  max: 1, req: ['d_kelp'],     effect: 'coral',    x: 120,  y: -210 },
-      { id: 'd_vent',     name: 'Thermal Vent',       desc: 'Snails move 50% faster',           cost: 2000000,  max: 1, req: ['d_plankton'], effect: 'vent',     x: -90, y: -260 },
-      { id: 'd_dome',     name: 'Pressure Dome',      desc: 'Fish never lose hunger offline',   cost: 5000000,  max: 1, req: ['d_vent'],     effect: 'dome',     x: 150,  y: -310 },
-      { id: 'd_lens',     name: 'Abyssal Lens',       desc: 'Doubles clam income',              cost: 12000000, max: 1, req: ['d_dome'],     effect: 'lens',     x: -120, y: -360 },
-      { id: 'd_kelp_f',   name: 'Kelp Forest',        desc: '-30% algae growth rate',           cost: 25000000, max: 1, req: ['d_lens'],     effect: 'kelp_f',   x: 90,  y: -410 },
-      { id: 'd_midnight', name: 'Midnight Zone',      desc: '+15% all income',                  cost: 50000000, max: 1, req: ['d_kelp_f'],   effect: 'midnight', x: 0,   y: -470 }
+      { id: 'd_tidal',    name: 'Tidal Current',     desc: '+3% of coins per minute (per stack). Mastery: each stack gives more.',      cost: 250000,   max: 3, req: ['c_heater'], effect: 'tidal',       x: 0,   y: 0 },
+      { id: 'd_swift',    name: 'Swift Current',     desc: 'Fish swim 30% faster toward food.',              cost: 1500000,  max: 1, req: ['d_tidal'],    effect: 'tidalcurrent', x: -120, y: -60 },
+      { id: 'd_plankton', name: 'Luminescent Plankton', desc: '+5 XP per minute (per stack). Mastery: each stack yields more.',               cost: 750000,   max: 3, req: ['d_tidal'],    effect: 'plankton', x: 90,  y: -110 },
+      { id: 'd_kelp',     name: 'Purple Kelp',         desc: 'Unlocks Purple Kelp decoration.',    cost: 500000,   max: 1, req: ['d_tidal'],    effect: 'kelp',     x: -150, y: -160 },
+      { id: 'd_coral',    name: 'Fan Coral',           desc: 'Unlocks Fan Coral decoration.',      cost: 1200000,  max: 1, req: ['d_kelp'],     effect: 'coral',    x: 120,  y: -210 },
+      { id: 'd_vent',     name: 'Thermal Vent',       desc: 'Snails move 50% faster along walls.',           cost: 2000000,  max: 1, req: ['d_plankton'], effect: 'vent',     x: -90, y: -260 },
+      { id: 'd_dome',     name: 'Pressure Dome',      desc: 'Fish never lose hunger offline. Mastery: slower hunger drain online (-15% per level).',   cost: 5000000,  max: 1, req: ['d_vent'],     effect: 'dome',     x: 150,  y: -310 },
+      { id: 'd_lens',     name: 'Abyssal Lens',       desc: 'Doubles clam payout. Mastery: clam payout +40% per level.',              cost: 12000000, max: 1, req: ['d_dome'],     effect: 'lens',     x: -120, y: -360 },
+      { id: 'd_kelp_f',   name: 'Kelp Forest',        desc: '-30% algae growth rate.',           cost: 25000000, max: 1, req: ['d_lens'],     effect: 'kelp_f',   x: 90,  y: -410 },
+      { id: 'd_midnight', name: 'Midnight Zone',      desc: '+15% all income. Mastery: each level grants another +15%.',                  cost: 50000000, max: 1, req: ['d_kelp_f'],   effect: 'midnight', x: 0,   y: -470 }
     ]
   },
   {
     id: 'evo', name: 'Evolution', req: 16, cx: 0, cy: -720, color: '#34d399',  // trunk grows up
     nodes: [
-      { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance',          cost: 80000000, max: 3, req: ['d_midnight'], effect: 'sel_breed',  x: 0,   y: 0 },
-      { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies inherit best parent trait',  cost: 250000000, max: 1, req: ['e_breed'],  effect: 'gene_splice', x: 120,  y: -50 },
-      { id: 'e_chroma', name: 'Chromatic Drift',     desc: 'Color shift range +50%',            cost: 600000000, max: 1, req: ['e_splice'], effect: 'chroma',      x: -120, y: -100 },
-      { id: 'e_apex',   name: 'Apex Genes',          desc: 'Adult fish gain +20% value',        cost: 1500000000, max: 1, req: ['e_chroma'], effect: 'apex',        x: 150,  y: -150 },
-      { id: 'e_prism',  name: 'Prismatic Lock',      desc: 'Prismatic band bonus x2',           cost: 4000000000, max: 1, req: ['e_apex'],   effect: 'prism_lock',  x: -90, y: -200 },
-      { id: 'e_frenzy', name: 'Breeding Frenzy',     desc: 'Breeding cooldown -40%',            cost: 9000000000, max: 1, req: ['e_prism'],  effect: 'brd_frenzy',  x: 120,  y: -250 },
-      { id: 'e_mythic', name: 'Mythic Lineage',      desc: 'All rare fish sell for 3x',         cost: 25000000000, max: 1, req: ['e_frenzy'], effect: 'mythic_lin',  x: -120, y: -300 },
-      { id: 'e_trans',  name: 'Transcendence',       desc: 'One random fish becomes legendary', cost: 80000000000, max: 1, req: ['e_mythic'], effect: 'transcend',   x: 0,   y: -360 }
+      { id: 'e_breed',  name: 'Selective Breeding', desc: '+10% rare mutation chance per stack. Mastery: each level adds another +10%.',          cost: 80000000, max: 3, req: ['d_midnight'], effect: 'sel_breed',  x: 0,   y: 0 },
+      { id: 'e_splice', name: 'Gene Splice',         desc: 'Babies always inherit best trait from either parent.',  cost: 250000000, max: 1, req: ['e_breed'],  effect: 'gene_splice', x: 120,  y: -50 },
+      { id: 'e_chroma', name: 'Chromatic Drift',     desc: 'Color shift range +50%, wilder mutations. Mastery: even more dramatic color variation.',            cost: 600000000, max: 1, req: ['e_splice'], effect: 'chroma',      x: -120, y: -100 },
+      { id: 'e_apex',   name: 'Apex Genes',          desc: 'Adult fish +20% value. Mastery: +8% more per level.',        cost: 1500000000, max: 1, req: ['e_chroma'], effect: 'apex',        x: 150,  y: -150 },
+      { id: 'e_prism',  name: 'Prismatic Lock',      desc: 'Prismatic band bonus x2. Mastery: x2.8 / x3.6 / x4.4.',           cost: 4000000000, max: 1, req: ['e_apex'],   effect: 'prism_lock',  x: -90, y: -200 },
+      { id: 'e_frenzy', name: 'Breeding Frenzy',     desc: 'Breeding cooldown -40%. Mastery: each level cuts it further.',            cost: 9000000000, max: 1, req: ['e_prism'],  effect: 'brd_frenzy',  x: 120,  y: -250 },
+      { id: 'e_mythic', name: 'Mythic Lineage',      desc: 'Rare fish earn 3x. Mastery: 4x / 5x / 6x.',         cost: 25000000000, max: 1, req: ['e_frenzy'], effect: 'mythic_lin',  x: -120, y: -300 },
+      { id: 'e_trans',  name: 'Transcendence',       desc: 'One random fish instantly becomes a legendary rare on purchase.', cost: 80000000000, max: 1, req: ['e_mythic'], effect: 'transcend',   x: 0,   y: -360 }
     ]
   },
   {
     id: 'alch', name: 'Alchemy', req: 24, cx: 0, cy: -1180, color: '#fbbf24',  // trunk grows up
     nodes: [
-      { id: 'a_market',   name: 'Market Insight',      desc: 'See 3 days of market history',     cost: 120000000000, max: 1, req: ['e_trans'], effect: 'mkt_insight',  x: 0,   y: 0 },
-      { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Surge events last 2x longer',      cost: 350000000000, max: 1, req: ['a_market'],  effect: 'arb_eng',    x: -120, y: -60 },
-      { id: 'a_symb',     name: 'Symbiosis',           desc: '+10% coins when water quality is high', cost: 2000000000000, max: 1, req: ['a_arb'], effect: 'symbiotic',  x: 90,  y: -110 },
-      { id: 'a_magnet',   name: 'Coin Magnet',         desc: '+50% coins earned per feed',       cost: 800000000000, max: 1, req: ['a_arb'],     effect: 'coin_mag',   x: -150, y: -170 },
-      { id: 'a_obelisk',  name: 'Obelisk',             desc: '+2% coins per unique species',     cost: 4000000000000, max: 1, req: ['a_magnet'],  effect: 'obelisk',    x: 120,  y: -220 },
-      { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5s',                  cost: 2000000000000, max: 1, req: ['a_magnet'],  effect: 'overflow',   x: -90, y: -270 },
-      { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All sales +10%',                   cost: 6000000000000, max: 1, req: ['a_overflow'], effect: 'gold_cat',  x: 150,  y: -330 },
-      { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Convert algae to coins',           cost: 15000000000000, max: 1, req: ['a_gold'],    effect: 'phil_stone', x: -120, y: -390 },
-      { id: 'a_eco',      name: 'Economic Singularity',desc: 'Income cap raised x2',             cost: 40000000000000, max: 1, req: ['a_phil'],    effect: 'eco_sing',   x: 60,  y: -440 },
-      { id: 'a_loop',     name: 'Infinite Loop',       desc: '1% of total coins/min passive',    cost: 120000000000000, max: 1, req: ['a_eco'],     effect: 'inf_loop',   x: 0,   y: -500 }
+      { id: 'a_market',   name: 'Market Insight',      desc: 'Market rates drift 65% slower — prices stay stable longer.',     cost: 120000000000, max: 1, req: ['e_trans'], effect: 'mkt_insight',  x: 0,   y: 0 },
+      { id: 'a_arb',      name: 'Arbitrage Engine',    desc: 'Market Surge events last 2× longer.',      cost: 350000000000, max: 1, req: ['a_market'],  effect: 'arb_eng',    x: -120, y: -60 },
+      { id: 'a_symb',     name: 'Symbiosis',           desc: '+10% coins when water quality is high. Mastery: +8% more per level.', cost: 2000000000000, max: 1, req: ['a_arb'], effect: 'symbiotic',  x: 90,  y: -110 },
+      { id: 'a_magnet',   name: 'Coin Magnet',         desc: '+50% coins per feed. Mastery: +23% more per level.',       cost: 800000000000, max: 1, req: ['a_arb'],     effect: 'coin_mag',   x: -150, y: -170 },
+      { id: 'a_obelisk',  name: 'Obelisk',             desc: '+2% coins per unique species owned. Mastery: +1% per species per level.',     cost: 4000000000000, max: 1, req: ['a_magnet'],  effect: 'obelisk',    x: 120,  y: -220 },
+      { id: 'a_overflow', name: 'Overflow Valve',      desc: 'Combo timer +5 seconds (keeps combo alive longer).',                  cost: 2000000000000, max: 1, req: ['a_magnet'],  effect: 'overflow',   x: -90, y: -270 },
+      { id: 'a_gold',     name: 'Gold Catalyst',       desc: 'All income +10%. Mastery: +7% per level.',                   cost: 6000000000000, max: 1, req: ['a_overflow'], effect: 'gold_cat',  x: 150,  y: -330 },
+      { id: 'a_phil',     name: 'Philosopher Stone',   desc: 'Converts all algae to coins once per minute.',           cost: 15000000000000, max: 1, req: ['a_gold'],    effect: 'phil_stone', x: -120, y: -390 },
+      { id: 'a_eco',      name: 'Economic Singularity',desc: 'All fish income ×2.',             cost: 40000000000000, max: 1, req: ['a_phil'],    effect: 'eco_sing',   x: 60,  y: -440 },
+      { id: 'a_loop',     name: 'Infinite Loop',       desc: '1% of your coin balance added per minute, passively.',    cost: 120000000000000, max: 1, req: ['a_eco'],     effect: 'inf_loop',   x: 0,   y: -500 }
     ]
   },
   {
     id: 'sing', name: 'Singularity', req: 32, cx: 0, cy: -1780, color: '#a855f7',  // trunk grows up
     nodes: [
-      { id: 's_quantum',   name: 'Quantum Entanglement', desc: 'All fish share highest hunger level', cost: 200000000000000, max: 1, req: ['a_loop'], effect: 'q_entangle', x: 0,   y: 0 },
-      { id: 's_resonance', name: 'Resonance',           desc: 'Combo cap raised to 3.5×',            cost: 6000000000000000, max: 1, req: ['s_quantum'], effect: 'resonance', x: 120,  y: -50 },
-      { id: 's_dark',    name: 'Dark Matter',          desc: 'Invisible fish earn x1.5',            cost: 750000000000000, max: 1, req: ['s_quantum'], effect: 'dark_mat',  x: -90, y: -110 },
-      { id: 's_horizon', name: 'Event Horizon',        desc: 'Tank capacity +10 permanently',       cost: 3000000000000000, max: 1, req: ['s_dark'],    effect: 'evt_hor',   x: 150,  y: -160 },
-      { id: 's_anti',    name: 'Antimatter',           desc: 'All negative events reversed',        cost: 9000000000000000, max: 1, req: ['s_horizon'], effect: 'antimatter', x: -120, y: -220 },
-      { id: 's_warp',    name: 'Warp Core',            desc: 'Offline income x3',                   cost: 30000000000000000, max: 1, req: ['s_anti'],    effect: 'warp_core', x: 90,  y: -280 },
-      { id: 's_point',   name: 'Singularity Point',    desc: 'All cluster bonuses +5%',             cost: 150000000000000000, max: 1, req: ['s_warp'],    effect: 'sing_pt',   x: 0,   y: -350 }
+      { id: 's_quantum',   name: 'Quantum Entanglement', desc: 'All fish instantly share the highest hunger level in the tank.', cost: 200000000000000, max: 1, req: ['a_loop'], effect: 'q_entangle', x: 0,   y: 0 },
+      { id: 's_resonance', name: 'Resonance',           desc: 'Combo cap raised to 3.5×. Mastery: 4× / 4.5× / 5×.',            cost: 6000000000000000, max: 1, req: ['s_quantum'], effect: 'resonance', x: 120,  y: -50 },
+      { id: 's_dark',    name: 'Dark Matter',          desc: 'Fish in the lower half of the tank earn 1.5×. Mastery: 2× / 2.5× / 3×.',            cost: 750000000000000, max: 1, req: ['s_quantum'], effect: 'dark_mat',  x: -90, y: -110 },
+      { id: 's_horizon', name: 'Event Horizon',        desc: '+10 permanent tank capacity.',       cost: 3000000000000000, max: 1, req: ['s_dark'],    effect: 'evt_hor',   x: 150,  y: -160 },
+      { id: 's_anti',    name: 'Antimatter',           desc: 'Dirty-tank coin penalty is suppressed. Algae still blocks earnings but never zeros them.',        cost: 9000000000000000, max: 1, req: ['s_horizon'], effect: 'antimatter', x: -120, y: -220 },
+      { id: 's_warp',    name: 'Warp Core',            desc: 'Offline income ×3.',                   cost: 30000000000000000, max: 1, req: ['s_anti'],    effect: 'warp_core', x: 90,  y: -280 },
+      { id: 's_point',   name: 'Singularity Point',    desc: 'All fish income +5%. Mastery: +8% / +12% / +17%.',             cost: 150000000000000000, max: 1, req: ['s_warp'],    effect: 'sing_pt',   x: 0,   y: -350 }
     ]
   },
   {
     id: 'pres', name: 'Prestige', req: 40, cx: 0, cy: -2230, color: '#f472b6',  // crown of the vine
     nodes: [
-      { id: 'p_aura',    name: 'Aura Weave',      desc: 'Custom particle trail behind fish',          cost: 500000000000000000, max: 1, req: ['s_point'], effect: 'aura_weave',  x: 0,    y: 0 },
-      { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlock gold UI theme',                       cost: 2000000000000000000, max: 1, req: ['p_aura'],  effect: 'chron_stone', x: -180,  y: -80 },
-      { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated background flowers',               cost: 10000000000000000000, max: 1, req: ['p_chron'], effect: 'etrnl_bloom', x: 180,   y: -80 },
-      { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'Rainbow wave animation on water surface',   cost: 50000000000000000000, max: 1, req: ['p_bloom'], effect: 'cosmic_tide', x: -240, y: -150 },
-      { id: 'p_omega',   name: 'Omega Key',       desc: 'Unlock all cosmetic variants permanently',  cost: 250000000000000000000, max: 1, req: ['p_cosmic'],  effect: 'omega_key',  x: 240,  y: -150 },
-      { id: 'p_primordial', name: 'Primordial Spark', desc: '×3 income multiplier on all fish',          cost: 50000000000000000000, max: 1, req: ['p_bloom'],   effect: 'primordialspark', x: 0,   y: -220 }
+      { id: 'p_aura',    name: 'Aura Weave',      desc: 'Particle trails follow your fish as they swim.',          cost: 500000000000000000, max: 1, req: ['s_point'], effect: 'aura_weave',  x: 0,    y: 0 },
+      { id: 'p_chron',   name: 'Chronicle Stone', desc: 'Unlocks the Gold UI accent theme.',                       cost: 2000000000000000000, max: 1, req: ['p_aura'],  effect: 'chron_stone', x: -180,  y: -80 },
+      { id: 'p_bloom',   name: 'Eternal Bloom',   desc: 'Animated coral flowers bloom in the background.',               cost: 10000000000000000000, max: 1, req: ['p_chron'], effect: 'etrnl_bloom', x: 180,   y: -80 },
+      { id: 'p_cosmic',  name: 'Cosmic Tide',     desc: 'A rainbow wave ripples across the water surface.',   cost: 50000000000000000000, max: 1, req: ['p_bloom'], effect: 'cosmic_tide', x: -240, y: -150 },
+      { id: 'p_omega',   name: 'Omega Key',       desc: 'Permanently unlocks every cosmetic variant in the game.',  cost: 250000000000000000000, max: 1, req: ['p_cosmic'],  effect: 'omega_key',  x: 240,  y: -150 },
+      { id: 'p_primordial', name: 'Primordial Spark', desc: '×3 income multiplier on all fish earnings.',          cost: 50000000000000000000, max: 1, req: ['p_bloom'],   effect: 'primordialspark', x: 0,   y: -220 }
     ]
   }
 ];
@@ -6233,12 +6304,14 @@ function openSkillWeb() {
   const ERA_NAMES_SW = ['Tidepool','Shallows','Coral Reef','Open Ocean','Twilight Zone','Abyss'];
   const eraEl = document.getElementById('sw-era');
   if(eraEl) eraEl.textContent = 'Era: ' + (ERA_NAMES_SW[currentEra] || ERA_NAMES_SW[0]);
-  // Center on Core cluster
-  const ov = document.getElementById('swc');
+  // Position Core cluster near bottom of viewport
   sw_camX = 0;
-  sw_camY = 400;  // core originates at y=300, offset camera down so it's in view
-  sw_zoom = 0.55; 
+  sw_zoom = 0.55;
   swResizeCanvas();
+  const ov = document.getElementById('swc');
+  const cvH = ov ? ov.clientHeight || window.innerHeight : window.innerHeight;
+  // core at world-y=300; place it at 78% down the screen
+  sw_camY = 300 - (cvH * 0.78 - cvH * 0.5) / sw_zoom;
   swCheckReveal(true);
   swStartLoop();
 }
@@ -7236,12 +7309,17 @@ function swShowNodePanel(nd, cl) {
     
     let masteryTooltip = '';
     if (swNodeMaxed(nd)) {
+      // Show the mastery effect from the node description if it mentions "Mastery:"
+      const descParts = nd.desc.split('Mastery:');
+      const masteryHint = descParts.length > 1
+        ? descParts[1].trim()
+        : 'Amplifies this node\'s effect each level.';
       masteryTooltip = `<div style="margin-top:12px;padding:10px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;">
         <div style="color:#c084fc;font-size:12px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px">
-          <span style="font-size:14px">✧</span> MASTERY UPGRADE
+          <span style="font-size:14px">✧</span> MASTERY ${mastery}/3
         </div>
         <div style="color:#d8b4fe;font-size:11px;line-height:1.4">
-          Mastery multiplies this node's gameplay effect! (M1 = +20%, M2 = +40%, M3 = +60% power)
+          ${masteryHint}
         </div>
       </div>`;
     }
