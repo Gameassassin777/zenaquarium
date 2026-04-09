@@ -630,7 +630,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.4.0';
+const CUR_VER = '2.4.1';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1188,23 +1188,25 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   // ── Breeding color drift: each allele shifts slightly from parent ──
   // e_chroma: +50% drift range, mastery → up to +125% range
   const _chromaM = typeof swMastery === 'function' ? swMastery('e_chroma') : 0;
+  // Base drift is larger so species don't collapse toward one color over generations
   const chromaScale = swGetBonus('chroma') > 0 ? (1.5 + _chromaM * 0.25) : 1.0;
-  c1[0] = _shiftColor(c1[0], 15*chromaScale, 0.08*chromaScale, 0.06*chromaScale);
-  c1[1] = _shiftColor(c1[1], 15*chromaScale, 0.08*chromaScale, 0.06*chromaScale);
-  c2[0] = _shiftColor(c2[0], 12*chromaScale, 0.06*chromaScale, 0.05*chromaScale);
-  c2[1] = _shiftColor(c2[1], 12*chromaScale, 0.06*chromaScale, 0.05*chromaScale);
-  // 20% chance of a larger "wild drift" (e_chroma raises this to 40%)
-  const wildChance = swGetBonus('chroma') > 0 ? 0.40 : 0.20;
+  c1[0] = _shiftColor(c1[0], 28*chromaScale, 0.14*chromaScale, 0.11*chromaScale);
+  c1[1] = _shiftColor(c1[1], 28*chromaScale, 0.14*chromaScale, 0.11*chromaScale);
+  c2[0] = _shiftColor(c2[0], 22*chromaScale, 0.11*chromaScale, 0.09*chromaScale);
+  c2[1] = _shiftColor(c2[1], 22*chromaScale, 0.11*chromaScale, 0.09*chromaScale);
+  // 35% chance of a larger wild drift (e_chroma raises this to 55%)
+  const wildChance = swGetBonus('chroma') > 0 ? 0.55 : 0.35;
   if(Math.random() < wildChance) {
     const pick = Math.floor(Math.random()*4);
-    if(pick===0) c1[0] = _shiftColor(c1[0], 45*chromaScale, 0.2*chromaScale, 0.15*chromaScale);
-    else if(pick===1) c1[1] = _shiftColor(c1[1], 45*chromaScale, 0.2*chromaScale, 0.15*chromaScale);
-    else if(pick===2) c2[0] = _shiftColor(c2[0], 40*chromaScale, 0.18*chromaScale, 0.12*chromaScale);
-    else c2[1] = _shiftColor(c2[1], 40*chromaScale, 0.18*chromaScale, 0.12*chromaScale);
+    if(pick===0) c1[0] = _shiftColor(c1[0], 65*chromaScale, 0.28*chromaScale, 0.22*chromaScale);
+    else if(pick===1) c1[1] = _shiftColor(c1[1], 65*chromaScale, 0.28*chromaScale, 0.22*chromaScale);
+    else if(pick===2) c2[0] = _shiftColor(c2[0], 55*chromaScale, 0.24*chromaScale, 0.18*chromaScale);
+    else c2[1] = _shiftColor(c2[1], 55*chromaScale, 0.24*chromaScale, 0.18*chromaScale);
   }
 
-  // Default gravity — 40% pull back toward species base (e_chroma reduces gravity to 20%)
-  const gravityChance = swGetBonus('chroma') > 0 ? 0.20 : 0.40;
+  // Gravity toward species base reduced to 20% (was 40%) — less pull = more diversity
+  // e_chroma reduces it further to 8%
+  const gravityChance = swGetBonus('chroma') > 0 ? 0.08 : 0.20;
   const applyGravity = (col, baseCol) => {
     if(Math.random() < gravityChance) return _shiftColor(baseCol, 8, 0.05, 0.04);
     return col;
@@ -3017,51 +3019,50 @@ function drawFish(f){
   }
   else if(f.type==='turtle'){
     const hdY = Math.sin(time*0.05+f.id)*s*.06;
-    // Slower flap (÷2.5), reversed direction (negated)
-    const stroke = -Math.sin(f.phase * 1.0);
+    // Reversed flap direction vs original
+    const stroke = -Math.sin(f.phase * 2.5);
 
     // ── Tail ──
     ctx.fillStyle=_c1+'cc';
-    ctx.beginPath();ctx.ellipse(-s*.90, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.9, 0, s*.18, s*.07, 0, 0, Math.PI*2);ctx.fill();
 
-    // ── Rear flippers — behind body, centers at the shell edge so body seals the base ──
-    // At x=-0.50s the body edge is at y≈±0.318s; center at ±0.32s so body covers the inner half
-    ctx.fillStyle=_c1+'aa';
-    ctx.beginPath();ctx.ellipse(-s*.50, -s*.32, s*.28, s*.09, -Math.PI/5 + stroke*.20, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-s*.50,  s*.32, s*.28, s*.09,  Math.PI/5 - stroke*.20, 0, Math.PI*2);ctx.fill();
+    // ── Rear flippers (drawn behind shell, pulled closer to body) ──
+    ctx.fillStyle=_c1+'bb';
+    ctx.beginPath();ctx.ellipse(-s*.45, -s*.30, s*.30, s*.09, -Math.PI/5 - stroke*.25, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-s*.45,  s*.30, s*.30, s*.09,  Math.PI/5 + stroke*.25, 0, Math.PI*2);ctx.fill();
 
-    // ── Main body oval — opaque, covers rear flipper bases cleanly ──
+    // ── Front flippers (drawn behind shell, pulled closer to body) ──
     ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.38, 0, 0, Math.PI*2);ctx.fill();
-
-    // ── Belly highlight ──
-    ctx.fillStyle=_c2+'99';
-    ctx.beginPath();ctx.ellipse(s*.05, 0, s*.58, s*.17, 0, 0, Math.PI*2);ctx.fill();
-
-    // ── Shell scute lines on body ──
-    ctx.strokeStyle=_c2+'88'; ctx.lineWidth=Math.max(1, s*0.038);
-    ctx.beginPath();ctx.moveTo(-s*.55, 0);ctx.quadraticCurveTo(0, -s*.28, s*.55, 0);ctx.stroke();
-    for(let i=-1;i<=1;i+=2){
-      ctx.beginPath();ctx.moveTo(0,-s*.28);ctx.lineTo(i*s*.32,-s*.18);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(i*s*.32,-s*.18);ctx.lineTo(i*s*.55,0);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(i*s*.32,-s*.18);ctx.lineTo(i*s*.24, s*.10);ctx.stroke();
-    }
-
-    // ── Front flippers — drawn over body, angled from body edge so they look grown-in ──
-    // At x=0.22s the body edge is at y≈±0.354s; draw flipper anchored there
-    ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.22, -s*.35, s*.50, s*.11, -Math.PI/5 - stroke*.22, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.22,  s*.35, s*.50, s*.11,  Math.PI/5 + stroke*.22, 0, Math.PI*2);ctx.fill();
-    // Blend edge where flipper meets body
-    ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.22, -s*.35, s*.18, s*.14, 0, 0, Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(s*.22,  s*.35, s*.18, s*.14, 0, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.30, -s*.36, s*.52, s*.12, -Math.PI/6 + stroke*.5, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.30,  s*.36, s*.52, s*.12,  Math.PI/6 - stroke*.5, 0, Math.PI*2);ctx.fill();
 
     // ── Head ──
     ctx.fillStyle=_c1;
-    ctx.beginPath();ctx.ellipse(s*.88, hdY, s*.30, s*.21, -Math.PI/14, 0, Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(s*.88, hdY, s*.32, s*.22, -Math.PI/12, 0, Math.PI*2);ctx.fill();
 
-    drawEye(ctx, s*.94, hdY - s*.04, s*.055);
+    // ── Shell plastron (belly, centered) ──
+    ctx.fillStyle=_c2+'cc';
+    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.20, 0, 0, Math.PI*2);ctx.fill();
+
+    // ── Shell carapace (top dome, half-ellipse) ──
+    const sg = ctx.createRadialGradient(-s*.15, -s*.22, s*.05, 0, 0, s*.88);
+    sg.addColorStop(0, _c2+'ff');
+    sg.addColorStop(0.45, _c1+'cc');
+    sg.addColorStop(1, _c1+'88');
+    ctx.fillStyle=sg;
+    ctx.beginPath();ctx.ellipse(0, 0, s*.82, s*.46, 0, Math.PI, Math.PI*2);
+    ctx.closePath();ctx.fill();
+
+    // ── Shell scute pattern ──
+    ctx.strokeStyle=_c2+'66'; ctx.lineWidth=Math.max(1, s*0.035);
+    ctx.beginPath();ctx.moveTo(-s*.60, 0);ctx.quadraticCurveTo(0, -s*.36, s*.60, 0);ctx.stroke();
+    for(let i=-1;i<=1;i+=2){
+      ctx.beginPath();ctx.moveTo(0,-s*.36);ctx.lineTo(i*s*.36,-s*.20);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.60,0);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(i*s*.36,-s*.20);ctx.lineTo(i*s*.26, s*.06);ctx.stroke();
+    }
+
+    drawEye(ctx, s*.95, hdY - s*.04, s*.06);
   }
   else if(f.type==='whaleshark'){
     ctx.fillStyle=bg;
@@ -3848,7 +3849,7 @@ try {
       // Clam income scales with player level and highest fish value so it stays relevant
       const _clamM = typeof swMastery === 'function' ? swMastery('c_clam') : 0;
       const bestFishVal = fishList.length > 0 ? Math.max(...fishList.map(f => (TYPES[f.type]?.val||1))) : 1;
-      const clamScale = Math.max(1, bestFishVal * 0.12 * (1 + _clamM * 0.4));
+      const clamScale = Math.max(1, bestFishVal * 0.12 * (1 + _clamM * 4.0));
       const clamBase = Math.ceil(clamScale * (swGetBonus('lens') > 0 ? 2 : 1));
       addCoins(clamBase, c.x, FOOD_FL(c.x)-30, true);
       spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL! +' + formatCoins(clamBase),'#38bdf8',1.5);
