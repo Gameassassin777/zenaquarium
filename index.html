@@ -632,7 +632,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.5.04';
+const CUR_VER = '2.5.05';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -4777,8 +4777,8 @@ function tickVisitor() {
   if(fishList.length === 0) return;
   const eligible = Object.entries(VISITOR_SPECIES).filter(([k,v]) => v.era <= currentEra);
   if(!eligible.length) return;
-  // Per-check chance = hourlyRate / 60, so average rate caps at ~6 spawns/hr at era 5
-  const hourlyRate = Math.min(6.0, 1.0 + currentEra * 1.0);
+  // Per-check chance = hourlyRate / 60, starting at 1.0/hr and scaling by +0.5 per era
+  const hourlyRate = 1.0 + (currentEra - 1) * 0.5;
   const baseChance = hourlyRate / 60;
   const beaconMult = (UPGRADES.abyssbeacon && UPGRADES.abyssbeacon.owned > 0) ? 1.25 : 1;
   if(Math.random() > baseChance * beaconMult) return;
