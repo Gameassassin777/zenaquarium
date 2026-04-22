@@ -413,8 +413,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 #book-content .aq-card div[style*="color:#3a2010"]{color:#b09070!important;}
 
 #book-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 16px;border-top:1px solid rgba(180,160,130,0.3);
+  display:flex;flex-direction:column;gap:8px;
+  padding:8px 16px 12px 16px;border-top:1px solid rgba(180,160,130,0.3);
   background:rgba(240,235,224,0.8);flex-shrink:0;z-index:2;
 }
 .book-nav-btn{
@@ -591,9 +591,12 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
         <div id="aqlist"></div>
       </div>
       <div id="book-nav">
-        <button class="book-nav-btn" id="book-prev" onclick="bookFlip(-1)" aria-label="Previous page"><span style="font-size:14px;line-height:1">&#8249;</span> Prev</button>
-        <span id="book-page-num" style="font-family:Georgia,serif;font-size:11px;color:#8a7050;"></span>
-        <button class="book-nav-btn" id="book-next" onclick="bookFlip(1)" aria-label="Next page">Next <span style="font-size:14px;line-height:1">&#8250;</span></button>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <button class="book-nav-btn" id="book-prev" onclick="bookFlip(-1)" aria-label="Previous page"><span style="font-size:14px;line-height:1">&#8249;</span> Prev</button>
+          <span id="book-page-num" style="font-family:Georgia,serif;font-size:11px;color:#8a7050;"></span>
+          <button class="book-nav-btn" id="book-next" onclick="bookFlip(1)" aria-label="Next page">Next <span style="font-size:14px;line-height:1">&#8250;</span></button>
+        </div>
+        <input type="range" id="book-slider" min="0" value="0" step="1" onchange="bookJump(parseInt(this.value))" style="width:100%; accent-color:#8a7050; cursor:pointer;" aria-label="Page jump slider">
       </div>
     </div>
   </div>
@@ -632,7 +635,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.5.05';
+const CUR_VER = '2.5.06';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -5408,6 +5411,12 @@ function _renderBookPage() {
   // Update nav buttons
   document.getElementById('book-prev').disabled = (_bookPage <= 0);
   document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+
+  const slider = document.getElementById('book-slider');
+  if(slider) {
+    slider.max = totalPages - 1;
+    slider.value = _bookPage;
+  }
 }
 
 function _drawBookPreviews(container) {
@@ -5659,6 +5668,52 @@ function bookFlip(dir){
       // Update nav buttons
       document.getElementById('book-prev').disabled = (_bookPage <= 0);
       document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+
+      const slider = document.getElementById('book-slider');
+      if(slider) slider.value = _bookPage;
+    } finally {
+      _bookFlipping = false;
+    }
+  }, 300);
+}
+
+function bookJump(newPage){
+  if(_bookFlipping) {
+    const slider = document.getElementById('book-slider');
+    if(slider) slider.value = _bookPage;
+    return;
+  }
+  const totalPages = _bookPages.length;
+  if(!totalPages || newPage < 0 || newPage >= totalPages || newPage === _bookPage) return;
+
+  _bookFlipping = true;
+  _cancelBookAnimations();
+  const content = document.getElementById('book-content');
+  const aqlist = document.getElementById('aqlist');
+  if(!aqlist) { _bookFlipping = false; return; }
+
+  const dir = newPage > _bookPage ? 1 : -1;
+  const outClass = dir > 0 ? 'book-page-flip-out-left' : 'book-page-flip-out-right';
+  aqlist.className = outClass;
+
+  setTimeout(() => {
+    try {
+      _bookPage = newPage;
+      const inClass = dir > 0 ? 'book-page-flip-in-right' : 'book-page-flip-in-left';
+      content.innerHTML = `<div id="aqlist" class="${inClass} book-page-fade-in" style="height:100%;position:relative;">
+        ${_bookPages[_bookPage]}
+        <div class="book-page-corner"></div>
+      </div>`;
+      _drawBookPreviews(content);
+
+      const pageNum = document.getElementById('book-page-num');
+      if(pageNum) pageNum.innerHTML = `<span class="aq-page-num">${_toRoman(_bookPage + 1)}</span>`;
+
+      document.getElementById('book-prev').disabled = (_bookPage <= 0);
+      document.getElementById('book-next').disabled = (_bookPage >= totalPages - 1);
+      
+      const slider = document.getElementById('book-slider');
+      if(slider) slider.value = _bookPage;
     } finally {
       _bookFlipping = false;
     }
