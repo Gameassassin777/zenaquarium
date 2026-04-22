@@ -204,6 +204,8 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 /* FISH COLORS & FINDER */
 .c-dot { width:12px; height:12px; border-radius:50%; border:1px solid rgba(255,255,255,0.3); box-shadow:0 0 8px rgba(0,0,0,0.5); position:relative; }
 .c-dot::after { content:''; position:absolute; inset:0; border-radius:50%; box-shadow:0 0 10px inherit; opacity:0.6; }
+@keyframes prismaticHue { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+.prismatic-anim { animation: prismaticHue 2s linear infinite !important; }
 .finder-card { background:var(--row-bg); border:1px solid var(--border); border-radius:18px; padding:16px; margin-bottom:12px; transition:transform 0.2s; position:relative; overflow:hidden;}
 .finder-card:active { transform:scale(0.98); }
 .finder-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--ui-accent); opacity:0.3; }
@@ -1274,6 +1276,12 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
       let attempts=0;
       while(isPrismaticBand(c1[slot]) && attempts++<20) c1[slot]=_shiftColor(typeDef.c1,12,0.08,0.06);
     }
+  } else if (typeKey && hasPrismaticUnlocked(typeKey) && Math.random() < 0.05) {
+    // 1/20 chance to force Prismatic genes when unlocked
+    for(let slot=0;slot<2;slot++) {
+      c1[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
+      c2[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
+    }
   }
   return { c1, c2, trait, isRareMut, szMod };
 }
@@ -1738,8 +1746,8 @@ function buildMarket() {
             <span class="odesc" style="color:var(--card-text);">${f.isRare? ICONS.star : ''}${f.name || def.name} <span style="opacity:0.5; font-size:9px;">#${f.id}</span></span>
             <span class="m-badge b-age">${ageTxt}</span>
             <div style="display:flex;gap:3px;margin-left:auto;">
-              <div class="c-dot" style="background:${f.genes.c1[0]}"></div>
-              <div class="c-dot" style="background:${f.genes.c2[0]}"></div>
+              <div class="c-dot ${getColorBand(f.genes.c1[0])?.name === 'Prismatic' ? 'prismatic-anim' : ''}" style="background:${f.genes.c1[0]}"></div>
+              <div class="c-dot ${getColorBand(f.genes.c2[0])?.name === 'Prismatic' ? 'prismatic-anim' : ''}" style="background:${f.genes.c2[0]}"></div>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
@@ -4969,8 +4977,8 @@ function buildFishFinder() {
           <div style="color:var(--text-dim); font-size:10px; font-weight:700;">${def.name.toUpperCase()} • ID:${f.id}</div>
         </div>
         <div style="display:flex;gap:5px;">
-           <div class="c-dot" style="background:${fc1}; box-shadow:0 0 10px ${fc1}66;"></div>
-           <div class="c-dot" style="background:${fc2}; box-shadow:0 0 10px ${fc2}66;"></div>
+           <div class="c-dot ${getColorBand(fc1)?.name === 'Prismatic' ? 'prismatic-anim' : ''}" style="background:${fc1}; box-shadow:0 0 10px ${fc1}66;"></div>
+           <div class="c-dot ${getColorBand(fc2)?.name === 'Prismatic' ? 'prismatic-anim' : ''}" style="background:${fc2}; box-shadow:0 0 10px ${fc2}66;"></div>
         </div>
       </div>`;
 
