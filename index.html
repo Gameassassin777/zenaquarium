@@ -632,7 +632,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 // ─────────────────────────────────────────────────────────────────────────────
 // PWA & UPDATER SETUP
 // ─────────────────────────────────────────────────────────────────────────────
-const CUR_VER = '2.5.02';
+const CUR_VER = '2.5.03';
 function setupPWA(){
   const isRemote = location.protocol.startsWith('http');
   const ico=s=>`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='${s}' height='${s}'><rect width='${s}' height='${s}' rx='${Math.round(s*.22)}' fill='%23001428'/><text y='${Math.round(s*.78)}' font-size='${Math.round(s*.58)}' text-anchor='middle' x='${Math.round(s/2)}' fill='%2367e8f9'>Z</text></svg>`;
@@ -1147,10 +1147,23 @@ function computeColorBonus(f) {
   if(!f.genes || !f.genes.c1) { f._colorBonus = null; return; }
   const band1 = getColorBand(f.genes.c1[0]);
   const band2 = getColorBand(f.genes.c1[1]);
+  const band3 = f.genes.c2 ? getColorBand(f.genes.c2[0]) : null;
   // Prismatic band gives no gameplay bonus until all other bands have been seen for this species
   const _isPrism1 = band1?.name === 'Prismatic';
   const _isPrism2 = band2?.name === 'Prismatic';
+  const _isPrismC2 = band3?.name === 'Prismatic';
   const _prismOk = f.type && hasPrismaticUnlocked(f.type);
+
+  if (_prismOk) {
+    if (_isPrism1 && _isPrismC2) {
+      f._colorBonus = { band: 'Prismatic', bonus: 'comboMult', val: 3.0, full: true, desc: '+200% combo multiplier (DOUBLE PRISMATIC)' };
+      return;
+    } else if (_isPrism1 || _isPrismC2) {
+      f._colorBonus = { band: 'Prismatic', bonus: 'comboMult', val: 1.2, full: true, desc: '+20% combo multiplier' };
+      return;
+    }
+  }
+
   const eb1 = (_isPrism1 && !_prismOk) ? null : band1;
   const eb2 = (_isPrism2 && !_prismOk) ? null : band2;
   if(eb1 && eb2 && eb1.name === eb2.name) {
@@ -1224,6 +1237,13 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   let c1 = inherit(momGenes.c1, dadGenes.c1);
   let c2 = inherit(momGenes.c2, dadGenes.c2);
   let trait = inherit(momGenes.trait, dadGenes.trait);
+  
+  // Prismatic traits are not passed down
+  for(let i=0; i<2; i++) {
+    if(isPrismaticBand(c1[i])) c1[i] = _shiftColor(typeDef.c1, 180, 0.5, 0.5);
+    if(isPrismaticBand(c2[i])) c2[i] = _shiftColor(typeDef.c2, 180, 0.5, 0.5);
+  }
+
   // gene_splice: baby inherits the better trait from each parent
   if(swGetBonus('gene_splice') > 0) {
     const allTraits = [...momGenes.trait, ...dadGenes.trait];
@@ -1276,11 +1296,13 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
       let attempts=0;
       while(isPrismaticBand(c1[slot]) && attempts++<20) c1[slot]=_shiftColor(typeDef.c1,12,0.08,0.06);
     }
-  } else if (typeKey && hasPrismaticUnlocked(typeKey) && Math.random() < 0.05) {
-    // 1/20 chance to force Prismatic genes when unlocked
-    for(let slot=0;slot<2;slot++) {
-      c1[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
-      c2[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
+  } else if (typeKey && hasPrismaticUnlocked(typeKey)) {
+    // 1/20 chance to force Prismatic genes independently for primary and secondary colors
+    if (Math.random() < 0.05) {
+      for(let slot=0;slot<2;slot++) c1[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
+    }
+    if (Math.random() < 0.05) {
+      for(let slot=0;slot<2;slot++) c2[slot] = hslToHex(325 + Math.random()*20, 80 + Math.random()*20, 50 + Math.random()*20);
     }
   }
   return { c1, c2, trait, isRareMut, szMod };
@@ -4628,10 +4650,10 @@ function addCoins(amt,x,y,bonus=false){
 }
 const XP_THRESHOLDS=[
   0,900,2100,3750,6000,9000,13125,18750,26250,37500,
-  52500,71250,97500,131250,176250,232500,303750,390000,495000,615000,
-  750000,892500,1042500,1207500,1395000,1612500,1867500,2167500,2520000,2932500,
-  3412500,3967500,4612500,5362500,6232500,7237500,8400000,9750000,11325000,13162500,
-  15300000,17775000,20625000,23887500,27637500,31950000,36862500,42450000,48787500,55950000
+  52500,71250,97500,131250,176250,232500,252500,274500,298500,324500,
+  352500,382500,414500,448500,484500,522500,562500,604500,648500,694500,
+  742500,792500,844500,898500,954500,1012500,1072500,1134500,1198500,1264500,
+  1332500,1402500,1474500,1548500,1624500,1702500,1782500,1864500,1948500,2034500
 ];
 const LEVEL_UNLOCKS={
   2:['Neon Tetra','Market','Easy Orders'],
