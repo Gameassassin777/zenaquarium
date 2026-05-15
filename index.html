@@ -3153,13 +3153,31 @@ function drawFish(f){
     drawEye(ctx, s*.95, hdY - s*.04, s*.06);
   }
   else if(f.type==='whaleshark'){
-    ctx.fillStyle=bg;
-    ctx.beginPath();ctx.ellipse(0,0,s*2,s*.8,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff3';
-    for(let i=0;i<12;i++){ctx.beginPath();ctx.arc(-s+Math.random()*s*2, -s*.4+Math.random()*s*.8, 2,0,Math.PI*2);ctx.fill();}
-    ctx.fillStyle=bg;
-    ctx.beginPath();ctx.moveTo(-s*1.5, 0); ctx.lineTo(-s*2.2, -s*.6+wag); ctx.lineTo(-s*2.2, s*.6+wag); ctx.closePath(); ctx.fill();
-    drawEye(ctx, s*1.8, -s*.2, s*.05);
+    ctx.lineCap='round';ctx.lineJoin='round';
+    const tBase=-s*1.74;
+    const bPath=()=>{ctx.beginPath();ctx.moveTo(s*1.95,-s*.14);ctx.bezierCurveTo(s*1.82,-s*.54,s*.52,-s*.83,-s*.40,-s*.81);ctx.bezierCurveTo(-s*1.02,-s*.74,-s*1.56,-s*.40,-s*1.74,0);ctx.bezierCurveTo(-s*1.56,s*.40,-s*1.02,s*.74,-s*.40,s*.81);ctx.bezierCurveTo(s*.52,s*.83,s*1.82,s*.54,s*1.95,s*.14);ctx.quadraticCurveTo(s*2.07,0,s*1.95,-s*.14);ctx.closePath();};
+    // Tail — drawn before body so body fills over the peduncle seam
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.moveTo(tBase,wag*.08);ctx.bezierCurveTo(tBase-s*.18,-s*.50+wag*.55,tBase-s*.62,-s*.88+wag*.85,tBase-s*.92,-s*1.12+wag);ctx.quadraticCurveTo(tBase-s*.48,-s*.30+wag*.40,tBase,wag*.08);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(tBase,wag*.08);ctx.bezierCurveTo(tBase-s*.14,s*.28+wag*.55,tBase-s*.40,s*.46+wag*.78,tBase-s*.60,s*.56+wag*.92);ctx.quadraticCurveTo(tBase-s*.30,s*.18+wag*.40,tBase,wag*.08);ctx.closePath();ctx.fill();
+    // Pectoral fin — before body so body covers base seam
+    ctx.beginPath();ctx.moveTo(s*.95,s*.50);ctx.bezierCurveTo(s*.58,s*1.00,-s*.28,s*1.40,-s*.72,s*1.25);ctx.bezierCurveTo(-s*.50,s*.95,s*.18,s*.60,s*.55,s*.42);ctx.closePath();ctx.fill();
+    // Body
+    bPath();ctx.fillStyle=bg;ctx.fill();
+    // Spots — deterministic hex grid, no Math.random(), clipped to body
+    ctx.save();bPath();ctx.clip();
+    const wsRows=[{y:-s*.60,n:8,x:0},{y:-s*.32,n:9,x:s*.20},{y:-s*.04,n:8,x:0},{y:s*.24,n:9,x:s*.20},{y:s*.52,n:6,x:0}];
+    for(let ri=0;ri<wsRows.length;ri++){const row=wsRows[ri];const dim=ri<4?0.82:0.38;for(let ci=0;ci<row.n;ci++){const sx=-s*1.55+ci*s*.40+row.x;const r=s*(0.064-ri*.004)*(0.82+0.18*Math.sin(ri*2.7+ci*1.9));ctx.fillStyle=`rgba(255,255,255,${dim*(0.78+0.18*Math.cos(ri+ci))})`;ctx.beginPath();ctx.arc(sx,row.y,r,0,Math.PI*2);ctx.fill();}}
+    ctx.restore();
+    // Dorsal fin — after body, base overlaps body surface (same color = seamless)
+    ctx.fillStyle=_c1;
+    ctx.beginPath();ctx.moveTo(s*.62,-s*.62);ctx.bezierCurveTo(s*.54,-s*1.30,s*.18,-s*1.55,s*.04,-s*1.42);ctx.bezierCurveTo(-s*.06,-s*1.15,s*.02,-s*.82,s*.10,-s*.68);ctx.closePath();ctx.fill();
+    // Gill slits
+    ctx.strokeStyle=_c1+'88';ctx.lineWidth=s*.032;
+    for(let g=0;g<5;g++){const gx=s*1.50-g*s*.082;ctx.beginPath();ctx.moveTo(gx,-s*.34);ctx.quadraticCurveTo(gx-s*.04,-s*.08,gx-s*.06,s*.18);ctx.stroke();}
+    // Mouth
+    ctx.strokeStyle='#060e30';ctx.lineWidth=s*.07;ctx.beginPath();ctx.moveTo(s*1.94,-s*.11);ctx.quadraticCurveTo(s*2.08,0,s*1.94,s*.11);ctx.stroke();
+    drawEye(ctx,s*1.72,-s*.30,s*.085);
   }
   else if(f.type==='narwhal'){
     ctx.fillStyle=bg;
@@ -3171,10 +3189,11 @@ function drawFish(f){
     ctx.fill();
 
     ctx.fillStyle=_c1;
-    for(let i=0; i<15; i++){
-       ctx.beginPath();
-       ctx.arc(-s + Math.random()*s*2, -s*.2 - Math.random()*s*.4, s*.04 + Math.random()*s*.04, 0, Math.PI*2);
-       ctx.fill();
+    for(let i=0;i<15;i++){
+      const nx=-s+(Math.sin(i*1.7)*.5+.5)*s*2;
+      const ny=-s*.2-(Math.sin(i*2.3)*.5+.5)*s*.4;
+      const nr=s*.04+(Math.sin(i*3.1)*.5+.5)*s*.04;
+      ctx.beginPath();ctx.arc(nx,ny,nr,0,Math.PI*2);ctx.fill();
     }
 
     ctx.strokeStyle='#f8fafc'; ctx.lineWidth=s*.08; ctx.lineCap='round';
@@ -3461,10 +3480,11 @@ function drawFish(f){
       [s*.1,-s*.5,-Math.PI/6],[s*.0,-s*.25,Math.PI/5],[-s*.05, s*.1,-Math.PI/8],
       [s*.1,-s*.5, Math.PI/6],[s*.02,-s*.3,-Math.PI/4],[s*.0, s*.0, Math.PI/3],
     ];
-    for(const [lx,ly,la] of leafPos){
+    for(let li=0;li<leafPos.length;li++){
+      const [lx,ly,la]=leafPos[li];
       ctx.save();ctx.translate(lx,ly);ctx.rotate(la+paddle*.12);
       ctx.beginPath();ctx.ellipse(0,0,s*.22,s*.06,0,0,Math.PI*2);
-      ctx.fillStyle=_c1+(Math.random()<.5?'aa':'77');ctx.fill();
+      ctx.fillStyle=_c1+(li%2?'aa':'77');ctx.fill();
       ctx.restore();
     }
     // Body — sinuous column
