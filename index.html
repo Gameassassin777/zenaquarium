@@ -13,6 +13,9 @@
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --ui-accent: #67e8f9;
@@ -39,6 +42,76 @@
   --streak-bg: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(249, 115, 22, 0.06));
   --row-bg: rgba(255, 255, 255, 0.03);
   --card-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  /* === BEAUTIFICATION PASS v3.0 — warm accent system === */
+  --font-display: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --warm-coral: #ff8a65;
+  --warm-coral-deep: #e64a19;
+  --warm-sun: #ffc107;
+  --warm-sun-deep: #ff8f00;
+  --warm-mint: #4ade80;
+  --warm-mint-deep: #16a34a;
+  --warm-sky: #5ac8fa;
+  --btn-coral: linear-gradient(135deg, #ff8a65 0%, #ff5722 100%);
+  --btn-sun: linear-gradient(135deg, #ffd54f 0%, #ffa726 100%);
+  --btn-mint: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+  --btn-sky: linear-gradient(135deg, #5ac8fa 0%, #0284c7 100%);
+  --btn-shadow: 0 4px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.4);
+  --btn-shadow-tight: 0 3px 0 rgba(0,0,0,0.3);
+  --pill-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+
+  /* ════════════════════════════════════════════════════════════════════
+     ABYSSAL OBSERVATORY THEME — vintage naturalist research station
+     Deep teal + brass + verdigris + parchment. Pressure gauges,
+     engraved plaques, specimen cards, caustic shimmer.
+     ════════════════════════════════════════════════════════════════════ */
+  --abyss-ink:        #020812;   /* deepest black-blue (void behind everything) */
+  --abyss-deep:       #061a2e;   /* observatory interior deep */
+  --observatory-teal: #0d3b4f;   /* primary surface */
+  --observatory-teal-2: #134d63; /* lifted surface */
+  --brass-bright:     #e9c46a;   /* primary brass accent (highlighted) */
+  --brass:            #c9a96a;   /* brass baseline */
+  --brass-deep:       #8b6a2f;   /* brass shadow / engraved depth */
+  --brass-shadow:     #4a3814;   /* deepest brass shadow */
+  --copper:           #b87333;   /* copper accent */
+  --verdigris:        #4a8b8b;   /* aged copper patina */
+  --verdigris-bright: #6ec1c1;   /* bright patina */
+  --parchment:        #f3e7c9;   /* primary parchment text */
+  --parchment-aged:   #c9b78a;   /* aged parchment */
+  --parchment-dim:    #8a7a52;   /* faded parchment / dim labels */
+  --ink-label:        #2c1810;   /* dark text on parchment */
+  --caustic:          #7dd3e0;   /* caustic shimmer highlight */
+  --specimen-glow:    #5eead4;   /* bioluminescent accent */
+  --specimen-deep:    #14b8a6;   /* bio deep */
+  --coral-warm:       #e76f51;   /* warm coral accent (for warnings, alive) */
+  --rust:             #a3480f;   /* rusted iron */
+
+  --font-engraved:   'Cinzel', 'Cormorant Garamond', serif;
+  --font-serif:      'Cormorant Garamond', Georgia, serif;
+  --font-body-serif: 'Spectral', Georgia, serif;
+  --font-mono:       'IBM Plex Mono', 'JetBrains Mono', monospace;
+
+  /* Textures — these are tiny inline SVG data URIs for parchment/metal */
+  --parchment-tex: linear-gradient(135deg, #f3e7c9 0%, #e8d8a8 50%, #d4c08a 100%);
+  --brass-tex: linear-gradient(180deg, #e9c46a 0%, #c9a96a 45%, #a08446 80%, #8b6a2f 100%);
+  --brass-tex-rim: linear-gradient(180deg, #8b6a2f 0%, #c9a96a 35%, #e9c46a 50%, #c9a96a 65%, #8b6a2f 100%);
+  --teal-tex: linear-gradient(180deg, #134d63 0%, #0d3b4f 50%, #062736 100%);
+  --font-display: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --warm-coral: #ff8a65;
+  --warm-coral-deep: #f4511e;
+  --warm-sun: #ffc107;
+  --warm-sun-deep: #ff8f00;
+  --warm-mint: #4ade80;
+  --warm-mint-deep: #16a34a;
+  --warm-sky: #5ac8fa;
+  --btn-coral: linear-gradient(145deg, #ff9a76 0%, #f4511e 100%);
+  --btn-sun: linear-gradient(145deg, #ffd54f 0%, #ff8f00 100%);
+  --btn-mint: linear-gradient(145deg, #6ee7b7 0%, #16a34a 100%);
+  --btn-sky: linear-gradient(145deg, #7dd3fc 0%, #0284c7 100%);
+  --btn-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 6px 16px rgba(0,0,0,0.35);
+  --btn-shadow-tight: 0 3px 0 rgba(0,0,0,0.3);
+  --pill-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 :root { --money-val: #fbbf24; }
 
@@ -86,7 +159,7 @@
   .gift-fish-row span { color: #1e293b !important; }
 }
 
-html,body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+html,body{width:100%;height:100%;margin:0;padding:0;position:fixed;inset:0;overflow:hidden;background:var(--bg);font-family:var(--font-body),system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
 canvas{position:absolute;inset:0;width:100%;height:100%;}
 svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 
@@ -119,6 +192,10 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 @media (max-width: 480px) {
   .slbl { display: none; }
   .sval { font-size: 12px; }
+  /* Mobile: shop cards go to 2-col so text doesn't get squished */
+  .cards { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+  /* Skill web: smaller node labels to prevent overlap on narrow screens */
+  .sw-node-label, #swc text { font-size: 9px !important; }
 }
 /* ≤360px: extra compact */
 @media (max-width: 360px) {
@@ -126,6 +203,7 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
   .stat { padding: 0 3px; }
   .sval { font-size: 11px; }
   #modebtn { padding: 5px 7px; font-size: 10px; gap: 2px; }
+  .cards { grid-template-columns: 1fr !important; gap: 6px !important; }
 }
 
 #combo-ui{position:fixed;top:calc(75px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) scale(.8);opacity:0;color:#fbbf24;font-size:20px;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,0.4);pointer-events:none;transition:all .15s cubic-bezier(.4,0,.2,1);z-index:9;text-align:center;background:none!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;}
@@ -158,13 +236,15 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .o-reward-item{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;padding:4px 0;}
 .q-daily{border:2px solid #a855f7 !important;background:linear-gradient(135deg, rgba(168,85,247,0.1), rgba(103,232,249,0.05)) !important;box-shadow:0 0 25px rgba(168,85,247,0.2) !important;}
 .q-daily .tier-badge{background:#a855f7;color:white;box-shadow:0 0 10px rgba(168,85,247,0.5);}
+.q-weekly{border:2px solid #e9c46a !important;background:linear-gradient(135deg, rgba(233,196,106,0.12), rgba(139,106,47,0.06)) !important;box-shadow:0 0 30px rgba(233,196,106,0.22) !important;}
+.q-weekly .tier-badge{background:#e9c46a;color:#1a0f00;box-shadow:0 0 12px rgba(233,196,106,0.5);border:1px solid #8b6a2f;}
 .nebula-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.1), transparent 70%);pointer-events:none;animation:nebulaPulse 4s infinite alternate;}
 @keyframes nebulaPulse { from { opacity: 0.3; transform: scale(1); } to { opacity: 0.6; transform: scale(1.1); } }
 
 .panel{position:fixed;bottom:0;left:0;right:0;background:var(--panel-bg);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border-top:1px solid var(--border);border-radius:32px 32px 0 0;padding:24px 20px 0;z-index:21;transform:translate3d(0,102%,0);transition:transform .5s cubic-bezier(.16,1,.3,1),height .45s cubic-bezier(.16,1,.3,1);height:54dvh;display:flex;flex-direction:column;pointer-events:none;box-shadow:0 -10px 50px rgba(0,0,0,.3);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
 .panel.open{transform:translate3d(0,0,0);pointer-events:auto;height:82dvh;}
 .panel.full{transform:translate3d(0,0,0);pointer-events:auto;height:94dvh;background:rgba(10,18,32,0.9);}
-.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));}
+.pscroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding-bottom:calc(190px + env(safe-area-inset-bottom,0px));}
 .panel::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:42px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;}
 .panel.dragging{transition:none;}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-shrink:0;padding-top:5px;cursor:grab;touch-action:none;}
@@ -495,6 +575,1132 @@ svg { display:inline-block; vertical-align:middle; width:1em; height:1em; }
 .sw-np-buy:not(:disabled):active{transform:scale(.97);}
 .sw-np-buy:disabled{background:rgba(255,255,255,.06);color:#475569;cursor:default;}
 .sw-np-req{font-size:11px;padding:2px 0;display:flex;align-items:center;gap:5px;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BEAUTIFICATION PASS v3.0 — systematic UI overhaul
+   Goals: warm accent palette, Fredoka display type, chunky tactile buttons,
+          pill badges instead of flat tabs, progress bars over text ratios,
+          glassmorphic dashboard, illustrative feel over corporate feel.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Typography: display + body */
+h1, h2, h3, .pt, .sval, .cn, .cpr, .mbtn, .hbtn, .tabbtn, .cbtn2,
+.sw-np-buy, .dramt, .cbig, .ph, .acc-hd-title, .sechead, .slbl,
+.m-price, .finder-card, .ocard, .wrow, .stat, .nb {
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+}
+body, p, span, div, input { font-family: var(--font-body), system-ui, sans-serif; }
+
+/* ─── Dashboard (top status bar) ─── */
+.dash {
+  background: linear-gradient(180deg, rgba(0,15,30,0.55) 0%, rgba(0,10,22,0.65) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 8px 10px 16px;
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.dash.harmony {
+  border-color: rgba(255,193,7,0.55);
+  box-shadow: 0 0 28px rgba(255,193,7,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.stat { border-right: 1px solid rgba(255,255,255,0.05); }
+.stat:last-of-type { border-right: none; }
+.slbl {
+  font-size: 8.5px;
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  color: rgba(148,163,184,0.85);
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.sval {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-main);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.sval.vl { color: var(--ui-accent); text-shadow: 0 0 14px rgba(var(--ui-accent-rgb),0.6); }
+.v-money {
+  background: linear-gradient(135deg, #fff3a0 0%, #ffc107 50%, #ff8f00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 3px rgba(255,143,0,0.4));
+}
+
+/* ─── Header buttons (Feed / mode) — chunky coral/mint gradient pills ─── */
+.hbtn {
+  background: var(--btn-coral);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  box-shadow: var(--btn-shadow);
+  transition: transform .12s, box-shadow .12s, filter .12s;
+}
+.hbtn:active {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.3);
+}
+#modebtn {
+  background: var(--btn-sky);
+  color: #fff;
+  border: none;
+  margin-left: 8px;
+  flex-shrink: 0;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  box-shadow: var(--btn-shadow);
+}
+#modebtn.cleaning {
+  background: var(--btn-mint);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(74,222,128,0.4), var(--btn-shadow);
+}
+
+/* ─── XP bar at bottom of dash — gradient, slightly chunkier ─── */
+.xpb { height: 6px; background: rgba(0,0,0,0.25); border-radius: 0 0 22px 22px; }
+.xpf {
+  background: linear-gradient(90deg, var(--warm-sun), var(--warm-coral), #f4511e);
+  box-shadow: 0 0 10px rgba(255,143,0,0.4);
+}
+
+/* ─── Bottom nav: chunky icon scale, glow active, slight lift ─── */
+.nb { padding: 10px 0 6px; font-weight: 700; letter-spacing: 0.4px; }
+.nb svg { font-size: 26px; transition: transform .25s cubic-bezier(.34,1.56,.64,1), filter .2s; }
+.nb.active {
+  color: var(--ui-accent);
+  text-shadow: 0 0 16px rgba(var(--ui-accent-rgb),0.7), 0 0 28px rgba(var(--ui-accent-rgb),0.4);
+}
+.nb.active svg {
+  transform: translateY(-3px) scale(1.15);
+  filter: drop-shadow(0 4px 10px rgba(var(--ui-accent-rgb),0.7));
+}
+.nb.active::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  background: var(--ui-accent);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 0 12px var(--ui-accent);
+}
+
+/* ─── Panel (bottom sheet) — softer, rounder, more polished ─── */
+.panel {
+  border-radius: 36px 36px 0 0;
+  padding: 26px 18px 0;
+  background: linear-gradient(180deg, rgba(8,16,30,0.92) 0%, rgba(2,8,18,0.96) 100%);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -16px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.panel::before { width: 48px; height: 5px; background: rgba(255,255,255,0.22); border-radius: 3px; }
+.panel.full { background: linear-gradient(180deg, rgba(8,16,30,0.97) 0%, rgba(2,8,18,1) 100%); }
+.pt {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-shadow: 0 0 24px rgba(var(--ui-accent-rgb),0.45), 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* Close button: chunky circular */
+.xbtn {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all .2s;
+}
+.xbtn:active { transform: scale(0.9); background: rgba(255,255,255,0.12); }
+
+/* ─── Shop Cards: 3-column grid, denser, more browseable ─── */
+.cards { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.card {
+  border-radius: 16px;
+  padding: 12px 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.25) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s, border-color .15s;
+}
+.card:active { transform: scale(0.94); border-color: rgba(var(--ui-accent-rgb),0.5); }
+.buyable {
+  border-color: rgba(74,222,128,0.55) !important;
+  background: linear-gradient(180deg, rgba(74,222,128,0.08) 0%, rgba(22,163,74,0.04) 100%) !important;
+  box-shadow: 0 0 24px rgba(74,222,128,0.2), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+.equipped {
+  border-color: rgba(255,193,7,0.65) !important;
+  background: linear-gradient(180deg, rgba(255,193,7,0.1) 0%, rgba(255,143,0,0.04) 100%) !important;
+  box-shadow: 0 0 24px rgba(255,193,7,0.25), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+.ci { font-size: 38px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4)); }
+.cn { font-size: 12px; font-weight: 700; letter-spacing: -0.2px; }
+.cpr {
+  font-size: 14px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff3a0, #ffc107, #ff8f00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+
+/* ─── Tab buttons (Buy/Sell/Decor) — pill badges with active gradient ─── */
+.tabbtn {
+  background: rgba(255,255,255,0.04);
+  color: rgba(148,163,184,0.9);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.tabbtn.active {
+  background: var(--btn-sun);
+  color: #2a1a00;
+  border: none;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 6px 16px rgba(255,143,0,0.4),
+              inset 0 1px 0 rgba(255,255,255,0.4);
+  transform: translateY(-1px);
+}
+
+/* ─── Section headers — accent glow, better letter-spacing ─── */
+.sechead {
+  color: var(--ui-accent);
+  font-size: 10.5px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(var(--ui-accent-rgb),0.5);
+  border-bottom: 1px solid rgba(var(--ui-accent-rgb),0.15);
+  margin-top: 22px;
+}
+
+/* ─── Quest/Order cards: progress bars, tier capsules, better hierarchy ─── */
+.ocard {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.2) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  border-left: 3px solid var(--tier-easy);
+}
+.ocard.tier-med { border-left-color: var(--tier-med); }
+.ocard.tier-hard { border-left-color: var(--tier-hard); }
+.ocard.tier-legend { border-left-color: var(--tier-legend); }
+.ocard.expanded {
+  border-color: rgba(var(--ui-accent-rgb),0.5);
+  background: linear-gradient(180deg, rgba(103,232,249,0.05) 0%, rgba(0,0,0,0.2) 100%);
+}
+.ocard.odone {
+  border-left-color: #4ade80 !important;
+  background: linear-gradient(180deg, rgba(74,222,128,0.06) 0%, rgba(0,0,0,0.2) 100%);
+}
+.ohead { gap: 12px; }
+.oico {
+  font-size: 28px;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(var(--ui-accent-rgb),0.08);
+  border: 1px solid rgba(var(--ui-accent-rgb),0.15);
+  border-radius: 14px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+}
+.odesc { font-size: 13.5px; font-weight: 700; letter-spacing: -0.1px; }
+.orew { font-size: 12px; font-weight: 700; color: var(--warm-sun); }
+.opbg {
+  background: rgba(0,0,0,0.35);
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+}
+.opf {
+  background: linear-gradient(90deg, var(--warm-sun) 0%, var(--warm-coral) 100%);
+  box-shadow: 0 0 10px rgba(255,143,0,0.5);
+}
+.opf.odone {
+  background: linear-gradient(90deg, #6ee7b7 0%, var(--warm-mint-deep) 100%);
+  box-shadow: 0 0 10px rgba(74,222,128,0.5);
+}
+
+/* Tier badges (EASY/MED/HARD/LEGEND) — capsule pills */
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+.tier-easy-badge { background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.35); }
+.tier-med-badge  { background: rgba(251,191,36,0.18); color: #fbbf24; border: 1px solid rgba(251,191,36,0.35); }
+.tier-hard-badge { background: rgba(239,68,68,0.18);  color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+.tier-legend-badge { background: rgba(168,85,247,0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); }
+
+/* Claim button (cbtn2) — chunky gradient pill */
+.cbtn2 {
+  background: var(--btn-mint) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  box-shadow: var(--btn-shadow);
+}
+.cbtn2:disabled {
+  background: rgba(255,255,255,0.06) !important;
+  color: rgba(148,163,184,0.5) !important;
+  box-shadow: none;
+  text-shadow: none;
+}
+.cbtn2:not(:disabled):active { transform: translateY(2px) scale(0.97); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+
+/* ─── Modal buttons — chunkier, brighter ─── */
+.mbtn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  box-shadow: var(--btn-shadow);
+  margin-top: 14px;
+}
+.mbtn.gold {
+  background: var(--btn-sun);
+  color: #2a1a00;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+}
+.mbtn.gold:active { transform: translateY(2px) scale(0.98); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+
+.modal .mbox {
+  background: linear-gradient(180deg, rgba(15,25,45,0.95) 0%, rgba(2,8,18,0.97) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 30px;
+  padding: 30px 24px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.modal .mbox h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+
+/* Daily reward box — sunnier */
+.drbox {
+  background: linear-gradient(135deg, rgba(255,193,7,0.15) 0%, rgba(255,143,0,0.06) 100%);
+  border: 2px solid rgba(255,193,7,0.4);
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(255,193,7,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.dramt {
+  background: linear-gradient(135deg, #fff3a0, #ffc107, #ff8f00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 6px rgba(255,143,0,0.5));
+}
+.sd.done { background: linear-gradient(135deg, #ffd54f, #ff8f00); box-shadow: 0 0 6px rgba(255,143,0,0.5); }
+.sd.today { background: linear-gradient(135deg, #fff3a0, #ffc107); box-shadow: 0 0 12px rgba(255,193,7,0.7); }
+
+/* ─── Skill Web overlay — themed close, node label backing plates ─── */
+#sw-close {
+  background: var(--btn-coral);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  box-shadow: var(--btn-shadow);
+}
+#sw-era {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 8px 14px;
+  color: var(--ui-accent);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 12px rgba(var(--ui-accent-rgb),0.5);
+  backdrop-filter: blur(12px);
+}
+.sw-np-buy:not(:disabled) {
+  background: var(--btn-coral);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+  box-shadow: var(--btn-shadow);
+  border: none;
+}
+.sw-np-buy:not(:disabled):active { transform: translateY(2px) scale(0.98); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+
+/* ─── Accordion headers (decor) ─── */
+.acc-hd-title {
+  color: var(--ui-accent);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(var(--ui-accent-rgb),0.5);
+}
+
+/* ─── Combo UI (floating combo multiplier) ─── */
+#ctxt {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 12px rgba(255,143,0,0.7), 0 0 24px rgba(255,193,7,0.5);
+}
+
+/* Light-mode softening: don't let warm gradients get too hot on white */
+@media (prefers-color-scheme: light) {
+  .tabbtn.active { color: #6b3a00; }
+  .mbtn.gold { color: #5b2a00; }
+  .hbtn { color: #fff; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BEAUTIFICATION PASS v3.2 — Phase 3 polish
+   Driven by Gemini critique: nav contrast, colorful icons, progress bar
+   weight, compact quest cards, decor section spacing, skill-web DNA fix
+   ════════════════════════════════════════════════════════════════════ */
+
+/* — Footer nav: brighter inactive items + active glow ring — */
+.nb { color: rgba(255,255,255,0.88) !important; text-shadow: 0 1px 3px rgba(0,0,0,0.55); }
+.nb svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)) drop-shadow(0 0 6px rgba(255,255,255,0.12)); }
+.nb.active { color: var(--ui-accent) !important; text-shadow: 0 0 14px rgba(var(--ui-accent-rgb),0.75), 0 0 28px rgba(var(--ui-accent-rgb),0.4); }
+.nb.active svg { filter: drop-shadow(0 0 10px rgba(var(--ui-accent-rgb),0.85)) drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transform: translateY(-2px) scale(1.12); }
+
+/* — Card icons: chunky colored backdrop plate so icons read as assets, not outlines — */
+.ci {
+  font-size: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 60%),
+    linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.15),
+    0 4px 14px rgba(0,0,0,0.45);
+  filter: saturate(1.15) brightness(1.05);
+}
+.ci > svg, .ci > span { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.55)); }
+
+/* — Quest card compactness + chunkier progress bars — */
+.ocard { padding: 10px 12px !important; gap: 6px !important; }
+.ohead { gap: 8px !important; min-height: 36px; }
+.oico {
+  width: 38px; height: 38px; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.12), 0 3px 8px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+.opbg {
+  height: 14px !important;
+  border-radius: 8px !important;
+  background: rgba(0,0,0,0.5) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+.opf {
+  background: linear-gradient(90deg, #fde047 0%, var(--warm-sun) 35%, var(--warm-coral) 100%) !important;
+  box-shadow: 0 0 10px rgba(255,193,7,0.55), inset 0 1px 0 rgba(255,255,255,0.4) !important;
+  background-size: 200% 100% !important;
+  animation: opfShine 2.4s linear infinite;
+}
+@keyframes opfShine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.opf.odone {
+  background: linear-gradient(90deg, #86efac 0%, #4ade80 50%, #16a34a 100%) !important;
+  box-shadow: 0 0 12px rgba(74,222,128,0.65), inset 0 1px 0 rgba(255,255,255,0.35) !important;
+}
+.ocnt { font-weight: 800; font-size: 12px; letter-spacing: 0.3px; }
+
+/* — Quest card tier badge sizing — */
+.tier-badge { font-size: 9px; font-weight: 900; padding: 2px 8px; letter-spacing: 0.6px; }
+
+/* — Decor panel: tighten UI accent section spacing — */
+#acc-themes, #acc-substrates, #acc-bubbles, #acc-borders {
+  padding-bottom: 6px !important;
+}
+.acc-body-inner { gap: 6px !important; }
+
+/* — Skill web cluster headers: chunkier treatment — */
+#swc-cluster-label {
+  font-family: 'Fredoka', system-ui;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: 0 0 14px currentColor, 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/* — Tank ambient: subtle vignette to focus attention on fish — */
+#tank-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.35) 100%);
+  z-index: 5;
+}
+
+/* — Fish name-tag readability boost — */
+.fishtag-bg { box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHASE 4 — ABYSSAL OBSERVATORY THEME OVERRIDE
+   Vintage naturalist research station aesthetic.
+   Brass + deep teal + parchment + verdigris + caustic shimmer.
+   Designed to read as a cohesive diegetic world, not generic glass UI.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* — Background: abyssal ink with animated caustic shimmer — */
+body {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(13, 59, 79, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 100%, rgba(20, 184, 166, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #020812 0%, #061a2e 60%, #020812 100%) !important;
+  font-family: var(--font-body-serif), 'Spectral', Georgia, serif !important;
+  color: var(--parchment) !important;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    repeating-linear-gradient(115deg, transparent 0px, transparent 90px, rgba(125, 211, 224, 0.018) 90px, rgba(125, 211, 224, 0.018) 91px),
+    repeating-linear-gradient(65deg, transparent 0px, transparent 130px, rgba(233, 196, 106, 0.012) 130px, rgba(233, 196, 106, 0.012) 131px);
+  pointer-events: none;
+  z-index: 1;
+  animation: causticDrift 24s linear infinite;
+}
+@keyframes causticDrift {
+  0%   { transform: translate(0, 0); opacity: 0.9; }
+  50%  { transform: translate(-30px, 14px); opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 0.9; }
+}
+
+/* — HUD: brass-rimmed observatory gauge strip — */
+.dash {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.92) 0%, rgba(6, 26, 46, 0.96) 100%) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 196, 106, 0.35),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(233, 196, 106, 0.08) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+.dash::before {
+  content: '';
+  position: absolute; top: 1px; left: 12px; right: 12px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233, 196, 106, 0.55), transparent);
+  pointer-events: none;
+}
+
+/* — HUD stat labels: engraved plaque feel — */
+.slbl {
+  font-family: var(--font-engraved) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.8px !important;
+  font-size: 9px !important;
+  text-transform: uppercase !important;
+  color: var(--parchment-dim) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6) !important;
+}
+.sval {
+  font-family: var(--font-mono) !important;
+  font-weight: 600 !important;
+  color: var(--parchment) !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 0 8px rgba(243, 231, 201, 0.25) !important;
+}
+.vl { color: var(--specimen-glow) !important; text-shadow: 0 0 10px rgba(94, 234, 212, 0.5) !important; }
+.v-money { color: var(--brass-bright) !important; text-shadow: 0 0 10px rgba(233, 196, 106, 0.4) !important; }
+
+/* — XP bar: brass pressure gauge fill — */
+.xpb {
+  background: rgba(2, 8, 18, 0.7) !important;
+  border-top: 1px solid rgba(74, 56, 20, 0.6) !important;
+}
+.xpf {
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 50%, var(--brass-deep) 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 150, 0.6),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.8),
+    0 0 8px rgba(233, 196, 106, 0.45) !important;
+}
+
+/* — Top-right pill button (Feed mode) — */
+.hbtn {
+  font-family: var(--font-engraved) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 45%, var(--brass-deep) 100%) !important;
+  color: var(--ink-label) !important;
+  border: 1px solid var(--brass-shadow) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 175, 0.5),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  text-shadow: 0 1px 0 rgba(255, 235, 175, 0.4) !important;
+}
+.hbtn:active {
+  background: linear-gradient(180deg, var(--brass-deep) 0%, var(--brass) 100%) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* — Bottom nav: engraved brass bar — */
+#nav {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.92) 0%, rgba(6, 26, 46, 0.98) 100%) !important;
+  border-top: 1px solid var(--brass-deep) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 196, 106, 0.25),
+    0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+.nb {
+  font-family: var(--font-engraved) !important;
+  font-weight: 500 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  font-size: 8px !important;
+  color: var(--parchment-aged) !important;
+  position: relative !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+.nb::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brass-bright), transparent);
+  transition: width .25s ease;
+}
+.nb.active::before { width: 70%; }
+.nb.active {
+  color: var(--brass-bright) !important;
+  text-shadow: 0 0 12px rgba(233, 196, 106, 0.6), 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+.nb.active svg {
+  filter: drop-shadow(0 0 6px rgba(233, 196, 106, 0.55)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)) !important;
+}
+.nb svg { color: var(--parchment-aged) !important; }
+.nb.notify::after {
+  background: var(--coral-warm) !important;
+  box-shadow: 0 0 8px rgba(231, 111, 81, 0.7) !important;
+}
+
+/* — Bottom sheet panel: observatory instrument panel — */
+.panel {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.96) 0%, rgba(6, 26, 46, 0.98) 100%) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-top: 1px solid var(--brass-deep) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 196, 106, 0.3),
+    0 -10px 50px rgba(0, 0, 0, 0.5) !important;
+}
+.panel::before {
+  background: linear-gradient(90deg, transparent, var(--brass) 40%, var(--brass-bright) 50%, var(--brass) 60%, transparent) !important;
+  width: 64px !important; height: 4px !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 8px rgba(233, 196, 106, 0.4) !important;
+}
+.panel.full {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.98) 0%, rgba(2, 8, 18, 1) 100%) !important;
+}
+
+/* — Panel title typography — */
+#fspanel h3, #qpanel h3, #finder-panel h3, #spanel h3,
+.panel h2, .panel h3 {
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  color: var(--parchment) !important;
+}
+
+/* — Accordion section headers: engraved brass plaques — */
+.acc-hd {
+  border-bottom: 1px solid rgba(201, 169, 106, 0.18) !important;
+  padding: 14px 4px !important;
+}
+.acc-hd-title {
+  font-family: var(--font-engraved) !important;
+  font-weight: 600 !important;
+  letter-spacing: 2.4px !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  color: var(--brass-bright) !important;
+  text-shadow: 0 0 8px rgba(233, 196, 106, 0.3), 0 1px 0 rgba(0, 0, 0, 0.6) !important;
+}
+.acc-hd-sub {
+  font-family: var(--font-serif) !important;
+  font-style: italic !important;
+  color: var(--parchment-dim) !important;
+  font-size: 11px !important;
+}
+.acc-arrow {
+  color: var(--brass) !important;
+  font-size: 12px !important;
+}
+
+/* — Card grid item: parchment specimen card — */
+.card {
+  background: linear-gradient(180deg, var(--parchment) 0%, var(--parchment-aged) 100%) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 4px !important;
+  padding: 12px 10px 14px !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 245, 215, 0.5),
+    inset 0 -1px 0 rgba(138, 122, 82, 0.4) !important;
+  position: relative;
+  color: var(--ink-label) !important;
+}
+.card::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border: 1px solid rgba(74, 56, 20, 0.25);
+  pointer-events: none;
+  border-radius: 2px;
+}
+.card:active {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    inset 0 2px 6px rgba(74, 56, 20, 0.3) !important;
+}
+
+/* — Override card text colors to ink-on-parchment — */
+.card .card-title,
+.card .ctitle,
+.card .cn {
+  color: var(--ink-label) !important;
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+}
+.card .card-desc,
+.card .cdesc {
+  color: #4a2c0a !important;
+  font-family: var(--font-body-serif) !important;
+  font-style: italic !important;
+}
+.card .card-stats,
+.card .cstats,
+.card .cost {
+  color: var(--brass-shadow) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 600 !important;
+}
+.card.locked,
+.card.disabled {
+  background: linear-gradient(180deg, #6b5e3e 0%, #4a3f28 100%) !important;
+  color: var(--parchment-dim) !important;
+}
+.card.locked .card-title, .card.locked .cn, .card.locked .ctitle { color: var(--parchment-dim) !important; }
+
+/* — Inline card icon backing — */
+.card .ci, .shop-card .ci {
+  background: rgba(74, 56, 20, 0.08) !important;
+  border: 1px solid rgba(74, 56, 20, 0.2) !important;
+  border-radius: 50% !important;
+}
+
+/* — Generic shop card (uses .card or .shop-card) — */
+.shop-card {
+  background: linear-gradient(180deg, var(--parchment) 0%, var(--parchment-aged) 100%) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 4px !important;
+  color: var(--ink-label) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 245, 215, 0.5) !important;
+}
+
+/* — Tab strip: brass segment buttons — */
+.tabbtn {
+  font-family: var(--font-engraved) !important;
+  font-weight: 500 !important;
+  letter-spacing: 1.4px !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  background: rgba(13, 59, 79, 0.6) !important;
+  color: var(--parchment-aged) !important;
+  border: 1px solid rgba(74, 56, 20, 0.4) !important;
+  border-radius: 4px !important;
+  padding: 9px 12px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+.tabbtn.active {
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 50%, var(--brass-deep) 100%) !important;
+  color: var(--ink-label) !important;
+  border-color: var(--brass-shadow) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 175, 0.6),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.5),
+    0 0 12px rgba(233, 196, 106, 0.4) !important;
+  text-shadow: 0 1px 0 rgba(255, 235, 175, 0.5) !important;
+}
+
+/* — Action buttons: brass plates — */
+.cbtn2 {
+  font-family: var(--font-engraved) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 50%, var(--brass-deep) 100%) !important;
+  color: var(--ink-label) !important;
+  border: 1px solid var(--brass-shadow) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 175, 0.5),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  text-shadow: 0 1px 0 rgba(255, 235, 175, 0.4) !important;
+}
+.cbtn2:disabled {
+  background: rgba(74, 56, 20, 0.3) !important;
+  color: rgba(243, 231, 201, 0.35) !important;
+  border-color: rgba(74, 56, 20, 0.4) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.cbtn2:not(:disabled):active {
+  box-shadow: inset 0 2px 4px rgba(74, 56, 20, 0.5) !important;
+}
+.cbtn2:not(:disabled):hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 175, 0.6),
+    0 0 14px rgba(233, 196, 106, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* — Modal: porthole with brass rim — */
+.modal {
+  background: rgba(2, 8, 18, 0.78) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+.mbox, .modal-content, .modal-body {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.98) 0%, rgba(6, 26, 46, 1) 100%) !important;
+  border: 2px solid var(--brass-deep) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 196, 106, 0.4),
+    inset 0 0 0 4px rgba(74, 56, 20, 0.4),
+    inset 0 0 0 5px rgba(233, 196, 106, 0.15),
+    0 12px 50px rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(233, 196, 106, 0.15) !important;
+  color: var(--parchment) !important;
+  position: relative;
+}
+.mbox::before, .modal-content::before {
+  content: '';
+  position: absolute; inset: -2px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 0% 0%, rgba(233, 196, 106, 0.3) 0%, transparent 30%),
+              radial-gradient(circle at 100% 100%, rgba(233, 196, 106, 0.2) 0%, transparent 30%);
+  pointer-events: none;
+  z-index: -1;
+}
+/* Porthole rivets */
+.mbox::after {
+  content: '';
+  position: absolute; inset: 6px;
+  border-radius: 8px;
+  background-image:
+    radial-gradient(circle at 8px 8px, var(--brass-bright) 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 8px) 8px, var(--brass-bright) 1.5px, transparent 2px),
+    radial-gradient(circle at 8px calc(100% - 8px), var(--brass-bright) 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), var(--brass-bright) 1.5px, transparent 2px);
+  pointer-events: none;
+}
+
+/* — Quest / orders cards: logged specimen entries — */
+.ocard {
+  background: linear-gradient(180deg, rgba(243, 231, 201, 0.95) 0%, rgba(201, 183, 138, 0.95) 100%) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 4px !important;
+  padding: 14px 16px !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 245, 215, 0.5) !important;
+  color: var(--ink-label) !important;
+  position: relative;
+}
+.ocard::after {
+  content: '';
+  position: absolute; left: 8px; top: 16px; bottom: 16px; width: 2px;
+  background: linear-gradient(180deg, transparent, var(--coral-warm), transparent);
+  opacity: 0.4;
+}
+.ocard.expanded {
+  border-color: var(--brass-bright) !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 245, 215, 0.6),
+    0 0 20px rgba(233, 196, 106, 0.25) !important;
+}
+.ocard.odone {
+  border-color: var(--verdigris-bright) !important;
+  background: linear-gradient(180deg, rgba(110, 193, 193, 0.25) 0%, rgba(74, 139, 139, 0.15) 100%) !important;
+}
+.ocard .otitle, .ocard .ocard-title {
+  color: var(--ink-label) !important;
+  font-family: var(--font-serif) !important;
+  font-weight: 700 !important;
+}
+.ocard .odesc, .ocard .ocard-desc {
+  color: #4a2c0a !important;
+  font-family: var(--font-body-serif) !important;
+  font-style: italic !important;
+}
+
+/* — Tier badge: wax stamp — */
+.tier-badge {
+  font-family: var(--font-engraved) !important;
+  background: linear-gradient(180deg, var(--coral-warm) 0%, var(--rust) 100%) !important;
+  color: var(--parchment) !important;
+  border: 1px solid var(--brass-shadow) !important;
+  border-radius: 2px !important;
+  letter-spacing: 1.5px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 200, 175, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* — Progress bars: brass gauge — */
+.opbg, .pf {
+  background: rgba(2, 8, 18, 0.6) !important;
+  border: 1px solid rgba(74, 56, 20, 0.5) !important;
+  border-radius: 2px !important;
+  height: 14px !important;
+}
+.opf, .pfill {
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 50%, var(--brass-deep) 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 175, 0.5),
+    inset 0 -1px 0 rgba(74, 56, 20, 0.5),
+    0 0 6px rgba(233, 196, 106, 0.4) !important;
+}
+.ocard.odone .opf, .ocard.odone .pfill {
+  background: linear-gradient(180deg, var(--specimen-glow) 0%, var(--specimen-deep) 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(150, 250, 230, 0.5), 0 0 8px rgba(94, 234, 212, 0.5) !important;
+}
+
+/* — Skill web overlay backdrop — */
+#skill-web-overlay {
+  background:
+    radial-gradient(ellipse at center, rgba(13, 59, 79, 0.85) 0%, rgba(2, 8, 18, 0.98) 100%) !important;
+}
+#sw-close {
+  font-family: var(--font-engraved) !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(180deg, var(--coral-warm) 0%, var(--rust) 100%) !important;
+  color: var(--parchment) !important;
+  border: 1px solid var(--brass-shadow) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 200, 175, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.5) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* — Combo UI overlay — */
+#ctxt {
+  font-family: var(--font-engraved) !important;
+  letter-spacing: 2px !important;
+  color: var(--brass-bright) !important;
+  text-shadow: 0 0 12px rgba(233, 196, 106, 0.5), 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+.cfill {
+  background: linear-gradient(90deg, var(--brass) 0%, var(--brass-bright) 100%) !important;
+  box-shadow: 0 0 8px rgba(233, 196, 106, 0.5) !important;
+}
+
+/* — Toasts: brass plaque notifications — */
+#toasts, .toast {
+  font-family: var(--font-serif) !important;
+}
+.toast {
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.96) 0%, rgba(6, 26, 46, 0.98) 100%) !important;
+  border: 1px solid var(--brass) !important;
+  color: var(--parchment) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 196, 106, 0.3),
+    0 4px 14px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* — Finder panel: sonar feel — */
+#finder-panel, .finder-bg {
+  background:
+    radial-gradient(circle at center, rgba(94, 234, 212, 0.06) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(13, 59, 79, 0.95) 0%, rgba(2, 8, 18, 0.98) 100%) !important;
+}
+
+/* — Daily reward modal — */
+#dmodal .mbox, #wmodal .mbox, #lvlmodal .mbox {
+  font-family: var(--font-serif) !important;
+}
+
+/* — Parchment seam background for full scroll areas — */
+.acc-body-inner {
+  padding: 14px 4px 8px !important;
+}
+
+/* — Era unlocked banner (top of tank) — */
+.era-unlocked-banner {
+  font-family: var(--font-engraved) !important;
+  background: linear-gradient(180deg, rgba(13, 59, 79, 0.95) 0%, rgba(6, 26, 46, 0.95) 100%) !important;
+  border: 1px solid var(--brass) !important;
+  color: var(--brass-bright) !important;
+  letter-spacing: 2px !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 1px 0 rgba(233, 196, 106, 0.3), 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* — Welcome modal watermark fix — */
+.new-era-unlocked-overlay { z-index: 5 !important; }
+.modal.show ~ .new-era-unlocked-overlay,
+body:has(.modal.show) .new-era-unlocked-overlay { display: none !important; }
+
+/* — Generic paragraph / span text fallback to parchment — */
+.panel span, .panel div, .panel p {
+  color: var(--parchment);
+}
+
+/* — Decor color swatches: keep vibrant — */
+.acc-themes-row .swatch, .cs-swatch {
+  border: 2px solid var(--brass-deep) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 6px rgba(233, 196, 106, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* — Close button on panels/modals: brass — */
+.close-btn, .mbox-close, .modal-close {
+  font-family: var(--font-engraved) !important;
+  background: rgba(74, 56, 20, 0.4) !important;
+  border: 1px solid var(--brass-deep) !important;
+  color: var(--parchment) !important;
+  border-radius: 4px !important;
+}
+
+/* — Caustic top sheen on panels for submerged feel — */
+.panel::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(125, 211, 224, 0.35) 30%, rgba(233, 196, 106, 0.45) 50%, rgba(125, 211, 224, 0.35) 70%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* — Hide generic modern UI carets — */
+summary::-webkit-details-marker, .acc-hd summary::-webkit-details-marker { display: none; }
+select {
+  background-color: rgba(13, 59, 79, 0.9) !important;
+  color: var(--parchment) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 4px !important;
+  font-family: var(--font-body-serif) !important;
+  padding: 6px 28px 6px 10px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23c9a96a' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 10px !important;
+}
+
+/* — Inputs: parchment field — */
+input[type="text"], input[type="number"], textarea {
+  background: rgba(243, 231, 201, 0.92) !important;
+  color: var(--ink-label) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 3px !important;
+  font-family: var(--font-body-serif) !important;
+  padding: 6px 10px !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(74, 56, 20, 0.5) !important; font-style: italic !important; }
+
+/* — Fish name-tag pill: brass-rimmed parchment label — */
+.fishtag-bg {
+  background: rgba(243, 231, 201, 0.92) !important;
+  border: 1px solid var(--brass-deep) !important;
+  border-radius: 2px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 215, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.5) !important;
+  padding: 2px 8px !important;
+}
+.fishtag-name {
+  font-family: var(--font-serif) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  color: var(--ink-label) !important;
+}
+
+/* — Skill web canvas cluster label: engraved — */
+#swc-cluster-label {
+  font-family: var(--font-engraved) !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  text-shadow: 0 0 14px currentColor, 0 2px 4px rgba(0,0,0,0.7) !important;
+}
+
+/* — Water quality gauge: brass ring vibe — */
+#wvc {
+  font-family: var(--font-mono) !important;
+  color: var(--specimen-glow) !important;
+  text-shadow: 0 0 8px rgba(94, 234, 212, 0.45) !important;
+}
+
+/* — Quest card vertical compactness — */
+.ocard { margin-bottom: 10px !important; }
+
+/* — Decor section: tighten — */
+#acc-themes, #acc-substrates, #acc-bubbles, #acc-borders {
+  padding-bottom: 8px !important;
+}
+
+/* — Tank vignette: subtle observatory porthole feel — */
+#tank-vignette {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(2, 8, 18, 0.5) 100%) !important;
+}
+
+/* — Reduced motion: kill the caustic drift — */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none !important; }
+}
 </style>
 </head>
 <body>
@@ -961,7 +2167,7 @@ for(let i=0;i<45;i++) marineSnow.push({x:Math.random()*2000,y:Math.random()*1200
 const getSubH = (x) => Math.sin(x * 0.015) * 6 + Math.cos(x * 0.03) * 3;
 const FOOD_FL= (x=0) => H - 85 + getSubH(x);
 const SWIM_BOT=()=>H-100;
-const getGlobalLevelScale = () => Math.max(0.7, 1.0 - (playerLevel - 1) * 0.006);
+const getGlobalLevelScale = () => Math.max(0.85, 1.15 - (playerLevel - 1) * 0.005);
 
 // DEFINITIONS & GENETICS
 const TYPES = {
@@ -985,7 +2191,18 @@ const TYPES = {
   pufferfish:{name:'Porcupine Puffer',  icon:ICONS.tank,  cost:80000000,  val:5500000, c1:'#ca8a04',c2:'#854d0e',sz:32,spd:0.5,req:17, rare:{c1:'#f9a8d4',c2:'#db2777'}},
   dragoneel: {name:'Dragon Moray Eel',  icon:ICONS.tank,  cost:180000000, val:12000000,c1:'#7c2d12',c2:'#fbbf24',sz:50,spd:1.1,req:18, rare:{c1:'#4ade80',c2:'#166534'}},
   seadragon: {name:'Leafy Seadragon',   icon:ICONS.reef,  cost:400000000, val:26000000,c1:'#16a34a',c2:'#fbbf24',sz:38,spd:0.4,req:19, rare:{c1:'#f43f5e',c2:'#9f1239'}},
-  colossalsquid:{name:'Colossal Squid', icon:ICONS.abyss, cost:900000000, val:55000000,c1:'#3b0764',c2:'#c084fc',sz:62,spd:0.8,req:20, rare:{c1:'#f8fafc',c2:'#94a3b8'}}
+  colossalsquid:{name:'Colossal Squid', icon:ICONS.abyss, cost:900000000, val:55000000,c1:'#3b0764',c2:'#c084fc',sz:62,spd:0.8,req:20, rare:{c1:'#f8fafc',c2:'#94a3b8'}},
+  // ── Post-game / Era 5+ deepwater leviathans ──
+  viperfish:  {name:'Viperfish',        icon:ICONS.abyss,  cost:2000000000, val:120000000, c1:'#1e1b4b', c2:'#0f172a', sz:34, spd:0.7, req:21, rare:{c1:'#fbbf24', c2:'#000000'}, teeth:true},
+  gulper:     {name:'Gulper Eel',       icon:ICONS.abyss,  cost:4500000000, val:260000000, c1:'#1e293b', c2:'#4c1d95', sz:48, spd:0.5, req:22, rare:{c1:'#f0abfc', c2:'#a21caf'}},
+  anglerfish: {name:'Lantern Anglerfish', icon:ICONS.abyss, cost:10000000000, val:580000000, c1:'#0f172a', c2:'#1e1b4b', sz:42, spd:0.5, req:23, rare:{c1:'#fde047', c2:'#facc15'}, biolume:true},
+  isopod:     {name:'Giant Isopod',     icon:ICONS.abyss,  cost:22000000000, val:1300000000, c1:'#7c2d12', c2:'#451a03', sz:50, spd:0.3, req:24, rare:{c1:'#fef3c7', c2:'#facc15'}},
+  vampiresquid:{name:'Vampire Squid',   icon:ICONS.abyss,  cost:48000000000, val:2800000000, c1:'#581c87', c2:'#3b0764', sz:44, spd:0.6, req:25, rare:{c1:'#f43f5e', c2:'#9f1239'}, biolume:true},
+  oarfish:    {name:'Giant Oarfish',    icon:ICONS.abyss,  cost:100000000000, val:6000000000, c1:'#0c4a6e', c2:'#0369a1', sz:80, spd:0.7, req:26, rare:{c1:'#fbbf24', c2:'#fef3c7'}},
+  megamouth:  {name:'Megamouth Shark',  icon:ICONS.ocean,  cost:220000000000, val:13000000000, c1:'#1e1b4b', c2:'#451a03', sz:75, spd:0.5, req:27, rare:{c1:'#fbbf24', c2:'#000000'}},
+  frilledshark:{name:'Frilled Shark',   icon:ICONS.abyss,  cost:480000000000, val:28000000000, c1:'#451a03', c2:'#1c0701', sz:70, spd:0.8, req:28, rare:{c1:'#dc2626', c2:'#7f1d1d'}},
+  siphonophore:{name:'Siphonophore',   icon:ICONS.abyss,  cost:1000000000000, val:60000000000, c1:'#0e7490', c2:'#155e75', sz:90, spd:0.3, req:29, rare:{c1:'#c4b5fd', c2:'#7c3aed'}, biolume:true},
+  leviathan:  {name:'Abyssal Leviathan', icon:ICONS.abyss, cost:2500000000000, val:150000000000, c1:'#020617', c2:'#7c3aed', sz:110, spd:0.6, req:30, rare:{c1:'#fbbf24', c2:'#dc2626'}, legendary:true}
 };
 
 let ownedFlora = ['seaweed', 'grass'];
@@ -1063,7 +2280,10 @@ const BUBBLES={
   rainbow:  {name:'Rainbow',    icon:ICONS.star,    cost:200000,   col:'rainbow',               fill:'rainbow', req:18},
   crystal:  {name:'Crystal',    icon:ICONS.crystal, cost:1200000,  col:'rgba(196,181,253,{a})', fill:'rgba(167,139,250,{fa})', req:22},
   plasma:   {name:'Plasma',     icon:ICONS.active,  cost:5000000,  col:'rgba(232,121,249,{a})', fill:'rgba(216,180,254,{fa})', req:22},
-  quantum:  {name:'Quantum',    icon:ICONS.star,    cost:12000000, col:'rainbow',               fill:'rainbow', req:26}
+  quantum:  {name:'Quantum',    icon:ICONS.star,    cost:12000000, col:'rainbow',               fill:'rainbow', req:26},
+  galaxy:   {name:'Galaxy',     icon:ICONS.star,    cost:50000000, col:'rgba(124,58,237,{a})',  fill:'rgba(167,139,250,{fa})', req:30},
+  nebula:   {name:'Nebula Cloud', icon:ICONS.crystal, cost:200000000, col:'rgba(236,72,153,{a})', fill:'rgba(244,114,182,{fa})', req:34},
+  supernova:{name:'Supernova',  icon:ICONS.star,    cost:500000000, col:'rainbow',              fill:'rgba(254,215,170,{fa})', req:38}
 };
 
 const BORDERS={
@@ -1075,7 +2295,9 @@ const BORDERS={
   electric: {name:'Electric Blue',  icon:ICONS.drop,    cost:500000,   style:'electric', r:56,   g:189,  gb:248, req:23},
   aurora:   {name:'Aurora',         icon:ICONS.star,    cost:1800000,  style:'pulse',    r:74,   g:222,  gb:128, req:15},
   nebula:   {name:'Nebula',         icon:ICONS.crystal, cost:6000000,  style:'pulse',    r:232,  g:121,  gb:249, req:23},
-  infinity: {name:'Infinity',       icon:ICONS.star,    cost:15000000, style:'electric', r:251,  g:191,  gb:36,  req:27}
+  infinity: {name:'Infinity',       icon:ICONS.star,    cost:15000000, style:'electric', r:251,  g:191,  gb:36,  req:27},
+  eventhorizon:{name:'Event Horizon', icon:ICONS.abyss, cost:100000000, style:'pulse',   r:255,  g:255,  gb:0,   req:31},
+  cosmicweb:{name:'Cosmic Web',     icon:ICONS.star,    cost:300000000, style:'electric', r:180, g:200,  gb:255, req:35}
 };
 
 const TRAITS = ['greedy', 'shy', 'lazy', 'active'];
@@ -1370,6 +2592,38 @@ const ELITE_DAILY_POOL = [
   {id:'d5', desc:'Economic Overlord', howTo:'Spend half a million coins on luxury decorations, mythic themes, or high tier eggs.', metric:'coinsSpent', target:500000, reward:30000, rewardMaster:true}
 ];
 
+// ── WEEKLY QUEST POOL ── Resets every Monday 00:00 local. 7-day meta-arc.
+// Targets ~7x daily; rewards ~10x daily + escalating streak multiplier.
+// Streak multiplier tiers: 1,2,3,4 weeks → 1.0x, 1.25x, 1.6x, 2.0x (cap 2.5x at 6+).
+const WEEKLY_QUEST_POOL = [
+  {id:'w1', desc:'Curator of the Deep', howTo:'Hatch 30 rare mutations this week. Stock breeding slates and UV lights.', metric:'rares', target:30, reward:100000},
+  {id:'w2', desc:'Ecosystem Engineer', howTo:'Own 25 distinct cosmetic pieces (themes/floors/bubbles/borders) by week end.', metric:'decor_owned', isState:true, target:25, reward:150000},
+  {id:'w3', desc:'Harmony Sage', howTo:'Maintain golden Harmony for 8 cumulative hours. Auto-Feeder + Power Filter strongly recommended.', metric:'harmonySec', target:28800, reward:200000},
+  {id:'w4', desc:'Aquarium Empire', howTo:'Hold 18 adult fish simultaneously. Tank Expansion V required to reach this cap.', metric:'adults', isState:true, target:18, reward:180000},
+  {id:'w5', desc:'Master Trader', howTo:'Sell 60 adult fish on the market this week. Breed low-cost species for bulk turnover.', metric:'marketSales', target:60, reward:250000},
+  {id:'w6', desc:'Bond Collector', howTo:'Bond with fish 200 times by tapping them directly. Tap any swimming fish repeatedly.', metric:'bonded', target:200, reward:140000},
+  {id:'w7', desc:'Tycoon of the Trench', howTo:'Spend 5 million coins on decor, themes, or supplies. Decor investments all count.', metric:'coinsSpent', target:5000000, reward:300000},
+  {id:'w8', desc:'Hatchery Overseer', howTo:'Hatch 80 eggs this week. Breeding Slates and high Harmony dramatically boost egg production.', metric:'hatched', target:80, reward:160000}
+];
+
+function getWeekStartTs(ts) {
+  // Returns timestamp of Monday 00:00 local for the week containing ts
+  const d = new Date(ts || Date.now());
+  const day = (d.getDay() + 6) % 7; // 0 = Monday
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - day);
+  return d.getTime();
+}
+
+function getWeeklyStreakMult() {
+  if(weeklyStreak >= 6) return 2.5;
+  if(weeklyStreak >= 5) return 2.2;
+  if(weeklyStreak >= 4) return 2.0;
+  if(weeklyStreak >= 3) return 1.6;
+  if(weeklyStreak >= 2) return 1.25;
+  return 1.0;
+}
+
 // ── PROCEDURALLY GENERATED QUESTS (150+ Total) ──
 const MATH_GEN = [
   {m:'feeds',     ic:ICONS.flakes, txt:['Novice Feeder','Dedicated Feeder','Master Feeder','Legendary Feeder'],   isSt:false,  baseT:30,  tMul:5, rMul:3, minL:[1,2,5,7], ht:'Tap the Feed button at the top of the screen to drop food flakes. Your fish must swim up and eat them for each feeding to count. Keep the tank stocked with hungry fish to hit higher targets faster!'},
@@ -1413,6 +2667,71 @@ const ORDER_SLOTS=5;
 let uid=localStorage.getItem('zenUID');
 if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.setItem('zenUID',uid);}
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LIFETIME ACHIEVEMENTS — permanent badges tracked across the entire save.
+// Conditions evaluated against live game state + sm stats module.
+// Rewards are one-time coin bonuses; unlock persists in sm.achievements.
+// ═══════════════════════════════════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  // ── First steps ──
+  { id:'first_feed',    name:'First Drops',     desc:'Feed your fish for the first time',     icon:'🥢', test:()=>sm.feeds >= 1,               reward:50 },
+  { id:'first_hatch',   name:'New Life',        desc:'Hatch your first egg',                  icon:'🥚', test:()=>sm.hatched >= 1,             reward:100 },
+  { id:'first_sell',    name:'First Sale',      desc:'Sell a fish on the market',             icon:'🪙', test:()=>sm.marketSales >= 1,         reward:100 },
+  { id:'first_rare',    name:'Sparkle!',        desc:'Hatch a rare mutation',                 icon:'✨', test:()=>sm.rares >= 1,               reward:250 },
+  { id:'first_bond',    name:'Connection',      desc:'Bond with a fish for the first time',   icon:'💗', test:()=>sm.bonded >= 1,              reward:50 },
+  { id:'first_clean',   name:'Tidy Tank',       desc:'Clean your first algae patch',          icon:'🧽', test:()=>sm.cleaned >= 1,             reward:50 },
+  // ── Collection milestones ──
+  { id:'own_5_types',   name:'Curator I',       desc:'Own 5 different fish species',          icon:'🐠', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 5,   reward:500 },
+  { id:'own_10_types',  name:'Curator II',      desc:'Own 10 different fish species',         icon:'🐡', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 10,  reward:2000 },
+  { id:'own_20_types',  name:'Curator III',     desc:'Own 20 different fish species',         icon:'🦈', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 20,  reward:20000 },
+  { id:'own_all_types', name:'Complete Collection', desc:'Own every species in the catalog', icon:'🏆', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= Object.keys(TYPES).length, reward:5000000 },
+  // ── Progression ──
+  { id:'level_10',      name:'Rising Naturalist',  desc:'Reach level 10',                     icon:'⭐', test:()=>playerLevel >= 10,          reward:5000 },
+  { id:'level_20',      name:'Master Aquarist',    desc:'Reach level 20',                     icon:'🌟', test:()=>playerLevel >= 20,          reward:50000 },
+  { id:'level_30',      name:'Abyssal Scholar',    desc:'Reach level 30',                     icon:'💠', test:()=>playerLevel >= 30,          reward:500000 },
+  { id:'era_2',         name:'Open Ocean Pioneer', desc:'Unlock the Open Ocean era',          icon:'🌊', test:()=>currentEra >= 2,             reward:1000 },
+  { id:'era_3',         name:'Twilight Explorer',  desc:'Unlock the Twilight Zone era',       icon:'🌀', test:()=>currentEra >= 3,             reward:15000 },
+  { id:'era_4',         name:'Midnight Voyager',   desc:'Unlock the Midnight Zone era',       icon:'🌑', test:()=>currentEra >= 4,             reward:200000 },
+  { id:'era_5',         name:'Abyssal Pioneer',    desc:'Unlock the Abyssal Trench era',      icon:'🐲', test:()=>currentEra >= 5,             reward:3000000 },
+  // ── Wealth ──
+  { id:'wealth_10k',    name:'Coin Collector',     desc:'Accumulate 10,000 lifetime coins',   icon:'💰', test:()=>totalCoins >= 10000,         reward:200 },
+  { id:'wealth_1m',     name:'Fish Tycoon',        desc:'Accumulate 1,000,000 lifetime coins',icon:'🏦', test:()=>totalCoins >= 1000000,       reward:50000 },
+  { id:'wealth_1b',     name:'Midas Aquarium',     desc:'Accumulate 1,000,000,000 lifetime coins', icon:'👑', test:()=>totalCoins >= 1000000000, reward:100000000 },
+  // ── Decor / cosmetics ──
+  { id:'decor_5',       name:'Interior Decorator', desc:'Own 5 cosmetics (themes/floors/bubbles/borders)', icon:'🎨', test:()=>(ownedThemes.length + ownedFloors.length + ownedBubbles.length + ownedBorders.length) >= 5, reward:1000 },
+  { id:'decor_15',      name:'Aesthetic Visionary',desc:'Own 15 cosmetics',                   icon:'🖼️', test:()=>(ownedThemes.length + ownedFloors.length + ownedBubbles.length + ownedBorders.length) >= 15, reward:25000 },
+  // ── Visitors ──
+  { id:'visitor_first', name:'Strange Encounter',  desc:'Encounter your first deep-sea visitor', icon:'👁️', test:()=>Object.values(sm.visitorsEncountered||{}).some(v=>v.seen), reward:500 },
+  { id:'visitor_tame',  name:'Beast Tamer',        desc:'Tame your first visitor',            icon:'🤝', test:()=>sm.visitorsTamed >= 1,        reward:5000 },
+  { id:'visitor_all',   name:'Mythographer',       desc:'Encounter every visitor species',    icon:'📖', test:()=>Object.keys(VISITOR_SPECIES).every(k=>sm.visitorsEncountered?.[k]?.seen), reward:1000000 },
+  // ── Breeding mastery ──
+  { id:'hatch_100',     name:'Geneticist I',       desc:'Hatch 100 eggs',                     icon:'🧬', test:()=>sm.hatched >= 100,           reward:10000 },
+  { id:'hatch_1000',    name:'Geneticist II',      desc:'Hatch 1,000 eggs',                   icon:'🧪', test:()=>sm.hatched >= 1000,          reward:250000 },
+  { id:'rare_50',       name:'Mutation Master',    desc:'Hatch 50 rare mutations',            icon:'🌈', test:()=>sm.rares >= 50,               reward:100000 },
+];
+
+let _achToastQueue = [];
+function checkAchievements() {
+  if(!sm.achievements) sm.achievements = [];
+  for(const a of ACHIEVEMENTS) {
+    if(sm.achievements.includes(a.id)) continue;
+    try {
+      if(a.test()) {
+        sm.achievements.push(a.id);
+        coins += a.reward;
+        totalCoins += a.reward;
+        _achToastQueue.push(a);
+      }
+    } catch(e) { /* fail silently — never break the game loop */ }
+  }
+  if(_achToastQueue.length) {
+    const a = _achToastQueue.shift();
+    toast(`🏆 ${a.name} — +${formatCoins(a.reward)} coins`, '#fbbf24');
+    updateHUD();
+    saveGame();
+  }
+}
+
 // DAILY REWARD (the fix)
 const DR = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
 
@@ -1425,12 +2744,12 @@ const LEGACY_KEYS = [
   'zenAqua_v4_market', 'zenAqua_v4'
 ];
 
-let saveTimer=0, lastEliteTs=0;
+let saveTimer=0, lastEliteTs=0, lastWeeklyTs=0, weeklyStreak=0, lastWeeklyCompleted=false;
 
 function buildSave(){
   const sQuests = _openQuests ? Array.from(_openQuests) : [];
   return {
-    totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs,
+    totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs, lastWeeklyTs, weeklyStreak, lastWeeklyCompleted,
     fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name,
       ...(f.isVisitor && f.key ? {isVisitor:true, key:f.key} : {})})),
     eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut})),
@@ -1444,7 +2763,7 @@ function buildSave(){
     sw_owned: Object.fromEntries(Object.entries(SW_NODE_OWNED).filter(([,v])=>v>0)),
     sw_mastery: { ...sw_mastery },
     sw_revealed: [...sw_revealed],
-    v: 18,
+    v: 19,
     ts: Date.now()
   };
 }
@@ -1486,6 +2805,9 @@ function applyState(s){
   sm.aqSeen = sm.aqSeen || {};
   sm.visitorsEncountered = sm.visitorsEncountered || {};
   questStreak = s.questStreak || 0;
+  lastWeeklyTs = s.lastWeeklyTs || 0;
+  weeklyStreak = s.weeklyStreak || 0;
+  lastWeeklyCompleted = s.lastWeeklyCompleted || false;
   // Migrate old orders that lack tier info — regenerate them
   currentOrders=(s.currentOrders&&s.currentOrders.length)?s.currentOrders:[];
   if(currentOrders.some(o=>!o.tier)) currentOrders=[];
@@ -2343,7 +3665,7 @@ function drawFish(f){
   const paddle = Math.sin(f.phase * 2.5) * s * 0.12; 
   const br = 1 + Math.sin(f.phase * 0.4) * 0.02;
   
-  const fs = f.scale * (f.genes.szMod||1) * getGlobalLevelScale();
+  const fs = f.scale * (f.genes.szMod||1) * getGlobalLevelScale() * 1.18;
   ctx.save();ctx.translate(f.x,f.y);ctx.scale(fs,fs);
   
   if(f.hunger<25){
@@ -3586,16 +4908,21 @@ function updateEliteTimerUI() {
   if(el) {
     const now = new Date();
     const midnight = new Date(now).setHours(24,0,0,0);
-    if(lastEliteTs && lastEliteTs < new Date(now).setHours(0,0,0,0)) {
-      el.innerHTML = `New Elite Daily Available!`;
-    } else {
-      const diff = midnight - now;
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      const pad = x => x.toString().padStart(2, '0');
-      el.innerHTML = `Next Elite Daily refresh in: <span style="color:var(--ui-accent); margin-left:4px; font-family:monospace; font-size:12px;">${pad(h)}:${pad(m)}:${pad(s)}</span>`;
-    }
+    const nextWeekTs=getWeekStartTs(now.getTime())+7*86400000;
+    const fmt = (ms) => {
+      const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+      if(d>0) return `${d}d ${h}h ${m}m`;
+      return `${h}h ${m}m ${s}s`;
+    };
+    const dailyResetMs = (lastEliteTs && lastEliteTs < new Date(now).setHours(0,0,0,0)) ? null : (midnight - now);
+    const weeklyResetMs = (lastWeeklyTs && lastWeeklyTs < getWeekStartTs(now.getTime())) ? null : (nextWeekTs - now.getTime());
+    const streakLine = weeklyStreak > 0
+      ? ` • 🔥 ${weeklyStreak}-week streak (×${getWeeklyStreakMult().toFixed(2)} bonus)`
+      : ' • Complete a Weekly Arc to start a streak';
+    el.innerHTML = `
+      <div>⏳ Elite Daily ${dailyResetMs===null?'<span style="color:var(--ui-accent);">refresh available</span>':`resets in <span style="color:var(--ui-accent);font-family:monospace;">${fmt(dailyResetMs)}</span>`}</div>
+      <div style="color:#e9c46a; margin-top:4px;">🏆 Weekly Arc ${weeklyResetMs===null?'<span style="color:var(--ui-accent);">refresh available</span>':`resets in <span style="font-family:monospace;">${fmt(weeklyResetMs)}</span>`}${streakLine}</div>
+    `;
   }
 
   let rebuild = false;
@@ -3901,7 +5228,7 @@ try {
       const maxH = Math.max(...fishList.map(f => f.hunger));
       for(const f of fishList) f.hunger = maxH;
     }
-    if(time%60===0) { checkMilestones(); updateEliteTimerUI(); }
+    if(time%60===0) { checkMilestones(); checkAchievements(); updateEliteTimerUI(); }
     // plankton: passive XP drip once per minute
     if(time%3600===0) { const planktonStacks = swGetBonus('plankton'); if(planktonStacks > 0) giveXP(5 * planktonStacks); }
   }
@@ -4768,6 +6095,7 @@ function checkLevel(){
       document.getElementById('nb-supplies').classList.add('notify');
     }
     checkMilestones();
+    checkAchievements();
     
     // Auto-Theme Swap for Eras
     if (playerLevel === 8 && !ownedThemes.includes('reef')) {
@@ -5443,6 +6771,33 @@ function buildAquapedia() {
     </div>`);
   }
 
+  // ── Achievements page (lifetime registry) ──
+  if(!sm.achievements) sm.achievements = [];
+  const achUnlocked = sm.achievements.length;
+  const achTotal = ACHIEVEMENTS.length;
+  const achRows = ACHIEVEMENTS.map(a => {
+    const got = sm.achievements.includes(a.id);
+    return `<div class="aq-page-item" style="display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:4px;background:${got?'rgba(180,140,60,0.08)':'rgba(0,0,0,0.03)'};border:1px solid ${got?'rgba(180,140,60,0.3)':'rgba(160,140,110,0.15)'};border-radius:3px;${got?'':'opacity:0.55;'}">
+      <div style="font-size:16px;filter:${got?'none':'grayscale(1)'};min-width:20px;text-align:center;">${got?a.icon:'🔒'}</div>
+      <div style="flex:1;">
+        <div style="font-family:Georgia,serif;font-size:10px;font-weight:700;color:${got?'#5a3818':'#8a7050'};letter-spacing:0.3px;">${a.name}</div>
+        <div style="font-family:Georgia,serif;font-size:8px;color:#8a7050;font-style:italic;line-height:1.3;">${a.desc}</div>
+      </div>
+      <div style="font-family:Georgia,serif;font-size:8px;color:${got?'#a8722a':'#a09080'};letter-spacing:0.5px;white-space:nowrap;">+${formatCoins(a.reward)}</div>
+    </div>`;
+  }).join('');
+  _bookPages.push(`
+    <div style="padding:14px 16px 10px;overflow-y:auto;height:100%;box-sizing:border-box;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div class="aq-page-item" style="font-family:Georgia,serif;font-size:9px;letter-spacing:3px;color:#8a7050;text-transform:uppercase;margin-bottom:3px;">Lifetime Registry</div>
+        <div class="aq-page-item" style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#5a3818;letter-spacing:1.5px;">Achievements</div>
+        <div class="aq-page-item" style="font-family:Georgia,serif;font-size:9px;color:#a08060;margin-top:4px;font-style:italic;">${achUnlocked} of ${achTotal} inscribed</div>
+      </div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,#c8a870,transparent);margin:6px 0 10px;"></div>
+      ${achRows}
+    </div>
+  `);
+
   // Initialize to first page
   _bookPage = 0;
   _renderBookPage();
@@ -5905,15 +7260,16 @@ function makeCosmCard(id, def, isOwned, isEquipped, lk, colorVal, onBuy, onEquip
 
 const decorOpen = {themes:false, substrates:false, bubbles:false, borders:false, flora:false};
 
-function makeAccordion(id, title, equippedName, cards, openKey) {
+function makeAccordion(id, title, equippedName, cards, openKey, equippedSwatch) {
   const el = document.getElementById(id);
   if(!el) return;
   const isOpen = decorOpen[openKey];
+  const swatchHTML = equippedSwatch ? `<span class="equipped-swatch" style="display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle;margin-right:6px;border:1px solid var(--brass-deep);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3),0 0 4px rgba(233,196,106,0.3);background:${equippedSwatch};"></span>` : '';
   el.innerHTML = `
     <div class="acc-hd" onclick="toggleAcc('${openKey}')">
       <div class="acc-hd-left">
         <span class="acc-hd-title">${title}</span>
-        <span class="acc-hd-sub">${equippedName}</span>
+        <span class="acc-hd-sub">${swatchHTML}${equippedName}</span>
       </div>
       <span class="acc-arrow ${isOpen?'open':''}">&#9660;</span>
     </div>
@@ -5933,22 +7289,25 @@ function toggleAcc(key) {
 
 function buildDecor() {
   let cardEl;
-  cardEl = makeAccordion('acc-themes','Water Themes', THEMES[curTheme].name, null, 'themes');
+  const themeDef = THEMES[curTheme] || {};
+  const themeSwatch = themeDef.c1 && themeDef.c2 ? `linear-gradient(135deg, ${themeDef.c1}, ${themeDef.c2})` : (themeDef.c1 || '#0d3b4f');
+  cardEl = makeAccordion('acc-themes','Water Themes', THEMES[curTheme].name, null, 'themes', themeSwatch);
   if(cardEl) for(const [id,def] of Object.entries(THEMES))
     cardEl.appendChild(makeCosmCard(id,def,ownedThemes.includes(id),curTheme===id,playerLevel<def.req,def.c1,
       ()=>{ ownedThemes.push(id); curTheme=id; _waterGrad=null; _rayGrads=null; }, ()=>{ curTheme=id; _waterGrad=null; _rayGrads=null; }));
 
-  cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates');
+  const floorDef = FLOORS[curFloor] || {};
+  cardEl = makeAccordion('acc-substrates','Substrates', FLOORS[curFloor].name, null, 'substrates', floorDef.c || '#8b6a2f');
   if(cardEl) for(const [id,def] of Object.entries(FLOORS))
     cardEl.appendChild(makeCosmCard(id,def,ownedFloors.includes(id),curFloor===id,playerLevel<def.req,def.c,
       ()=>{ ownedFloors.push(id); curFloor=id; _substrateDirty=true; }, ()=>{ curFloor=id; _substrateDirty=true; }));
 
-  cardEl = makeAccordion('acc-bubbles','Bubble Styles', BUBBLES[curBubble].name, null, 'bubbles');
+  cardEl = makeAccordion('acc-bubbles','Bubble Styles', BUBBLES[curBubble].name, null, 'bubbles', 'radial-gradient(circle, #7dd3e0 0%, #0d3b4f 100%)');
   if(cardEl) for(const [id,def] of Object.entries(BUBBLES))
     cardEl.appendChild(makeCosmCard(id,def,ownedBubbles.includes(id),curBubble===id,playerLevel<def.req,'var(--ui-accent)',
       ()=>{ ownedBubbles.push(id); curBubble=id; }, ()=>{ curBubble=id; }));
 
-  cardEl = makeAccordion('acc-borders','Tank Border', BORDERS[curBorder].name, null, 'borders');
+  cardEl = makeAccordion('acc-borders','Tank Border', BORDERS[curBorder].name, null, 'borders', 'linear-gradient(90deg, #c9a96a, #8b6a2f)');
   if(cardEl) for(const [id,def] of Object.entries(BORDERS))
     cardEl.appendChild(makeCosmCard(id,def,ownedBorders.includes(id),curBorder===id,playerLevel<def.req,'#f59e0b',
       ()=>{ ownedBorders.push(id); curBorder=id; applyBorder(); }, ()=>{ curBorder=id; applyBorder(); }));
@@ -6175,9 +7534,11 @@ function buildSocial(){
       </div>
       <div style="padding-top:10px; display:flex; flex-direction:column; gap:8px;">
         <div class="srow"><span>Daily Streak</span><span id="sstreak" style="font-weight:bold; color:var(--text-main);"></span></div>
+        <div class="srow"><span>Weekly Arc Streak</span><span id="swystreak" style="font-weight:bold; color:#e9c46a;"></span></div>
         <div class="srow"><span>Orders Completed</span><span id="sorders" style="font-weight:bold; color:var(--text-main);"></span></div>
         <div class="srow"><span>Total Coins Earned</span><span id="stotal" style="font-weight:bold; color:var(--money-val);"></span></div>
         <div class="srow"><span>Codes Redeemed</span><span id="scodes" style="font-weight:bold; color:var(--text-main);"></span></div>
+        <div class="srow"><span>Achievements Unlocked</span><span id="sachv" style="font-weight:bold; color:var(--ui-accent);"></span></div>
       </div>
     </div>
 
@@ -6235,9 +7596,12 @@ function buildSocial(){
 
   document.getElementById('mycode').textContent=myCode();
   document.getElementById('sstreak').textContent=dailyStreak+' days';
+  document.getElementById('swystreak').textContent=weeklyStreak+' weeks (×'+getWeeklyStreakMult().toFixed(2)+')';
   document.getElementById('sorders').textContent=completedOrders;
   document.getElementById('stotal').textContent=totalCoins.toLocaleString();
   document.getElementById('scodes').textContent=codesRedeemed;
+  const achUnlocked = (ACHIEVEMENTS.filter(a=>(sm.achievements||[]).includes(a.id)).length)+' / '+ACHIEVEMENTS.length;
+  document.getElementById('sachv').textContent=achUnlocked;
   
   const ml = document.getElementById('m-list');
   const completedMilestones = currentOrders.filter(o => o.claimed && (o.id.startsWith('q') || o.ftyperew));
@@ -6410,14 +7774,14 @@ function generateDailyQuest() {
   const now = new Date();
   const midnight = new Date(now).setHours(0,0,0,0);
   if(lastEliteTs && lastEliteTs >= midnight && currentOrders[5]) return;
-  
+
   const tmpl = ELITE_DAILY_POOL[Math.floor(Math.random()*ELITE_DAILY_POOL.length)];
   lastEliteTs = Date.now();
-  
+
   const scale = getDifficultyScale();
   const scaledTarget = tmpl.isState ? tmpl.target : Math.ceil(tmpl.target * scale);
   const scaledReward = tmpl.reward > 0 ? Math.ceil(tmpl.reward * scale) : 0;
-  
+
   currentOrders[5] = {
     id: tmpl.id, icon: ICONS.star, desc: tmpl.desc, tier: 'legend',
     metric: tmpl.metric, target: scaledTarget, reward: scaledReward,
@@ -6425,6 +7789,37 @@ function generateDailyQuest() {
     howTo: tmpl.howTo, startVal: 0, progress: 0, complete: false, claimed: false
   };
   if(!tmpl.isState) currentOrders[5].startVal = getRawMetricValue(currentOrders[5]);
+}
+
+// ── WEEKLY QUEST ── Resets Monday 00:00 local. Streak increments on claim,
+// resets to 0 if a week passes without a claim. Streak multiplier applied to reward at claim.
+function generateWeeklyQuest() {
+  if(playerLevel < 5) return;
+  const weekStart = getWeekStartTs(Date.now());
+
+  // If we've already set one this week and it's still active, leave it alone.
+  if(lastWeeklyTs && lastWeeklyTs >= weekStart && currentOrders[6]) return;
+
+  // New week — resolve previous-week streak state before generating fresh
+  if(lastWeeklyTs && lastWeeklyTs < weekStart) {
+    if(!lastWeeklyCompleted) weeklyStreak = 0; // missed a week → streak breaks
+  }
+
+  const tmpl = WEEKLY_QUEST_POOL[Math.floor(Math.random()*WEEKLY_QUEST_POOL.length)];
+  lastWeeklyTs = Date.now();
+  lastWeeklyCompleted = false;
+
+  const scale = getDifficultyScale();
+  const scaledTarget = tmpl.isState ? tmpl.target : Math.ceil(tmpl.target * Math.max(1, scale * 0.7));
+  const baseReward = Math.ceil(tmpl.reward * scale);
+
+  currentOrders[6] = {
+    id: tmpl.id, icon: '🏆', desc: tmpl.desc, tier: 'legend',
+    metric: tmpl.metric, target: scaledTarget, reward: baseReward,
+    isState: tmpl.isState, isWeekly: true, isMasterpieceReward: true,
+    howTo: tmpl.howTo, startVal: 0, progress: 0, complete: false, claimed: false
+  };
+  if(!tmpl.isState) currentOrders[6].startVal = getRawMetricValue(currentOrders[6]);
 }
 
 function getRerollCost() {
@@ -6447,6 +7842,7 @@ function generateOrders() {
   currentOrders=[];
   for(let i=0;i<ORDER_SLOTS;i++) generateSingleOrder(i, true);
   generateDailyQuest();
+  generateWeeklyQuest();
 }
 
 function orderProg(o) {
@@ -6503,16 +7899,26 @@ function claimOrder(i) {
   }
   o.claimed=true; completedOrders++;
   questStreak++;
+
+  // Weekly claim → bump weekly streak, flag completion for next-week resolution
+  const isWeekly = o.isWeekly;
+  if(isWeekly) {
+    weeklyStreak++;
+    lastWeeklyCompleted = true;
+  }
+
   const tm=TIER_META[o.tier||'easy']||TIER_META.easy;
   const streakBonus=Math.min((questStreak-1)*0.1,1.0);
+  const weeklyMult = isWeekly ? getWeeklyStreakMult() : 1.0;
   const _qXP={easy:40,med:80,hard:160,legend:350}[o.tier||'easy']||40;
-  giveXP(_qXP+(questStreak>=3?100:0));
+  giveXP(_qXP+(questStreak>=3?100:0) + (isWeekly ? 1500 : 0));
 
   // Give coin reward (always, even alongside fish reward)
   if(o.reward>0){
-    const bonused=Math.ceil(o.reward*(1+streakBonus));
+    const bonused=Math.ceil(o.reward*(1+streakBonus)*weeklyMult);
     addCoins(bonused,W/2,H/3,true);
-    if(streakBonus>0) setTimeout(()=>spawnJuice(W/2,H/3-50,`<div style="display:flex;align-items:center;gap:4px;">${ICONS.fire} +${Math.round(streakBonus*100)}% streak!</div>`,'#f59e0b',1.3),120);
+    if(streakBonus>0 && !isWeekly) setTimeout(()=>spawnJuice(W/2,H/3-50,`<div style="display:flex;align-items:center;gap:4px;">${ICONS.fire} +${Math.round(streakBonus*100)}% streak!</div>`,'#f59e0b',1.3),120);
+    if(isWeekly) setTimeout(()=>spawnJuice(W/2,H/3-50,`<div style="display:flex;align-items:center;gap:4px;">🏆 WEEKLY ×${weeklyMult.toFixed(2)} • streak ${weeklyStreak}</div>`,'#e9c46a',1.6),120);
   }
 
   // Random Bonus Egg drop
@@ -6584,11 +7990,16 @@ function buildOrders() {
   const orderIndices = Array.from(currentOrders.keys());
   orderIndices.sort((a,b) => {
     const oa = currentOrders[a]; const ob = currentOrders[b];
-    const aTop = a === 5 && oa && !oa.claimed;
-    const bTop = b === 5 && ob && !ob.claimed;
-    if(aTop && !bTop) return -1;
-    if(bTop && !aTop) return 1;
-    
+    // Weekly quest sorts above all (except already-claimed-by-design daily)
+    const aWeekly = a === 6 && oa && !oa.claimed;
+    const bWeekly = b === 6 && ob && !ob.claimed;
+    const aDaily = a === 5 && oa && !oa.claimed;
+    const bDaily = b === 5 && ob && !ob.claimed;
+    // priority: weekly > daily > regular
+    const aRank = aWeekly ? 2 : (aDaily ? 1 : 0);
+    const bRank = bWeekly ? 2 : (bDaily ? 1 : 0);
+    if(aRank !== bRank) return bRank - aRank;
+
     // Cooldown quests move to bottom
     const aCool = oa && oa.unlockAt && Date.now() < oa.unlockAt;
     const bCool = ob && ob.unlockAt && Date.now() < ob.unlockAt;
@@ -6600,6 +8011,7 @@ function buildOrders() {
 
   html+=orderIndices.map((i)=>{
     const o=currentOrders[i];
+    if(!o) return ''; // sparse slot — skip
     if(o.unlockAt && Date.now() < o.unlockAt) {
       const wait = Math.max(0, o.unlockAt - Date.now());
       const mins = Math.floor(wait / 60000);
@@ -6619,27 +8031,39 @@ function buildOrders() {
     const tm=TIER_META[o.tier||'easy']||TIER_META.easy;
     const isLeg=o.tier==='legend' || o.rewardIsRare;
     const isDaily = o.isDaily;
+    const isWeekly = o.isWeekly;
     const expanded = _openQuests.has(i);
+
+    const weeklyMultNow = isWeekly ? getWeeklyStreakMult() : 1.0;
+    const projectedReward = isWeekly ? Math.ceil(o.reward * weeklyMultNow) : o.reward;
 
     const rewHtml=o.ftyperew&&TYPES[o.ftyperew]
       ?`<div class="o-reward-item" style="color:var(--tier-legend);">${ICONS.egg} Rare ${TYPES[o.ftyperew].name} Unlock ${o.reward>0?'<span style="color:var(--ui-accent);margin-left:5px;">+ '+ICONS.coin+formatCoins(o.reward)+'</span>':''}</div>`
-      :`<div class="o-reward-item" style="color:var(--ui-accent);">${ICONS.coin} ${formatCoins(o.reward)} Coins</div>`;
+      :`<div class="o-reward-item" style="color:var(--ui-accent);">${ICONS.coin} ${formatCoins(projectedReward)} Coins${isWeekly && weeklyMultNow > 1 ? ` <span style="color:#e9c46a; font-size:10px; margin-left:6px;">(×${weeklyMultNow.toFixed(2)} streak)</span>` : ''}</div>`;
 
-    const btnText = o.claimed 
-      ? (ICONS.done + ' Claimed') 
-      : (o.isTrade && !o.delivered) 
+    const btnText = o.claimed
+      ? (ICONS.done + ' Claimed')
+      : (o.isTrade && !o.delivered)
         ? (done ? ICONS.market + ' Hand In' : ICONS.market + ' Collect...')
         : (done ? 'Claim Reward!' : 'In Progress...');
 
-    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''} ${isDaily?'q-daily':''} ${expanded?'expanded':''}" 
-           style="position:relative;padding-left:24px;" onclick="toggleQuest(${i}, this)">
+    const accentStrip = isWeekly ? '#e9c46a' : (isDaily ? '#a855f7' : tm.strip);
+    const badgeLabel = isWeekly ? '🏆 WEEKLY ARC' : (isDaily ? 'ELITE DAILY' : tm.label);
+    const weeklyStreakChip = isWeekly && weeklyStreak > 0
+      ? `<span style="color:#e9c46a; font-size:10px; font-weight:700; letter-spacing:0.8px; margin-left:6px;">🔥 ${weeklyStreak}-WK STREAK</span>` : '';
+
+    return`<div class="ocard ${o.claimed?'oclaimed':done?'odone':''} ${isLeg?'ql':''} ${isDaily?'q-daily':''} ${isWeekly?'q-weekly':''} ${expanded?'expanded':''}"
+           style="position:relative;padding-left:24px;${isWeekly?'box-shadow:0 0 0 1px rgba(233,196,106,0.35), 0 6px 24px -8px rgba(233,196,106,0.4);':''}" onclick="toggleQuest(${i}, this)">
       ${isDaily?'<div class="nebula-glow"></div>':''}
-      <div style="position:absolute;left:0;top:0;bottom:0;width:6px;background:${isDaily?'#a855f7':tm.strip};border-radius:6px 0 0 6px;opacity:${o.claimed?.3:1};"></div>
+      ${isWeekly?'<div class="nebula-glow" style="background:radial-gradient(circle, rgba(233,196,106,0.18), transparent 70%);"></div>':''}
+      <div style="position:absolute;left:0;top:0;bottom:0;width:6px;background:${accentStrip};border-radius:6px 0 0 6px;opacity:${o.claimed?.3:1};"></div>
       <div class="ohead"><span class="oico" style="font-size:24px;">${o.icon}</span>
         <div style="flex:1; margin-left:12px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span class="tier-badge">${isDaily?'ELITE DAILY':tm.label}</span>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span class="tier-badge" style="${isWeekly?'background:#e9c46a; color:#1a0f00; border-color:#8b6a2f;':''}">${badgeLabel}</span>
+              ${weeklyStreakChip}
+              <span style="color:var(--card-text); font-weight:700; font-size:14px;">${o.desc}</span>
               <span style="color:var(--card-text); font-weight:700; font-size:14px;">${o.desc}</span>
             </div>
             <div class="o-chevron">▼</div>
@@ -6662,8 +8086,8 @@ function buildOrders() {
       </div>
 
       <div class="ofoot" style="margin-top:12px; display:flex; justify-content:flex-end;">
-          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':''}" onclick="event.stopPropagation(); claimOrder(${i})" ${done&&!o.claimed?'':'disabled'} 
-                  style="width:auto; min-width:120px; border-radius:14px; border-width:2px; ${done&&!o.claimed?`border-color:${isDaily?'#a855f7':tm.strip};color:white;background:${isDaily?'#a855f7':tm.strip};`:''}">
+          <button class="cbtn2 ${done&&!o.claimed?'claim-ready':'status-tag'}" onclick="event.stopPropagation(); claimOrder(${i})" ${done&&!o.claimed?'':'disabled'}
+                  style="width:auto; ${done&&!o.claimed?`min-width:120px; border-radius:14px; border-width:2px; border-color:${isWeekly?'#e9c46a':(isDaily?'#a855f7':tm.strip)};color:${isWeekly?'#1a0f00':'white'};background:${isWeekly?'#e9c46a':(isDaily?'#a855f7':tm.strip)};`:`min-width:auto; padding:6px 14px; border-radius:3px; font-size:9px; letter-spacing:1.8px; opacity:0.7; box-shadow:none;`}">
             ${btnText}
           </button>
       </div>
@@ -6672,7 +8096,24 @@ function buildOrders() {
 
   const done=currentOrders.filter(o=>o.claimed).length;
   generateDailyQuest(); // Ensure daily is present
-  html+=`<div id="daily-timer" style="text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);margin:20px 0 10px;"></div>`;
+  generateWeeklyQuest(); // Ensure weekly is present
+  const now=Date.now();
+  const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+  const dailyMs=Math.max(0, tomorrow.getTime()-now);
+  const nextWeekTs=getWeekStartTs(now)+7*86400000;
+  const weeklyMs=Math.max(0, nextWeekTs-now);
+  const fmt = (ms) => {
+    const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+    if(d>0) return `${d}d ${h}h ${m}m`;
+    return `${h}h ${m}m ${s}s`;
+  };
+  const streakLine = weeklyStreak > 0
+    ? ` • 🔥 ${weeklyStreak}-week streak (×${getWeeklyStreakMult().toFixed(2)} bonus)`
+    : ' • Complete a Weekly Arc to start a streak';
+  html+=`<div id="daily-timer" style="text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);margin:20px 0 10px;line-height:1.7;">
+    <div>⏳ Elite Daily resets in <span style="color:var(--ui-accent);font-family:monospace;">${fmt(dailyMs)}</span></div>
+    <div style="color:#e9c46a; margin-top:4px;">🏆 Weekly Arc resets in <span style="font-family:monospace;">${fmt(weeklyMs)}</span>${streakLine}</div>
+  </div>`;
   html+=`<div class="q-total" style="margin-top:0;">${completedOrders} quests completed lifetime • ${ORDER_POOL.length} quests in pool</div>`;
   olist.innerHTML=html;
 }
@@ -6691,6 +8132,7 @@ function resetSave(){
      boughtCounts={};for(let k in TYPES)boughtCounts[k]=0;
      sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0};
      questStreak=0; currentOrders=[]; completedOrders=0; codesRedeemed=0;
+     lastEliteTs=0; lastWeeklyTs=0; weeklyStreak=0; lastWeeklyCompleted=false;
      Object.values(UPGRADES).forEach(u=>u.owned=0);
      saveGame();
      location.reload();
@@ -7556,22 +8998,37 @@ function swDrawAll() {
       }
 
       if (revealed) {
-        // Node name
-        const fsize = Math.max(7, Math.round(9 * sw_zoom));
-        ctx2.font = `600 ${fsize}px system-ui`;
-        ctx2.fillStyle = '#e2e8f0';
+        // Node name — with backing plate for contrast against starfield
+        const fsize = Math.max(9, Math.round(11 * sw_zoom));
+        ctx2.font = `800 ${fsize}px Fredoka, system-ui`;
         ctx2.textAlign = 'center';
         ctx2.textBaseline = 'top';
-        ctx2.fillText(nd.name, spos.x, spos.y + r + 5);
+        const labelY = spos.y + r + 6;
+        const labelW = ctx2.measureText(nd.name).width + 8;
+        const labelH = fsize + 4;
+        // backing plate
+        ctx2.fillStyle = 'rgba(2,8,18,0.78)';
+        ctx2.beginPath();
+        ctx2.roundRect(spos.x - labelW/2, labelY - 1, labelW, labelH, 4);
+        ctx2.fill();
+        // text
+        ctx2.fillStyle = canBuy ? '#fbbf24' : (swNodeFullyDone(nd) ? '#a7f3d0' : '#f1f5f9');
+        ctx2.fillText(nd.name, spos.x, labelY);
         // Cost label
         if (!swNodeFullyDone(nd)) {
           const costStr = swFmtCost(swNodeCost(nd));
-          const costFsize = Math.max(6, Math.round(8 * sw_zoom));
+          const costFsize = Math.max(8, Math.round(10 * sw_zoom));
           ctx2.font = `bold ${costFsize}px system-ui`;
-          ctx2.fillStyle = canBuy ? '#34d399' : `rgba(${cr},${cg},${cb},0.6)`;
+          ctx2.fillStyle = canBuy ? '#fde68a' : `rgba(${cr},${cg},${cb},0.75)`;
           ctx2.textAlign = 'center';
           ctx2.textBaseline = 'bottom';
+          // glow halo when buyable
+          if (canBuy) {
+            ctx2.shadowColor = 'rgba(251,191,36,0.7)';
+            ctx2.shadowBlur = 8;
+          }
           ctx2.fillText(costStr, spos.x, spos.y - r - 3);
+          ctx2.shadowBlur = 0;
         }
       }
 
@@ -8018,6 +9475,15 @@ function BOOT_APP() {
     if(saved){
       const offline=calcOffline(saved);
       applyState(saved);
+
+      // Resolve missed weekly streak on load — if last weekly was claimed before the previous Monday and not completed, break streak.
+      if(lastWeeklyTs > 0) {
+        const thisWeekStart = getWeekStartTs(Date.now());
+        const prevWeekStart = thisWeekStart - 7*86400000;
+        if(lastWeeklyTs < prevWeekStart && !lastWeeklyCompleted) {
+          weeklyStreak = 0;
+        }
+      }
       
       // Auto-update theme based on current Era
       if (playerLevel >= 8) {
