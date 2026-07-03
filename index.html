@@ -2751,6 +2751,7 @@ function buildSave(){
   return {
     totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs, lastWeeklyTs, weeklyStreak, lastWeeklyCompleted,
     fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name,
+      _bondXP: f._bondXP||0, _lastBondTs: f._lastBondTs||0,
       ...(f.isVisitor && f.key ? {isVisitor:true, key:f.key} : {})})),
     eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut})),
     clams: clams.length,
@@ -2844,6 +2845,7 @@ function applyState(s){
       vx:(Math.random()-.5)*spd,vy:(Math.random()-.5)*.5,phase:Math.random()*Math.PI*2,
       timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger!==undefined?f.hunger:80,age:f.age!==undefined?f.age:5000,
       scale:Math.min(1,(f.age!==undefined?f.age:5000)/20000),bonded:f.bonded!==undefined?f.bonded:0, bcd:f.bcd!==undefined?f.bcd:0,
+      _bondXP: f._bondXP||0, _lastBondTs: f._lastBondTs||0,
       genes, isRare: def ? (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2) : false, name:f.name,
       ...(isTamedVisitor ? {isVisitor:true, key:f.key, def:vDef, _sz:vDef.sz} : {})});
     computeColorBonus(fishList[fishList.length-1]);
@@ -2852,6 +2854,17 @@ function applyState(s){
   // Pressure Dome: fish never lose hunger offline — restore all to full on load
   if (s.sw_owned && s.sw_owned['d_dome'] > 0) {
     for (const f of fishList) f.hunger = 100;
+  }
+
+  // Bond XP decay: 1 XP per 2hr idle (offline). Caps so a long break doesn't erase progress.
+  {
+    const _nowB = Date.now();
+    for (const f of fishList) {
+      if (!f._lastBondTs || !f._bondXP) continue;
+      const elapsedHrs = Math.max(0, (_nowB - f._lastBondTs) / 3600000);
+      const decay = Math.min(f._bondXP, Math.floor(elapsedHrs / 2));
+      if (decay > 0) f._bondXP = Math.max(0, f._bondXP - decay);
+    }
   }
 
   for(let i=0;i<UPGRADES.snail.owned;i++)
@@ -3125,7 +3138,8 @@ function getPrice(f) {
   const platscalesMult = (UPGRADES.platscales && UPGRADES.platscales.owned > 0) ? 1.4 : 1;
   const goldCatSellMult = swGetBonus('gold_cat') > 0 ? 1.1 : 1;
   const mythicLinMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? 3 : 1;
-  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult);
+  const bondSellMult = bondLevel(f) >= 4 ? 1.5 : 1;
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult * bondSellMult);
 }
 
 function generateMasterpieceGenes(type) {
@@ -3247,7 +3261,7 @@ function updateEco(){
 function triggerEat(f,fd,def){
   fd.eaten=true;f.hunger=100;f.eat=18;sm.feeds++;
   _lastActiveFeed=Date.now();
-  const _pers = getPersonality(f).effects;
+  const _pers = amplifiedPers(f);
   giveXP((isHarmony?2:1) * _pers.xpMult);
   combo++;comboTimer=getMaxCT();
   sm.comboTaps = (sm.comboTaps||0) + 1;
@@ -3262,8 +3276,9 @@ function triggerEat(f,fd,def){
   let isGold = false;
   for(const g of [...f.genes.c1, ...f.genes.c2]) if(g.includes('fbbf') || g.includes('eab3') || g.includes('f59e') || g.includes('fde0')) isGold = true;
 
+  const _bondLv = bondLevel(f);
   const rareMult  = f.isRare ? 2 : 1;
-  const bondMult   = f.bonded > 0 ? 1.3 : 1;
+  const bondMult   = _bondLv >= 2 ? 1.3 : 1;
   // Mastery-scaled bonuses
   const _heatM = swMastery('c_heater');
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? (1.15 + _heatM * 0.08) : 1;
@@ -3277,8 +3292,9 @@ function triggerEat(f,fd,def){
 
   // WQ < 10% (Algae > 90) yields 0. Linearly scales from 10% WQ to 100% WQ.
   // antimatter: no coin loss from dirty tanks, algae penalty still reduces (but not zeroed)
+  // Bond L3+: fish ignores algae penalty entirely.
   const _antiOwned = swGetBonus('antimatter') > 0;
-  const algaePen = _antiOwned ? Math.max(0.3, (90 - algae) / 90) : Math.max(0, (90 - algae) / 90);
+  const algaePen = _bondLv >= 3 ? 1 : (_antiOwned ? Math.max(0.3, (90 - algae) / 90) : Math.max(0, (90 - algae) / 90));
   // symbiotic: +10% when algae < 20, mastery scales bonus
   const _symbM = swMastery('a_symb');
   const symbioticMult = (UPGRADES.symbiotic && UPGRADES.symbiotic.owned > 0 && algae < 20) ? (1.1 + _symbM * 0.08) : 1;
@@ -3356,8 +3372,8 @@ function updateFish(f){
   if(UPGRADES.oxygen && UPGRADES.oxygen.owned > 0) hDrain *= 0.8;
   if(trait === 'lazy') hDrain *= 0.8;
   if(trait === 'active') hDrain *= 1.2;
-  // Personality-driven drain (Calm = -20%, Grumpy = +10%, etc.)
-  hDrain *= getPersonality(f).effects.hungerDrainMult;
+  // Personality-driven drain (Calm = -20%, Grumpy = +10%, etc.) — L5 bond amplifies
+  hDrain *= amplifiedPers(f).hungerDrainMult;
   // dome mastery: reduces online hunger drain (M1 -15%, M2 -30%, M3 -45%)
   const _domeM = typeof swMastery === 'function' ? swMastery('d_dome') : 0;
   if(swGetBonus('dome') > 0 && _domeM > 0) hDrain *= (1 - _domeM * 0.15);
@@ -12303,10 +12319,17 @@ function doTap(x,y){
     }
     if(hitFish) {
       hitFish._nameTs = Date.now();
-      if(hitFish.bonded < 300) { 
+      if(hitFish.bonded < 300) {
         hitFish.bonded = Math.floor(3600 * getPersonality(hitFish).effects.bondRate);
+        const _prevBondLv = bondLevel(hitFish);
         hitFish._bondXP = (hitFish._bondXP || 0) + 1;
+        hitFish._lastBondTs = Date.now();
         sm.bonded++;
+        const _newBondLv = bondLevel(hitFish);
+        if(_newBondLv > _prevBondLv) {
+          spawnJuice(hitFish.x, hitFish.y - 25, `BOND L${_newBondLv}!`, '#f43f5e', 1.6);
+          for(let i=0;i<14;i++) particles.push({x:hitFish.x,y:hitFish.y-15,vx:(Math.random()-.5)*4,vy:-2-Math.random()*3,life:1,c:'#f43f5e'});
+        }
         for(let i=0;i<6;i++) particles.push({x:x,y:y-30,vx:(Math.random()-.5)*3,vy:-1-Math.random()*2,life:1,c:'#fb7185'});
       }
       return;
@@ -12697,6 +12720,34 @@ function getPersonality(f) {
   return { desc: `${p1} ${p2}`, p1, p2, likes, dislikes, effects, blurb: effects.blurb };
 }
 
+// Bond tier system — cumulative tap XP unlocks permanent buffs.
+// L1: baseline. L2(3+): +30% feed coins. L3(10+): ignore algae penalty.
+// L4(25+): +50% sell price. L5(60+): personality effects amplified x2.
+const BOND_XP_THRESHOLDS = [0, 0, 3, 10, 25, 60];
+function bondLevel(f) {
+  const xp = f._bondXP || 0;
+  if (xp >= 60) return 5;
+  if (xp >= 25) return 4;
+  if (xp >= 10) return 3;
+  if (xp >= 3) return 2;
+  return 1;
+}
+function bondNextThreshold(lv) { return BOND_XP_THRESHOLDS[lv + 1] || null; }
+function persAmp(f) { return bondLevel(f) >= 5 ? 2 : 1; }
+// Amplified personality effects — at L5 the deviation from baseline doubles.
+function amplifiedPers(f) {
+  const raw = getPersonality(f).effects;
+  const amp = persAmp(f);
+  if (amp === 1) return raw;
+  return {
+    coinMult:       1 + (raw.coinMult - 1) * amp,
+    xpMult:         1 + (raw.xpMult - 1) * amp,
+    hungerDrainMult:1 + (raw.hungerDrainMult - 1) * amp,
+    bondRate:       1 + (raw.bondRate - 1) * amp,
+    blurb: raw.blurb,
+  };
+}
+
 function buildFishFinder() {
   const flist = document.getElementById('flist');
   if(!fishList.length) { flist.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;">No fish in tank.</div>'; return; }
@@ -12717,10 +12768,13 @@ function buildFishFinder() {
     const ageTxt = f.age > getAdultAge(f) ? "Adult" : f.age > getJuvAge(f) ? "Juvenile" : "Baby";
     const pers = getPersonality(f);
     const trait = f.genes.trait[0];
-    const bondLv = Math.min(5, Math.floor((f.bonded || 0) / 720) + 1);
-    const hStr = Array(bondLv).fill(`<span style="color:#f43f5e">${ICONS.heart}</span>`).join('') + 
+    const bondLv = bondLevel(f);
+    const bondXp = f._bondXP || 0;
+    const bondNext = bondNextThreshold(bondLv);
+    const bondProg = bondLv >= 5 ? 'MAX' : (bondNext !== null ? `${bondXp}/${bondNext}` : '');
+    const hStr = Array(bondLv).fill(`<span style="color:#f43f5e">${ICONS.heart}</span>`).join('') +
                  Array(5-bondLv).fill(`<span style="opacity:0.2">${ICONS.heart}</span>`).join('');
-    const hearts = `<div style="display:flex;gap:2px;">${hStr}</div>`;
+    const hearts = `<div style="display:flex;gap:2px;align-items:center;">${hStr}${bondProg?`<span style="font-size:9px;color:var(--text-dim);margin-left:4px;">${bondProg}</span>`:''}</div>`;
     
     let html = `<div class="finder-card">
       <div style="display:flex; align-items:center; gap:12px;">
