@@ -2245,12 +2245,15 @@ function getFishPrice(type) {
 
 const UPGRADES={
   flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,req:2},
-  snail:     {name:'Mystery Snail',  icon:ICONS.snail,  cost:350,        info:'Passive income + eats algae',                  max:5,owned:0,req:1},
+  snail:     {name:'Cleaner Snail',  icon:ICONS.snail,  cost:350,        info:'Eats algae + small coin income',               max:5,owned:0,req:1},
+  snail_gilded:{name:'Gilded Snail', icon:ICONS.snail,  cost:8000,       info:'Triple coin income, no algae cleaning',        max:5,owned:0,req:6},
+  snail_scout:{name:'Scout Snail',   icon:ICONS.snail,  cost:50000,      info:'+15% rare visitor chance each, small income',  max:3,owned:0,req:9},
   autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,req:3},
   tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+3 max fish capacity',                         max:5,owned:0,req:4,hidden:true},
   filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,req:5},
   nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:3},
   clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,req:6},
+  clam_oyster:{name:'Oyster Clam',   icon:ICONS.clam,   cost:200000,     info:'Chance to produce rare eggs each cycle',       max:2,owned:0,req:12},
   heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:50000,      info:'+25% coin value for all fish',                 max:1,owned:0,req:7},
   kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,req:5},
   coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,req:5},
@@ -2270,6 +2273,20 @@ const UPGRADES={
   resonance:    {name:'Resonance',       icon:ICONS.star,   cost:600000,    info:'Combo multiplier cap raised to 3.5×',     max:1,owned:0,hidden:true},
   primordialspark:{name:'Primordial Spark',icon:ICONS.star, cost:5000000,   info:'×3 income multiplier on all fish',        max:1,owned:0,hidden:true}
 };
+
+// Snail/clam variant data: algaeMult, coinMult scale behavior; palette drives art.
+const SNAIL_VARIANTS = {
+  cleaner:  { algaeMult:1.0, coinMult:1.0, body:'#a1a1aa', shellHueBase:0,   shellHueRange:360, shellSat:90, shellLight:65, label:'Cleaner' },
+  gilded:   { algaeMult:0.0, coinMult:3.0, body:'#fbbf24', shellHueBase:38,  shellHueRange:18,  shellSat:95, shellLight:60, label:'Gilded'  },
+  scout:    { algaeMult:0.2, coinMult:0.5, body:'#a78bfa', shellHueBase:268, shellHueRange:24,  shellSat:80, shellLight:55, label:'Scout'   },
+};
+const CLAM_VARIANTS = {
+  pearl:  { coinMult:1.0, eggChance:0.00, shellTop:'#f1f5f9', shellBot:'#64748b', interior0:'#38bdf8', interior1:'#8b5cf6', label:'Pearl'  },
+  oyster: { coinMult:0.3, eggChance:0.06, shellTop:'#cdc2a3', shellBot:'#3f2f1c', interior0:'#f0abfc', interior1:'#a855f7', label:'Oyster' },
+};
+function snailVariant(s){ return SNAIL_VARIANTS[s.variant || 'cleaner'] || SNAIL_VARIANTS.cleaner; }
+function clamVariant(c){ return CLAM_VARIANTS[c.variant || 'pearl'] || CLAM_VARIANTS.pearl; }
+function scoutSnailCount(){ return snails.filter(s => (s.variant || 'cleaner') === 'scout').length; }
 
 const THEMES={
   default:  {name:'Dynamic Ocean',    icon:ICONS.ocean,   cost:0,        c1:'#0369a1', c2:'#1d4ed8', c3:'#001428', req:1},
@@ -3036,7 +3053,7 @@ function buildSave(){
       gen: f.gen||0, lineage: Array.isArray(f.lineage) ? f.lineage : [],
       ...(f.isVisitor && f.key ? {isVisitor:true, key:f.key} : {})})),
     eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut, gen:e.gen||0, lineage:Array.isArray(e.lineage)?e.lineage:[]})),
-    clams: clams.length,
+    clams: clams.filter(c => (c.variant || 'pearl') === 'pearl').length,
     sm, curTheme, curFloor, curBubble, curBorder, currentOrders, completedOrders,
     questStreak, codesRedeemed, claimedCodes: [...claimedCodes], dailyStreak, lastDailyTs,
     ownedThemes, ownedFloors, ownedBubbles, ownedBorders, ownedFlora, activeFlora, boughtCounts,
@@ -3150,10 +3167,17 @@ function applyState(s){
     }
   }
 
-  for(let i=0;i<UPGRADES.snail.owned;i++)
-    snails.push({x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
-  for(let i=0;i<(s.clams || 0);i++)
-    clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+  for(let i=0;i<(UPGRADES.snail?.owned||0);i++)
+    snails.push({variant:'cleaner',x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+  for(let i=0;i<(UPGRADES.snail_gilded?.owned||0);i++)
+    snails.push({variant:'gilded',x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+  for(let i=0;i<(UPGRADES.snail_scout?.owned||0);i++)
+    snails.push({variant:'scout',x:100+Math.random()*(W-200),y:H-85,dir:Math.random()<.5?1:-1,spd:.18+Math.random()*.18,timer:Math.floor(Math.random()*360),ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+  const _legacyClamCount = (s.clams !== undefined) ? s.clams : (UPGRADES.clam?.owned || 0);
+  for(let i=0;i<_legacyClamCount;i++)
+    clams.push({variant:'pearl',x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+  for(let i=0;i<(UPGRADES.clam_oyster?.owned||0);i++)
+    clams.push({variant:'oyster',x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
   
   currentOrders=(s.currentOrders&&s.currentOrders.length)?s.currentOrders:currentOrders;
   if(!currentOrders.length) generateOrders();
@@ -3242,8 +3266,12 @@ function calcOffline(s){
   const lvlScale = Math.max(0.02, Math.pow((s.playerLevel||1)/10, 2)); // Level 1 = 2%, Level 10 = 100%
   
   const sc=(s.upgrades && s.upgrades.snail) || 0;
+  const scG=(s.upgrades && s.upgrades.snail_gilded) || 0;
+  const scS=(s.upgrades && s.upgrades.snail_scout) || 0;
   const snailMult = (s.upgrades && s.upgrades.nutrientdiffuser > 0) ? 1.5 : 1;
-  if(sc>0){const e=Math.floor(sc*.2*elapsed*lvlScale*snailMult);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc} snail${sc>1?'s':''} collected`,coins:e});}
+  // Cleaner=1x, Gilded=3x, Scout=0.5x
+  const snailIncome = sc * 1 + scG * 3 + scS * 0.5;
+  if(snailIncome>0){const e=Math.floor(snailIncome*.2*elapsed*lvlScale*snailMult);total+=e;if(e>0)items.push({icon:ICONS.snail,label:`${sc+scG+scS} snail${sc+scG+scS>1?'s':''} collected`,coins:e});}
   // Clam offline: scale with best fish value so clams stay meaningful
   if((s.clams || 0)>0){
     const fish2 = s.fishList || s.fish || [];
@@ -3653,7 +3681,8 @@ function updateEco(){
   if(swGetBonus('kelp_f') > 0) algaeGrowMult *= 0.7;
   // Visitor effect: passive cleaners (seahare, scorpionfish, abyssalbloomer, nudibranch)
   algaeGrowMult *= visitorEffectVal('algaeMult', 1);
-  const grow=(UPGRADES.bioreactor&&UPGRADES.bioreactor.owned>0)?0:fishList.length*.008*algaeGrowMult,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
+  const snailAlgaeReduce = snails.reduce((sum,s)=>sum + snailVariant(s).algaeMult, 0) * .015;
+  const grow=(UPGRADES.bioreactor&&UPGRADES.bioreactor.owned>0)?0:fishList.length*.008*algaeGrowMult,reduce=snailAlgaeReduce+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
   const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
   isHarmony=algae<(UPGRADES.celestial&&UPGRADES.celestial.owned>0?20:15)&&allFed;
@@ -4138,8 +4167,11 @@ function initDecor(){
 
 function updateSnail(s){
   s.timer++;
+  // Scout variant is faster (it's scouting, after all)
+  const variantData = snailVariant(s);
+  const scoutSpdBoost = variantData === SNAIL_VARIANTS.scout ? 1.4 : 1;
   if(Math.random()<.005){s.state=s.state==='moving'?'idle':'moving';if(Math.random()<.5)s.dir*=-1;}
-  const spdMult = swGetBonus('vent') > 0 ? 1.5 : 1;
+  const spdMult = (swGetBonus('vent') > 0 ? 1.5 : 1) * scoutSpdBoost;
   if(s.state==='moving'){
     if(s.wall==='floor'){
       s.x+=s.spd*s.dir*spdMult; s.ph+=.08;
@@ -4156,53 +4188,92 @@ function updateSnail(s){
     }
   }
   if(s.timer%450===0){
-    // Scale snail income with player level; mastery on c_snail adds +15% per level
     const _snailM = typeof swMastery === 'function' ? swMastery('c_snail') : 0;
     const snailLvlScale = Math.max(1, playerLevel * (1 + _snailM * 0.15));
-    const snailBase = (isHarmony ? 5 : 2) * snailLvlScale;
+    const snailBase = (isHarmony ? 5 : 2) * snailLvlScale * variantData.coinMult;
+    if(snailBase <= 0) return; // some variants produce no income
     const snailCoin = Math.ceil(UPGRADES.nutrientdiffuser&&UPGRADES.nutrientdiffuser.owned>0 ? snailBase*1.5 : snailBase);
     addCoins(snailCoin, s.x, s.y-20, isHarmony);
   }
 }
 
 function drawSnail(s){
+  const vd = snailVariant(s);
   ctx.save();
   if(s.wall==='floor'){ctx.translate(s.x,s.y);if(s.dir<0)ctx.scale(-1,1);}
   else if(s.wall==='left'){ctx.translate(s.x,s.y);ctx.rotate(Math.PI/2);if(s.dir>0)ctx.scale(-1,1);}
   else{ctx.translate(s.x,s.y);ctx.rotate(-Math.PI/2);if(s.dir<0)ctx.scale(-1,1);}
-  
+
   const sy = s.state==='moving' ? Math.abs(Math.sin(s.ph))*1.5 : 0;
-  
-  ctx.beginPath();ctx.ellipse(2, -3, 16, 5, 0, 0, Math.PI*2);ctx.fillStyle='#a1a1aa';ctx.fill();
-  
+
+  // Body uses variant body color
+  ctx.beginPath();ctx.ellipse(2, -3, 16, 5, 0, 0, Math.PI*2);ctx.fillStyle=vd.body;ctx.fill();
   ctx.beginPath();ctx.moveTo(12,-4);ctx.quadraticCurveTo(18,-8, 20,-12);
   ctx.moveTo(14,-2);ctx.quadraticCurveTo(20,2, 22,6);
-  ctx.strokeStyle='#a1a1aa';ctx.lineWidth=2;ctx.stroke();
-
+  ctx.strokeStyle=vd.body;ctx.lineWidth=2;ctx.stroke();
   drawEye(ctx, 16, -4, 2);
 
   const cx = -3, cy = -12 - sy;
   const sg = ctx.createRadialGradient(cx-4, cy-4, 2, cx, cy, 16);
-  s.hue = (s.hue || Math.random()*360) + 0.05;
-  sg.addColorStop(0, `hsl(${s.hue%360}, 90%, 75%)`);
-  sg.addColorStop(1, `hsl(${(s.hue-40)%360}, 100%, 35%)`);
+  if(vd === SNAIL_VARIANTS.gilded){
+    // Static golden shell with shimmer
+    sg.addColorStop(0, '#fef3c7');
+    sg.addColorStop(0.6, '#fbbf24');
+    sg.addColorStop(1, '#92400e');
+  } else if(vd === SNAIL_VARIANTS.scout){
+    // Deep purple shell with pulsing glow
+    s.hue = (s.hue || 268) + 0.03;
+    sg.addColorStop(0, `hsl(${s.hue%360}, 90%, 80%)`);
+    sg.addColorStop(0.5, `hsl(${(s.hue-12)%360}, 85%, 60%)`);
+    sg.addColorStop(1, `hsl(${(s.hue-30+360)%360}, 90%, 32%)`);
+  } else {
+    // Cleaner: original rainbow shell
+    s.hue = (s.hue || Math.random()*360) + 0.05;
+    sg.addColorStop(0, `hsl(${s.hue%360}, 90%, 75%)`);
+    sg.addColorStop(1, `hsl(${(s.hue-40+360)%360}, 100%, 35%)`);
+  }
 
   ctx.beginPath();
   ctx.ellipse(cx, cy, 15, 13, -Math.PI/12, 0, Math.PI*2);
   ctx.fillStyle = sg; ctx.fill();
 
+  // Spiral — color and pattern vary by variant
   ctx.beginPath();
-  ctx.strokeStyle = `rgba(0,0,0,0.5)`; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  if(vd === SNAIL_VARIANTS.scout){
+    ctx.strokeStyle = `rgba(255,255,255,0.65)`;
+  } else if(vd === SNAIL_VARIANTS.gilded){
+    ctx.strokeStyle = `rgba(180,83,9,0.85)`;
+  } else {
+    ctx.strokeStyle = `rgba(0,0,0,0.5)`;
+  }
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round';
   const revs = 2.5;
   for(let i=0; i<=revs*20; i++) {
      const t = (i / (revs*20)) * Math.PI * 2 * revs;
      const r = 14 * (1 - t/(Math.PI*2*revs));
      const sx = cx + r * Math.cos(t + Math.PI/2);
-     const sy2 = cy + r * Math.sin(t + Math.PI/2) * 0.85; 
+     const sy2 = cy + r * Math.sin(t + Math.PI/2) * 0.85;
      if(i===0) ctx.moveTo(sx, sy2);
      else ctx.lineTo(sx, sy2);
   }
   ctx.stroke();
+
+  // Variant signature marks
+  if(vd === SNAIL_VARIANTS.gilded){
+    // Sparkle highlights
+    const tw = (Math.sin(time*0.05) + 1) * 0.5;
+    ctx.fillStyle = `rgba(255,255,255,${0.5 + tw*0.4})`;
+    ctx.beginPath(); ctx.arc(cx-3, cy-3, 1.6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+5, cy+1, 1.2, 0, Math.PI*2); ctx.fill();
+  } else if(vd === SNAIL_VARIANTS.scout){
+    // Eye-spot pattern (3 dots like a peacock feather)
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.arc(cx-4, cy-2, 2.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+4, cy+3, 2.4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1e1b4b';
+    ctx.beginPath(); ctx.arc(cx-4, cy-2, 1.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+4, cy+3, 1.2, 0, Math.PI*2); ctx.fill();
+  }
 
   ctx.restore();
 }
@@ -12468,45 +12539,60 @@ try {
   for(const s of snails){updateSnail(s);drawSnail(s);}
 
   for(const c of clams){
+    const cv = clamVariant(c);
     c.timer++;ctx.save();ctx.translate(c.x, FOOD_FL(c.x) - 10);
-    
+
     const breath = Math.sin(c.timer*.02);
-    let openAngle = Math.max(0, breath) * 0.4; 
-    const isPearling = (c.timer%(UPGRADES.voidsiphon&&UPGRADES.voidsiphon.owned>0?2400:4800) > (UPGRADES.voidsiphon&&UPGRADES.voidsiphon.owned>0?2200:4600));
-    if(isPearling) openAngle = 0.8; 
+    let openAngle = Math.max(0, breath) * 0.4;
+    const cycleLen = UPGRADES.voidsiphon&&UPGRADES.voidsiphon.owned>0?2400:4800;
+    const isPearling = (c.timer%cycleLen > cycleLen-200);
+    if(isPearling) openAngle = 0.8;
 
     ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,12,25,8,0,0,Math.PI*2);ctx.fill();
 
     const sgB = ctx.createLinearGradient(0,10, 0,-10);
-    sgB.addColorStop(0, '#475569'); sgB.addColorStop(1, '#94a3b8');
+    if(cv === CLAM_VARIANTS.oyster){
+      sgB.addColorStop(0, '#3f2f1c'); sgB.addColorStop(1, '#7c6334');
+    } else {
+      sgB.addColorStop(0, '#475569'); sgB.addColorStop(1, '#94a3b8');
+    }
     ctx.fillStyle = sgB;
     ctx.beginPath(); ctx.ellipse(0, 5, 20, 12, 0, 0, Math.PI*2); ctx.fill();
-    
+
     const mg = ctx.createRadialGradient(0,0,0, 0,0,20);
-    mg.addColorStop(0, '#38bdf8'); mg.addColorStop(1, '#8b5cf6');
+    mg.addColorStop(0, cv.interior0); mg.addColorStop(1, cv.interior1);
     ctx.fillStyle = mg;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 18, 8 + openAngle*20, 0, 0, Math.PI*2); 
+    ctx.ellipse(0, 0, 18, 8 + openAngle*20, 0, 0, Math.PI*2);
     ctx.fill();
 
     if(isPearling){
-      ctx.beginPath();ctx.arc(5, -openAngle*10, 6, 0, Math.PI*2);
-      ctx.fillStyle='#ffffff';ctx.shadowBlur=12;ctx.shadowColor='#38bdf8';ctx.fill();ctx.shadowBlur=0;
-      ctx.beginPath();ctx.arc(3, -openAngle*10 - 2, 2, 0, Math.PI*2);
-      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fill();
+      if(cv === CLAM_VARIANTS.oyster){
+        // Oyster reveals a tiny egg shape
+        ctx.beginPath();ctx.ellipse(5, -openAngle*10, 5, 7, 0, 0, Math.PI*2);
+        ctx.fillStyle='#fce7f3';ctx.shadowBlur=14;ctx.shadowColor='#ec4899';ctx.fill();ctx.shadowBlur=0;
+        ctx.beginPath();ctx.ellipse(3, -openAngle*10 - 2, 2, 3, 0, 0, Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,0.85)';ctx.fill();
+      } else {
+        ctx.beginPath();ctx.arc(5, -openAngle*10, 6, 0, Math.PI*2);
+        ctx.fillStyle='#ffffff';ctx.shadowBlur=12;ctx.shadowColor='#38bdf8';ctx.fill();ctx.shadowBlur=0;
+        ctx.beginPath();ctx.arc(3, -openAngle*10 - 2, 2, 0, Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fill();
+      }
     }
 
     ctx.save();
-    ctx.translate(-16, 5); 
-    ctx.rotate(-openAngle); 
+    ctx.translate(-16, 5);
+    ctx.rotate(-openAngle);
     ctx.translate(16, -5);
-    
+
     const sgT = ctx.createLinearGradient(0,10, 0,-15);
-    sgT.addColorStop(0, '#64748b'); sgT.addColorStop(1, '#f1f5f9');
+    sgT.addColorStop(0, cv === CLAM_VARIANTS.oyster ? '#3f2f1c' : '#64748b');
+    sgT.addColorStop(1, cv.shellTop);
     ctx.fillStyle = sgT;
     ctx.beginPath(); ctx.ellipse(0, -2, 22, 14, 0, 0, Math.PI*2); ctx.fill();
-    
-    ctx.strokeStyle = '#cbd5e144'; ctx.lineWidth = 2;
+
+    ctx.strokeStyle = cv === CLAM_VARIANTS.oyster ? 'rgba(0,0,0,0.4)' : '#cbd5e144'; ctx.lineWidth = 2;
     for(let i=-2; i<=2; i++) {
         ctx.beginPath();
         const ax = i*6;
@@ -12517,14 +12603,25 @@ try {
     ctx.restore();
     ctx.restore();
 
-    if(c.timer%4800===0) {
-      // Clam income scales with player level and highest fish value so it stays relevant
+    if(c.timer%cycleLen===0) {
       const _clamM = typeof swMastery === 'function' ? swMastery('c_clam') : 0;
       const bestFishVal = fishList.length > 0 ? Math.max(...fishList.map(f => (TYPES[f.type]?.val||1))) : 1;
       const clamScale = Math.max(1, bestFishVal * 0.12 * (1 + _clamM * 4.0));
-      const clamBase = Math.ceil(clamScale * (swGetBonus('lens') > 0 ? 2 : 1));
-      addCoins(clamBase, c.x, FOOD_FL(c.x)-30, true);
-      spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL! +' + formatCoins(clamBase),'#38bdf8',1.5);
+      const clamBase = Math.max(0, Math.ceil(clamScale * (swGetBonus('lens') > 0 ? 2 : 1) * cv.coinMult));
+      if(clamBase > 0){
+        addCoins(clamBase, c.x, FOOD_FL(c.x)-30, true);
+        spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.star + ' PEARL! +' + formatCoins(clamBase),'#38bdf8',1.5);
+      }
+      // Oyster variant: chance to spawn a rare-mutation egg
+      if(cv.eggChance > 0 && Math.random() < cv.eggChance){
+        const ks = Object.keys(TYPES).filter(k => (boughtCounts[k]||0) > 0 || fishList.some(f => f.type === k));
+        const pool = ks.length ? ks : Object.keys(TYPES);
+        const type = pool[Math.floor(Math.random() * pool.length)];
+        const g = generateRandomGenes(type);
+        g.isRareMut = true;
+        eggs.push({ x: c.x, y: FOOD_FL(c.x)-30, type, hatchTime: getEggHatchTime(type), genes: g, isRareMut: true, gen: 0, lineage: [] });
+        spawnJuice(c.x, FOOD_FL(c.x)-30, ICONS.egg + ' RARE EGG!', '#ec4899', 1.8);
+      }
     }
   }
 
@@ -13107,7 +13204,8 @@ function tickVisitor() {
   const visitorRareMult = visitorEffectVal('rareVisitorMult', 1);
   const eraVisitorMult = eraBonus('rareVisitorMult');
   const decorVisitorMult = decorSynergy('rareVisitorMult');
-  if(Math.random() > baseChance * beaconMult * visitorRareMult * eraVisitorMult * decorVisitorMult) return;
+  const scoutMult = 1 + scoutSnailCount() * 0.15;
+  if(Math.random() > baseChance * beaconMult * visitorRareMult * eraVisitorMult * decorVisitorMult * scoutMult) return;
   // rareVisitorMult biases selection toward rarer visitors (lower rarity weight)
   const weights = eligible.map(([k,v]) => {
     const w = v.rarity;
@@ -14645,8 +14743,11 @@ function buildSupplies(){
       if(can)c.onclick=()=>{
         coins-=u.cost; sm.coinsSpent=(sm.coinsSpent||0)+u.cost; u.owned++;
         document.getElementById('cv').textContent=formatCoins(coins);
-        if(id==='snail')snails.push({x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
-        if(id==='clam')clams.push({x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+        if(id==='snail')snails.push({variant:'cleaner',x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+        if(id==='snail_gilded')snails.push({variant:'gilded',x:W/2,y:H-85,dir:1,spd:.12+Math.random()*.12,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+        if(id==='snail_scout')snails.push({variant:'scout',x:W/2,y:H-85,dir:1,spd:.18+Math.random()*.18,timer:0,ph:Math.random()*Math.PI*2,state:'moving',wall:'floor'});
+        if(id==='clam')clams.push({variant:'pearl',x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
+        if(id==='clam_oyster')clams.push({variant:'oyster',x:60+Math.random()*(W-120),timer:1200+Math.floor(Math.random()*1200)});
         if(id==='kelp') { ownedFlora.push('kelp'); initDecor(); }
         if(id==='coral') { ownedFlora.push('coral'); initDecor(); }
         updateHUD(); spawnJuice(W/2,H/2, ICONS.star + ' Upgraded!','var(--ui-accent)',1.4); buildSupplies(); saveGame();
