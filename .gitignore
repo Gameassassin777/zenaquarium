@@ -1,2 +1,17 @@
 scratch.js
 /tmp/
+
+# QC render output (per-species screenshot folders)
+angelfish/
+betta/
+discus/
+goldfish/
+jellyfish/
+
+# Dev artifacts
+mocks.js
+sim.js
+temp.js
+test.js
+PERFORMANCE_BACKUP.txt
+parse_check.py
