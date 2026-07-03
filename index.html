@@ -2596,6 +2596,62 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   return { c1, c2, trait, isRareMut, szMod };
 }
 
+// ── Breeding lineage tracking ──
+// Lineage = list of ancestor snapshots capped at 5 generations deep.
+// Each snapshot: {id, type, c1, c2, trait, gen, isRare} (~50 bytes each).
+// Cap = 30 entries per fish (~1.5KB max per fish in save).
+const LINEAGE_MAX_DEPTH = 5;
+const LINEAGE_MAX_ENTRIES = 30;
+
+function snapshotAncestor(fish) {
+  if (!fish) return null;
+  const g = fish.genes || {};
+  return {
+    id: fish.id,
+    type: fish.type,
+    c1: g.c1 ? [g.c1[0], g.c1[1]] : undefined,
+    c2: g.c2 ? [g.c2[0], g.c2[1]] : undefined,
+    trait: g.trait ? [g.trait[0], g.trait[1]] : undefined,
+    gen: fish.gen || 0,
+    isRare: !!fish.isRare
+  };
+}
+
+// Combine mom + dad snapshots + their lineage into offspring's lineage, capped.
+function combineLineage(momFish, dadFish) {
+  const momSnap = snapshotAncestor(momFish);
+  const dadSnap = snapshotAncestor(dadFish);
+  const childGen = Math.max(momSnap?.gen || 0, dadSnap?.gen || 0) + 1;
+  const out = [];
+  const seen = new Set();
+  const push = (snap) => {
+    if (!snap || !snap.id || seen.has(snap.id)) return;
+    // Depth check: cap ancestors at LINEAGE_MAX_DEPTH generations back
+    if (snap.gen !== undefined && childGen - snap.gen > LINEAGE_MAX_DEPTH) return;
+    seen.add(snap.id);
+    out.push(snap);
+  };
+  push(momSnap);
+  push(dadSnap);
+  const momLin = (momFish && Array.isArray(momFish.lineage)) ? momFish.lineage : [];
+  const dadLin = (dadFish && Array.isArray(dadFish.lineage)) ? dadFish.lineage : [];
+  for (const a of momLin) push(a);
+  for (const a of dadLin) push(a);
+  // Cap total entries (keeps most-recent-first since parents are at front)
+  return out.slice(0, LINEAGE_MAX_ENTRIES);
+}
+
+// Generation-based sell bonus: gen 3 = +20%, gen 5 = +50%, gen 10+ = +200%.
+function genSellBonus(fish) {
+  const g = fish.gen || 0;
+  if (g >= 10) return 3.0;
+  if (g >= 7) return 2.0;
+  if (g >= 5) return 1.5;
+  if (g >= 3) return 1.2;
+  if (g >= 2) return 1.1;
+  return 1.0;
+}
+
 // ── TIER METADATA ──
 const TIER_META={
   easy:  {label:'EASY',      badge:'tbg-easy',   glow:'rgba(16,185,129,.3)',  strip:'var(--tier-easy)'},
@@ -2820,8 +2876,9 @@ function buildSave(){
     totalCoins, playerLevel, playerXP, coins, algae, time, fid, baseMaxFish, lastEliteTs, lastWeeklyTs, weeklyStreak, lastWeeklyCompleted,
     fishList: fishList.map(f=>({type:f.type, genes:f.genes, hunger:f.hunger, age:f.age, bonded:f.bonded||0, bcd:f.bcd||0, name:f.name,
       _bondXP: f._bondXP||0, _lastBondTs: f._lastBondTs||0,
+      gen: f.gen||0, lineage: Array.isArray(f.lineage) ? f.lineage : [],
       ...(f.isVisitor && f.key ? {isVisitor:true, key:f.key} : {})})),
-    eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut})),
+    eggs: eggs.map(e=>({type:e.type, genes:e.genes, h:e.hatchTime, x:e.x, y:e.y, isRareMut:e.isRareMut, gen:e.gen||0, lineage:Array.isArray(e.lineage)?e.lineage:[]})),
     clams: clams.length,
     sm, curTheme, curFloor, curBubble, curBorder, currentOrders, completedOrders,
     questStreak, codesRedeemed, claimedCodes: [...claimedCodes], dailyStreak, lastDailyTs,
@@ -2898,7 +2955,7 @@ function applyState(s){
   
   eggs = [];
   for(const e of (s.eggs || [])){
-    eggs.push({...e, hatchTime: e.h});
+    eggs.push({...e, hatchTime: e.h, gen: e.gen||0, lineage: Array.isArray(e.lineage) ? e.lineage : []});
   }
 
   for(const f of(s.fishList || s.fish || [])) {
@@ -2914,6 +2971,7 @@ function applyState(s){
       timer:Math.floor(Math.random()*120),eat:0,hunger:f.hunger!==undefined?f.hunger:80,age:f.age!==undefined?f.age:5000,
       scale:Math.min(1,(f.age!==undefined?f.age:5000)/20000),bonded:f.bonded!==undefined?f.bonded:0, bcd:f.bcd!==undefined?f.bcd:0,
       _bondXP: f._bondXP||0, _lastBondTs: f._lastBondTs||0,
+      gen: f.gen||0, lineage: Array.isArray(f.lineage) ? f.lineage : [],
       genes, isRare: def ? (genes.c1[0]===def.rare.c1 || genes.c2[0]===def.rare.c2) : false, name:f.name,
       ...(isTamedVisitor ? {isVisitor:true, key:f.key, def:vDef, _sz:vDef.sz} : {})});
     computeColorBonus(fishList[fishList.length-1]);
@@ -3215,7 +3273,8 @@ function getPrice(f) {
   const visitorSellMult = visitorEffectVal('sellMult', 1);
   const eraSellMult = eraBonus('sellMult');
   const decorSellMult = decorSynergy('sellMult') * decorSynergy('tropicalMult');
-  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult * bondSellMult * visitorSellMult * eraSellMult * decorSellMult);
+  const genMult = genSellBonus(f);
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult * bondSellMult * visitorSellMult * eraSellMult * decorSellMult * genMult);
 }
 
 function generateMasterpieceGenes(type) {
@@ -3268,7 +3327,7 @@ function updateEco(){
     const e=eggs[i];
     if(e.hatchTime===undefined){e.hatchTime=now+(e.timer||0)*16.666;delete e.timer;}
     if(now >= e.hatchTime){
-      fishList.push({id:fid++,type:e.type,x:e.x,y:e.y-10,vx:(Math.random()-.5),vy:-1,phase:0,timer:0,eat:0,hunger:100,age:0,scale:.3,bcd:3000,genes:e.genes,isRare:e.isRareMut,bonded:0,birthTime:Date.now()});
+      fishList.push({id:fid++,type:e.type,x:e.x,y:e.y-10,vx:(Math.random()-.5),vy:-1,phase:0,timer:0,eat:0,hunger:100,age:0,scale:.3,bcd:3000,genes:e.genes,isRare:e.isRareMut,bonded:0,birthTime:Date.now(),gen:e.gen||0,lineage:Array.isArray(e.lineage)?e.lineage:[]});
       const _hf = fishList[fishList.length-1];
       computeColorBonus(_hf);
       recordAqEntry(_hf);
@@ -3537,6 +3596,9 @@ function updateFish(f){
     if(mate){
       f.bcd=Math.floor(8000*(swGetBonus('brd_frenzy')>0?0.6:1));mate.bcd=f.bcd;
       const childGenes = mendelianCross(f.genes, mate.genes, def, f, mate);
+      // Capture parent lineage + compute child generation for hatch time
+      const childLineage = combineLineage(f, mate);
+      const childGen = Math.max(f.gen||0, mate.gen||0) + 1;
       if(childGenes.isRareMut) spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.star + ' Mutation!','#fbcfe8',1.2);
       else spawnJuice((f.x+mate.x)/2,f.y-20, ICONS.egg + ' Egg','#fb7185',1);
       let sx = (f.x+mate.x)/2;
@@ -3545,13 +3607,15 @@ function updateFish(f){
         sx += (Math.random() < 0.5 ? -45 : 45);
         if(sx < 50) sx = 50; if(sx > W-50) sx = W-50;
       }
-      eggs.push({x:sx, y:FOOD_FL(sx), type:f.type, hatchTime:getEggHatchTime(f.type), genes:childGenes, isRareMut:childGenes.isRareMut});
+      eggs.push({x:sx, y:FOOD_FL(sx), type:f.type, hatchTime:getEggHatchTime(f.type), genes:childGenes, isRareMut:childGenes.isRareMut, lineage:childLineage, gen:childGen});
       // coralnursery: 15% chance of twins
       if(UPGRADES.coralnursery && UPGRADES.coralnursery.owned > 0 && Math.random() < 0.15 && (fishList.length+eggs.length) < mF) {
         let sx2 = sx + (Math.random() < 0.5 ? -50 : 50);
         if(sx2 < 50) sx2 = 50; if(sx2 > W-50) sx2 = W-50;
         const twinGenes = mendelianCross(f.genes, mate.genes, def, f, mate);
-        eggs.push({x:sx2, y:FOOD_FL(sx2), type:f.type, hatchTime:getEggHatchTime(f.type), genes:twinGenes, isRareMut:twinGenes.isRareMut});
+        const twinLineage = combineLineage(f, mate);
+        const twinGen = Math.max(f.gen||0, mate.gen||0) + 1;
+        eggs.push({x:sx2, y:FOOD_FL(sx2), type:f.type, hatchTime:getEggHatchTime(f.type), genes:twinGenes, isRareMut:twinGenes.isRareMut, lineage:twinLineage, gen:twinGen});
         spawnJuice(sx2, FOOD_FL(sx2)-20, 'Twins!', '#fb7185', 1);
       }
       for(let b=0;b<3;b++)bubbles.push({x:f.x,y:f.y,r:3,spd:1.5,ph:0,life:1});
@@ -13128,6 +13192,43 @@ function buildFishFinder() {
         }
         return '';
       })()}
+      ${(() => {
+        const gen = f.gen || 0;
+        const lin = Array.isArray(f.lineage) ? f.lineage : [];
+        const bonus = genSellBonus(f);
+        if (gen < 2 && lin.length === 0) return ''; // hide for fresh wild fish
+        const genLabel = gen === 0 ? 'Wild' : gen === 1 ? 'F1' : 'F' + gen;
+        const bonusTxt = bonus > 1 ? `+${Math.round((bonus-1)*100)}% sell` : '';
+        // Group ancestors by generation for display
+        const byGen = {};
+        for (const a of lin) {
+          const g = a.gen ?? 0;
+          if (!byGen[g]) byGen[g] = [];
+          byGen[g].push(a);
+        }
+        const gens = Object.keys(byGen).map(Number).sort((a,b)=>a-b);
+        // Render up to 3 most-recent generations as compact dot rows
+        const recentGens = gens.slice(0, 3);
+        const rows = recentGens.map(g => {
+          const ancs = byGen[g];
+          const dots = ancs.slice(0, 8).map(a => {
+            const c1 = a.c1 ? a.c1[0] : '#666';
+            const c2 = a.c2 ? a.c2[0] : '#666';
+            const ring = a.isRare ? 'box-shadow:0 0 6px #fbbf24;' : '';
+            const label = `${a.type || 'fish'} • Gen ${a.gen ?? 0}${a.isRare ? ' • RARE' : ''}`;
+            return `<div title="${label}" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,${c1} 50%,${c2} 50%);border:1px solid rgba(0,0,0,0.4);${ring}"></div>`;
+          }).join('');
+          const extra = ancs.length > 8 ? `<span style="font-size:8px;opacity:0.6;align-self:center;">+${ancs.length-8}</span>` : '';
+          return `<div style="display:flex;gap:3px;align-items:center;margin-bottom:2px;">${dots}${extra}</div>`;
+        }).join('');
+        return `<div style="margin-top:8px;padding:6px 8px;background:rgba(245,158,11,0.06);border-radius:8px;border:1px solid rgba(245,158,11,0.18);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:9px;font-weight:800;color:#f59e0b;letter-spacing:0.5px;">${ICONS.egg||'◈'} LINEAGE — Gen ${genLabel}</span>
+            ${bonusTxt ? `<span style="font-size:9px;color:#fbbf24;font-weight:700;">${bonusTxt}</span>` : ''}
+          </div>
+          ${lin.length === 0 ? '<div style="font-size:9px;color:var(--text-dim);font-style:italic;">No tracked ancestors (wild-caught or shop-bought)</div>' : `<div style="font-size:8px;opacity:0.7;margin-bottom:4px;">${lin.length} ancestor${lin.length===1?'':'s'} tracked</div>${rows}`}
+        </div>`;
+      })()}
           <div class="f-personality">
           <div style="font-weight:900; color:var(--card-text); margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
           <div style="color:var(--text-sub); margin-bottom:3px;">Loves: <span style="color:#10b981">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
@@ -14071,7 +14172,7 @@ function switchFishShop(tab) {
 
 function spawnFish(type) {
   const g = generateRandomGenes(type);
-  fishList.push({id:fid++,type,x:W/2,y:H/2,vx:0,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:0.5,bonded:0,bcd:0,genes:g,isRare:g.isRareMut});
+  fishList.push({id:fid++,type,x:W/2,y:H/2,vx:0,vy:0,phase:0,timer:0,eat:0,hunger:100,age:5000,scale:0.5,bonded:0,bcd:0,genes:g,isRare:g.isRareMut,gen:0,lineage:[]});
   updateHUD();
 }
 
@@ -14088,7 +14189,8 @@ function buySpawnBaby(type) {
     timer:0, eat:0, hunger:100,
     age:0, birthTime:Date.now(), scale:0.28,
     bonded:0, bcd:0,
-    genes:g, isRare:g.isRareMut
+    genes:g, isRare:g.isRareMut,
+    gen:0, lineage:[]
   });
   computeColorBonus(fishList[fishList.length-1]);
   recordAqEntry(fishList[fishList.length-1]);
