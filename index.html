@@ -924,6 +924,8 @@ body, p, span, div, input { font-family: var(--font-body), system-ui, sans-serif
 }
 .sd.done { background: linear-gradient(135deg, #ffd54f, #ff8f00); box-shadow: 0 0 6px rgba(255,143,0,0.5); }
 .sd.today { background: linear-gradient(135deg, #fff3a0, #ffc107); box-shadow: 0 0 12px rgba(255,193,7,0.7); }
+.sd.milestone { transform: scale(1.4); border: 1px solid #fbbf24; background: linear-gradient(135deg, #c4b5fd, #7c3aed); }
+.sd.milestone.done { background: linear-gradient(135deg, #c4b5fd, #fbbf24); }
 
 /* ─── Skill Web overlay — themed close, node label backing plates ─── */
 #sw-close {
@@ -1816,10 +1818,10 @@ input::placeholder, textarea::placeholder { color: rgba(74, 56, 20, 0.5) !import
 <div id="dmodal" class="modal">
   <div class="mbox">
     <h2 style="margin-bottom:10px;">Daily Reward!</h2>
-    <span class="msub">Day <span id="dday">1</span> streak</span>
-    <div class="drbox"><div class="dramt" id="damt">100</div><div style="color:#fbbf24;font-size:13px; font-weight:bold; margin-top:5px;">Coins</div></div>
+    <span class="msub">Day <span id="dday">1</span> streak — pick one card</span>
+    <div id="dcards" style="display:flex; gap:10px; justify-content:center; margin:15px 0; flex-wrap:wrap;"></div>
     <div class="sdots" id="sdots"></div>
-    <button class="mbtn gold" onclick="claimDaily()">Claim!</button>
+    <span class="msub" id="dactive" style="display:none; font-size:11px;"></span>
   </div>
 </div>
 <div id="lvlmodal" class="modal">
@@ -2089,7 +2091,7 @@ let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
-let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[],visitorsEncountered:{}};
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[],visitorsEncountered:{},dailyBuff:null};
 let currentEra = 0;
 let visitorList = [];
 let _lastVisitorCheck = 0;
@@ -2979,8 +2981,40 @@ function checkAchievements() {
   }
 }
 
-// DAILY REWARD (the fix)
-const DR = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
+// DAILY REWARD — pick-one-of-three card system with streak milestones.
+// Each day the player picks ONE card: Coins (scaled), Buff (1hr 2x), or Rare (resource).
+// Streak milestones 7/14/30 add a bonus 4th card (always rare-tier).
+const DR_LEGACY = [100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500];
+const DAILY_BUFF_DEFS = [
+  { id:'coin',    label:'Golden Hour',     icon:'💰', mult:2, desc:'Coin rewards ×2 for 1 hour',  dur:3600 },
+  { id:'xp',      label:'Insight Bloom',   icon:'✨', mult:2, desc:'XP gained ×2 for 1 hour',     dur:3600 },
+  { id:'breed',   label:'Spring Tide',     icon:'🌀', mult:2, desc:'Breeding cooldown ×2 faster', dur:3600 },
+  { id:'bond',    label:'Heartfelt',       icon:'💗', mult:2, desc:'Bond XP ×2 for 1 hour',       dur:3600 },
+];
+function dailyBuffActive(){ return sm.dailyBuff && sm.dailyBuff.expires > Date.now(); }
+function dailyBuffVal(buffId){
+  if(!dailyBuffActive() || sm.dailyBuff.type !== buffId) return 1;
+  return sm.dailyBuff.mult;
+}
+function dailyCoinBase(){
+  // Scales with player level + streak so it stays relevant at all progress points.
+  return Math.floor(50 + playerLevel * 25 + dailyStreak * 15);
+}
+function dailyCardPool(){
+  // Build 3 cards: Coins, Buff (rotating by day), Rare.
+  // The buff rotates daily so different playstyles see different buffs over a week.
+  const buffIdx = dailyStreak % DAILY_BUFF_DEFS.length;
+  const cards = [
+    { kind:'coins', id:'coins', label:'Coin Vault',     icon:'🪙', desc:`${formatCoins(dailyCoinBase())} coins` },
+    { kind:'buff',  id:DAILY_BUFF_DEFS[buffIdx].id, label:DAILY_BUFF_DEFS[buffIdx].label, icon:DAILY_BUFF_DEFS[buffIdx].icon, desc:DAILY_BUFF_DEFS[buffIdx].desc },
+    { kind:'rare',  id:'rare',   label:'Mystery Egg',   icon:'🥚', desc:'A random rare-mutation egg' },
+  ];
+  // Streak milestones 7/14/30 add a bonus 4th card.
+  if(dailyStreak === 6 || dailyStreak === 13 || dailyStreak === 29){
+    cards.push({ kind:'jackpot', id:'jackpot', label:'Jackpot', icon:'🌟', desc:`${formatCoins(dailyCoinBase()*5)} coins + rare egg!` });
+  }
+  return cards;
+}
 
 // MIGRATION & SAVE SYSTEM
 const MASTER_KEY = 'zenAqua_MasterSave';
@@ -3262,23 +3296,84 @@ function needsDaily(){
   return true;
 }
 function showDailyModal(){
-  const idx=Math.min(dailyStreak,DR.length-1);
   document.getElementById('dday').textContent=dailyStreak+1;
-  document.getElementById('damt').textContent=formatCoins(DR[idx]);
-  document.getElementById('sdots').innerHTML=DR.map((_,i)=>`<div class="sd ${i<dailyStreak?'done':''} ${i===idx?'today':''}"></div>`).join('');
+  const cards = dailyCardPool();
+  const cardHtml = cards.map((c, i) => `
+    <button class="dcard dcard-${c.kind}" onclick="claimDailyCard(${i})" style="
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.4));
+      border:2px solid ${c.kind==='jackpot'?'#fbbf24':c.kind==='rare'?'#a855f7':'rgba(255,255,255,0.15)'};
+      border-radius:14px; padding:18px 14px; width:120px; cursor:pointer;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      transition:transform 0.15s, box-shadow 0.15s;
+      color:#e2e8f0;
+    " onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.4)'"
+      onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:36px;">${c.icon}</div>
+      <div style="font-size:13px; font-weight:900; color:${c.kind==='jackpot'?'#fbbf24':c.kind==='rare'?'#c4b5fd':'#fbbf24'};">${c.label}</div>
+      <div style="font-size:10px; color:#94a3b8; text-align:center; line-height:1.3; min-height:26px;">${c.desc}</div>
+    </button>
+  `).join('');
+  document.getElementById('dcards').innerHTML = cardHtml;
+  // Streak dots: 30-day window with milestone markers
+  const sdotsHtml = [];
+  for(let i=0;i<30;i++){
+    let cls = 'sd';
+    if(i < dailyStreak % 30) cls += ' done';
+    if(i === dailyStreak % 30) cls += ' today';
+    if(i === 6 || i === 13 || i === 29) cls += ' milestone';
+    sdotsHtml.push(`<div class="${cls}" title="Day ${i+1}${(i===6||i===13||i===29)?' (Jackpot)':''}"></div>`);
+  }
+  document.getElementById('sdots').innerHTML = sdotsHtml.join('');
+  // Show active buff banner if one is running
+  const activeEl = document.getElementById('dactive');
+  if(dailyBuffActive()){
+    const b = sm.dailyBuff;
+    const minsLeft = Math.ceil((b.expires - Date.now()) / 60000);
+    const def = DAILY_BUFF_DEFS.find(d => d.id === b.type);
+    activeEl.textContent = `Active: ${def?.icon||''} ${def?.label||b.type} ×${b.mult} (${minsLeft}m left)`;
+    activeEl.style.display = 'block';
+  } else {
+    activeEl.style.display = 'none';
+  }
   document.getElementById('dmodal').classList.add('show');
 }
-function claimDaily(){
-  let r=DR[Math.min(dailyStreak,DR.length-1)];
-  if(UPGRADES.chronopearl && UPGRADES.chronopearl.owned > 0) r *= 2;
-  const idx=Math.min(dailyStreak,DR.length-1);
-  const xpReward=[30,30,60,60,80,80,200,200,500,500,500,1500][idx]||30;
-  dailyStreak++;lastDailyTs=Date.now();
-  addCoins(r,W/2,H/3,true);
+function claimDailyCard(idx){
+  const cards = dailyCardPool();
+  const card = cards[idx];
+  if(!card) return;
+  // Streak increments + timestamp always update on claim.
+  dailyStreak++;
+  lastDailyTs = Date.now();
+  const xpReward = 30 + dailyStreak * 5;
   giveXP(xpReward);
+  if(card.kind === 'coins' || card.kind === 'jackpot'){
+    let amt = dailyCoinBase() * (card.kind === 'jackpot' ? 5 : 1);
+    if(UPGRADES.chronopearl && UPGRADES.chronopearl.owned > 0) amt *= 2;
+    addCoins(amt, W/2, H/3, true);
+    toast(`🪙 +${formatCoins(amt)} coins!`, '#fbbf24');
+  }
+  if(card.kind === 'buff'){
+    const def = DAILY_BUFF_DEFS.find(d => d.id === card.id);
+    if(def){
+      sm.dailyBuff = { type: def.id, mult: def.mult, expires: Date.now() + def.dur * 1000 };
+      toast(`${def.icon} ${def.label} active — ${def.desc}`, '#67e8f9');
+    }
+  }
+  if(card.kind === 'rare' || card.kind === 'jackpot'){
+    // Spawn a random rare-mutation egg of any species the player has unlocked.
+    const ks = Object.keys(TYPES).filter(k => (boughtCounts[k] || 0) > 0 || fishList.some(f => f.type === k));
+    const pool = ks.length ? ks : Object.keys(TYPES);
+    const type = pool[Math.floor(Math.random() * pool.length)];
+    const g = generateRandomGenes(type);
+    g.isRareMut = true;
+    eggs.push({ x: W/2, y: H-85, type, hatchTime: getEggHatchTime(type), genes: g, isRareMut: true, gen: 0, lineage: [] });
+    toast(`🥚 Rare ${TYPES[type].name} egg appeared!`, '#c4b5fd');
+  }
   document.getElementById('dmodal').classList.remove('show');
   saveGame();
 }
+// Legacy function name kept for any external callers (none in main code but harmless).
+function claimDaily(){ claimDailyCard(0); }
 
 function getAdultAge(f) {
   // Balanced: 5m to 20m real-time scaling (based on 60fps)
@@ -3717,7 +3812,7 @@ function updateFish(f){
   if(UPGRADES.nest.owned>0&&isHarmony&&f.age>3000&&f.scale>=1&&f.bcd<=0&&(fishList.length+eggs.length)<mF&&f.hunger>80){
     const mate=fishList.find(m=>m!==f&&m.type===f.type&&m.age>3000&&m.scale>=1&&m.bcd<=0&&m.hunger>80&&Math.hypot(m.x-f.x,m.y-f.y)<60);
     if(mate){
-      f.bcd=Math.floor(8000*(swGetBonus('brd_frenzy')>0?0.6:1));mate.bcd=f.bcd;
+      f.bcd=Math.floor(8000*(swGetBonus('brd_frenzy')>0?0.6:1)/dailyBuffVal('breed'));mate.bcd=f.bcd;
       const childGenes = mendelianCross(f.genes, mate.genes, def, f, mate);
       // Capture parent lineage + compute child generation for hatch time
       const childLineage = combineLineage(f, mate);
@@ -12675,7 +12770,7 @@ function doTap(x,y){
       if(hitFish.bonded < 300) {
         hitFish.bonded = Math.floor(3600 * getPersonality(hitFish).effects.bondRate);
         const _prevBondLv = bondLevel(hitFish);
-        hitFish._bondXP = (hitFish._bondXP || 0) + visitorEffectVal('bondMult', 1) * decorSynergy('bondMult');
+        hitFish._bondXP = (hitFish._bondXP || 0) + visitorEffectVal('bondMult', 1) * decorSynergy('bondMult') * dailyBuffVal('bond');
         hitFish._lastBondTs = Date.now();
         sm.bonded++;
         const _newBondLv = bondLevel(hitFish);
@@ -12734,6 +12829,7 @@ function spawnJuice(x,y,html,color,scale=1){
   setTimeout(()=>el.remove(),1200);
 }
 function addCoins(amt,x,y,bonus=false){
+  amt = Math.floor(amt * dailyBuffVal('coin'));
   coins+=amt;totalCoins+=amt;
   document.getElementById('cv').textContent=formatCoins(coins);
   checkLevel();
@@ -12788,6 +12884,7 @@ function giveXP(base){
     mult*=visitorEffectVal('nightXpMult',1);
     mult*=decorSynergy('nightXpMult');
   }
+  mult*=dailyBuffVal('xp');
   playerXP+=Math.ceil(base*mult);
   checkLevel();
 }
