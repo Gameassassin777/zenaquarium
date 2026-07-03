@@ -2105,22 +2105,38 @@ const COLOR_BANDS = [
 ];
 
 const VISITOR_SPECIES = {
-  seahare:    { name:'Sea Hare',         era:1, c1:'#7c3aed', c2:'#4c1d95', sz:20, spd:0.6, trustTime:150, rarity:0.7 },
-  mantisshrimp:{ name:'Mantis Shrimp',   era:1, c1:'#06b6d4', c2:'#0e7490', sz:18, spd:1.2, trustTime:130, rarity:0.5 },
-  nudibranch: { name:'Dorid Nudibranch', era:1, c1:'#f97316', c2:'#7c3aed', sz:12, spd:0.4, trustTime:160, rarity:0.6 },
-  oarfish:    { name:'Oarfish',          era:2, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15 },
-  sunfish:    { name:'Ocean Sunfish',    era:2, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2 },
-  scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:180, rarity:0.4 },
-  frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:175, rarity:0.35 },
-  vampiresquid:{ name:'Vampire Squid',   era:4, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25 },
-  glassfish:  { name:'Glass Catfish',    era:3, c1:'#e0f2fe', c2:'#bae6fd', sz:22, spd:1.0, trustTime:190, rarity:0.3 },
-  ribbonfish: { name:'Ribbon Eel',       era:3, c1:'#818cf8', c2:'#4338ca', sz:40, spd:0.9, trustTime:200, rarity:0.25 },
-  lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:240, rarity:0.12, abyssal:true },
-  velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:270, rarity:0.08, abyssal:true },
-  glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:250, rarity:0.10, abyssal:true },
-  abyssalbloomer:{ name:'Abyssal Bloomer',era:5, c1:'#4a044e', c2:'#701a75', sz:22, spd:0.3, trustTime:260, rarity:0.07, abyssal:true },
-  starback:   { name:'Starback',         era:5, c1:'#fef9c3', c2:'#fbbf24', sz:18, spd:1.3, trustTime:280, rarity:0.06, abyssal:true },
-  theecho:    { name:'The Echo',         era:5, c1:'#f8fafc', c2:'#e2e8f0', sz:0,  spd:1.5, trustTime:300, rarity:0.02, abyssal:true, isEcho:true },
+  seahare:    { name:'Sea Hare',         era:1, c1:'#7c3aed', c2:'#4c1d95', sz:20, spd:0.6, trustTime:150, rarity:0.7,
+                effect:{ key:'algaeMult', val:0.93, desc:'Passive cleaner — algae grows 7% slower' } },
+  mantisshrimp:{ name:'Mantis Shrimp',   era:1, c1:'#06b6d4', c2:'#0e7490', sz:18, spd:1.2, trustTime:130, rarity:0.5,
+                effect:{ key:'comboMult', val:1.25, desc:'Punchy presence — combo multiplier +25%' } },
+  nudibranch: { name:'Dorid Nudibranch', era:1, c1:'#f97316', c2:'#7c3aed', sz:12, spd:0.4, trustTime:160, rarity:0.6,
+                effect:{ key:'rareMult', val:1.15, desc:'Vivid colors — +15% rare mutation chance in breeding' } },
+  oarfish:    { name:'Oarfish',          era:2, c1:'#e2e8f0', c2:'#94a3b8', sz:60, spd:0.8, trustTime:220, rarity:0.15,
+                effect:{ key:'hungerDrainMult', val:0.92, desc:'Serenity ripple — other fish hunger -8%' } },
+  sunfish:    { name:'Ocean Sunfish',    era:2, c1:'#64748b', c2:'#334155', sz:55, spd:0.5, trustTime:210, rarity:0.2,
+                effect:{ key:'hungerDrainMult', val:0.90, desc:'Gentle giant — other fish hunger -10%' } },
+  scorpionfish:{ name:'Leaf Scorpionfish',era:2, c1:'#854d0e', c2:'#365314', sz:28, spd:0.3, trustTime:180, rarity:0.4,
+                effect:{ key:'algaeMult', val:0.88, desc:'Ambush cleaner — algae grows 12% slower' } },
+  frogfish:   { name:'Painted Frogfish', era:2, c1:'#f59e0b', c2:'#dc2626', sz:24, spd:0.2, trustTime:175, rarity:0.35,
+                effect:{ key:'sellMult', val:1.15, desc:'Lure attracts buyers — +15% sell value for all fish' } },
+  vampiresquid:{ name:'Vampire Squid',   era:4, c1:'#1e1b4b', c2:'#4c1d95', sz:30, spd:0.7, trustTime:200, rarity:0.25,
+                effect:{ key:'bondMult', val:1.25, desc:'Alien calm — bond XP gained 25% faster' } },
+  glassfish:  { name:'Glass Catfish',    era:3, c1:'#e0f2fe', c2:'#bae6fd', sz:22, spd:1.0, trustTime:190, rarity:0.3,
+                effect:{ key:'xpMult', val:1.15, desc:'Translucent insight — +15% XP from all interactions' } },
+  ribbonfish: { name:'Ribbon Eel',       era:3, c1:'#818cf8', c2:'#4338ca', sz:40, spd:0.9, trustTime:200, rarity:0.25,
+                effect:{ key:'sellMult', val:1.10, desc:'Elegant silhouette — +10% sell value' } },
+  lanternfish:{ name:'Lanternfish',      era:5, c1:'#1d4ed8', c2:'#1e40af', sz:14, spd:0.9, trustTime:240, rarity:0.12, abyssal:true,
+                effect:{ key:'nightCoinMult', val:1.25, desc:'Bioluminescent glow — +25% coins at night' } },
+  velvetray:  { name:'Velvet Ray',       era:5, c1:'#0f172a', c2:'#1e293b', sz:45, spd:0.4, trustTime:270, rarity:0.08, abyssal:true,
+                effect:{ key:'hungerDrainMult', val:0.85, desc:'Calming presence — other fish hunger -15%' } },
+  glasseel:   { name:'Glass Eel',        era:5, c1:'#e0f2fe', c2:'#bae6fd', sz:35, spd:1.1, trustTime:250, rarity:0.10, abyssal:true,
+                effect:{ key:'speedMult', val:1.15, desc:'Crackling energy — all fish swim 15% faster' } },
+  abyssalbloomer:{ name:'Abyssal Bloomer',era:5, c1:'#4a044e', c2:'#701a75', sz:22, spd:0.3, trustTime:260, rarity:0.07, abyssal:true,
+                effect:{ key:'algaeMult', val:0.80, desc:'Blooming filter — algae grows 20% slower' } },
+  starback:   { name:'Starback',         era:5, c1:'#fef9c3', c2:'#fbbf24', sz:18, spd:1.3, trustTime:280, rarity:0.06, abyssal:true,
+                effect:{ key:'nightXpMult', val:2.0, desc:'Cosmic alignment — XP x2 at night' } },
+  theecho:    { name:'The Echo',         era:5, c1:'#f8fafc', c2:'#e2e8f0', sz:0,  spd:1.5, trustTime:300, rarity:0.02, abyssal:true, isEcho:true,
+                effect:{ key:'rareVisitorMult', val:2.0, desc:'Mirrors the rarest — rare visitor encounters x2' } },
 };
 
 const ABYSSAL_EFFECTS = {
@@ -2456,6 +2472,7 @@ function mendelianCross(momGenes, dadGenes, typeDef, momFish, dadFish) {
   mutRate += swGetBonus('sel_breed') * 0.10;
   if(momFish && momFish._colorBonus?.bonus === 'rareMult') mutRate *= momFish._colorBonus.val;
   if(dadFish && dadFish._colorBonus?.bonus === 'rareMult') mutRate *= dadFish._colorBonus.val;
+  mutRate *= visitorEffectVal('rareMult', 1);
   const isRareMut = Math.random() < mutRate;
   const inherit = (arr1, arr2) => {
     const a1 = arr1[Math.floor(Math.random()*2)];
@@ -3147,7 +3164,8 @@ function getPrice(f) {
   const goldCatSellMult = swGetBonus('gold_cat') > 0 ? 1.1 : 1;
   const mythicLinMult = (f.isRare && swGetBonus('mythic_lin') > 0) ? 3 : 1;
   const bondSellMult = bondLevel(f) >= 4 ? 1.5 : 1;
-  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult * bondSellMult);
+  const visitorSellMult = visitorEffectVal('sellMult', 1);
+  return Math.floor(base * rate * rareMult * traitMult * f.scale * ageScale * surgeMult * colorSellMult * platscalesMult * goldCatSellMult * mythicLinMult * bondSellMult * visitorSellMult);
 }
 
 function generateMasterpieceGenes(type) {
@@ -3180,6 +3198,8 @@ function updateEco(){
   for(const f of fishList) { if(f._colorBonus?.bonus === 'algaeClean') algaeGrowMult *= f._colorBonus.val; }
   // kelp_f skill web: -30% algae growth
   if(swGetBonus('kelp_f') > 0) algaeGrowMult *= 0.7;
+  // Visitor effect: passive cleaners (seahare, scorpionfish, abyssalbloomer, nudibranch)
+  algaeGrowMult *= visitorEffectVal('algaeMult', 1);
   const grow=(UPGRADES.bioreactor&&UPGRADES.bioreactor.owned>0)?0:fishList.length*.008*algaeGrowMult,reduce=snails.length*.015+(UPGRADES.filter.owned>0?.08:0)+(UPGRADES.clam.owned>0?.05:0);
   algae=Math.max(0,Math.min(100,algae+grow-reduce));
   const allFed=fishList.length>0&&fishList.every(f=>f.hunger>60);
@@ -3343,6 +3363,12 @@ function triggerEat(f,fd,def){
   const _bondLv = bondLevel(f);
   const rareMult  = f.isRare ? 2 : 1;
   const bondMult   = _bondLv >= 2 ? 1.3 : 1;
+  // Visitor effects: combo multiplier + night coin bonus
+  const visitorComboMult = visitorEffectVal('comboMult', 1);
+  cm *= visitorComboMult;
+  const _hr = new Date().getHours();
+  const _isNight = _hr < 7 || _hr >= 19;
+  const nightCoinMult = _isNight ? visitorEffectVal('nightCoinMult', 1) : 1;
   // Mastery-scaled bonuses
   const _heatM = swMastery('c_heater');
   const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? (1.15 + _heatM * 0.08) : 1;
@@ -3402,7 +3428,7 @@ function triggerEat(f,fd,def){
   // coin_mag: +50% on feed, mastery → +70%/+90%/+120%
   const _magM = swMastery('a_magnet');
   const coinMagMult = swGetBonus('coin_mag') > 0 ? (1.5 + _magM * 0.23) : 1;
-  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * ecoSingMult * primordialMult * _pers.coinMult);
+  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * ecoSingMult * primordialMult * _pers.coinMult * nightCoinMult);
   if (total > 0) {
     if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
@@ -3438,6 +3464,8 @@ function updateFish(f){
   if(trait === 'active') hDrain *= 1.2;
   // Personality-driven drain (Calm = -20%, Grumpy = +10%, etc.) — L5 bond amplifies
   hDrain *= amplifiedPers(f).hungerDrainMult;
+  // Visitor effect: calm presence (velvet ray) reduces hunger drain
+  hDrain *= visitorEffectVal('hungerDrainMult', 1);
   // dome mastery: reduces online hunger drain (M1 -15%, M2 -30%, M3 -45%)
   const _domeM = typeof swMastery === 'function' ? swMastery('d_dome') : 0;
   if(swGetBonus('dome') > 0 && _domeM > 0) hDrain *= (1 - _domeM * 0.15);
@@ -3491,6 +3519,7 @@ function updateFish(f){
   if(trait === 'active') baseSpd *= 1.15;
   if(trait === 'lazy') baseSpd *= 0.75;
   if(f._colorBonus?.bonus === 'speedMult') baseSpd *= f._colorBonus.val;
+  baseSpd *= visitorEffectVal('speedMult', 1);
 
   if(f.type === 'octopus'){
     // -- Octopus jet-propulsion burst-and-coast movement --
@@ -11285,17 +11314,30 @@ function drawFishName(f){
   const s=def?def.sz:20;
   const fs=f.scale*(f.genes?.szMod||1)*getGlobalLevelScale();
   const yOff=s*fs+14;
+  // Tamed visitors show their passive effect line under the name
+  const _isVisitor = f.isVisitor && f.key && VISITOR_SPECIES[f.key];
+  const _vDef = _isVisitor ? VISITOR_SPECIES[f.key] : null;
+  const _effectDesc = (_vDef && _vDef.effect) ? _vDef.effect.desc : null;
   ctx.save();
   ctx.globalAlpha=alpha;
   ctx.font='bold 10px system-ui,sans-serif';
   ctx.textAlign='center';
   const tw=ctx.measureText(f.name).width;
+  const ew = _effectDesc ? ctx.measureText(_effectDesc).width : 0;
+  const boxW = Math.max(tw, ew) + 12;
+  const boxH = _effectDesc ? 30 : 16;
+  const boxY = f.y - yOff - 13 - (_effectDesc ? 8 : 0);
   ctx.fillStyle='rgba(0,10,25,0.65)';
   ctx.beginPath();
-  ctx.roundRect(f.x-tw/2-6,f.y-yOff-13,tw+12,16,8);
+  ctx.roundRect(f.x-boxW/2, boxY, boxW, boxH, 8);
   ctx.fill();
   ctx.fillStyle=f.isRare?'#fbbf24':'#f8fafc';
-  ctx.fillText(f.name,f.x,f.y-yOff);
+  ctx.fillText(f.name, f.x, f.y - yOff - (_effectDesc ? 4 : 0));
+  if(_effectDesc){
+    ctx.font='8px system-ui,sans-serif';
+    ctx.fillStyle='#86efac';
+    ctx.fillText(_effectDesc, f.x, f.y - yOff + 8);
+  }
   ctx.restore();
 }
 
@@ -12386,7 +12428,7 @@ function doTap(x,y){
       if(hitFish.bonded < 300) {
         hitFish.bonded = Math.floor(3600 * getPersonality(hitFish).effects.bondRate);
         const _prevBondLv = bondLevel(hitFish);
-        hitFish._bondXP = (hitFish._bondXP || 0) + 1;
+        hitFish._bondXP = (hitFish._bondXP || 0) + visitorEffectVal('bondMult', 1);
         hitFish._lastBondTs = Date.now();
         sm.bonded++;
         const _newBondLv = bondLevel(hitFish);
@@ -12492,6 +12534,9 @@ function giveXP(base){
   let mult=isActive?(isHarmony?2.0:1.25):(isHarmony?1.5:1.0);
   const xpFish=fishList.find(f=>f._colorBonus?.bonus==='xpMult');
   if(xpFish)mult*=xpFish._colorBonus.val;
+  mult*=visitorEffectVal('xpMult',1);
+  const _hr=new Date().getHours();
+  if(_hr<7||_hr>=19) mult*=visitorEffectVal('nightXpMult',1);
   playerXP+=Math.ceil(base*mult);
   checkLevel();
 }
@@ -12584,8 +12629,16 @@ function tickVisitor() {
   const hourlyRate = 1.0 + (currentEra - 1) * 0.5;
   const baseChance = hourlyRate / 60;
   const beaconMult = (UPGRADES.abyssbeacon && UPGRADES.abyssbeacon.owned > 0) ? 1.25 : 1;
-  if(Math.random() > baseChance * beaconMult) return;
-  const weights = eligible.map(([k,v]) => v.rarity);
+  const visitorRareMult = visitorEffectVal('rareVisitorMult', 1);
+  if(Math.random() > baseChance * beaconMult * visitorRareMult) return;
+  // rareVisitorMult biases selection toward rarer visitors (lower rarity weight)
+  const weights = eligible.map(([k,v]) => {
+    const w = v.rarity;
+    if (visitorRareMult === 1) return w;
+    // Inverse-bias: rarer (smaller w) gets bigger boost. Cap at 4x to keep common visitors possible.
+    const rarityBias = Math.min(4, 1 + (visitorRareMult - 1) * (1 - Math.min(1, w / 100)));
+    return w / rarityBias;
+  });
   const total = weights.reduce((a,b)=>a+b,0);
   let r = Math.random() * total;
   let chosen = null, chosenKey = null;
@@ -12810,6 +12863,38 @@ function amplifiedPers(f) {
     bondRate:       1 + (raw.bondRate - 1) * amp,
     blurb: raw.blurb,
   };
+}
+
+// Active visitor effects — scans tamed visitors in fishList and aggregates by effect key.
+// Multiplicative stacking (each visitor of same key multiplies). Boolean keys stay true.
+let _visitorEffectCache = null;
+let _visitorEffectCacheSig = '';
+function getActiveVisitorEffects() {
+  if (!fishList) return {};
+  // Identity-aware signature: visitor key + effect val pair, sorted for stability.
+  // Counts alone are insufficient — swapping one visitor for another with matching
+  // counts would otherwise return stale effects.
+  const visitors = fishList.filter(f=>f.isVisitor && f.def && f.def.effect);
+  const parts = visitors.map(f => f.key + ':' + (f.def.effect.val !== undefined ? f.def.effect.val : '1'));
+  parts.sort();
+  const sig = fishList.length + '>' + parts.join(',');
+  if (_visitorEffectCacheSig === sig && _visitorEffectCache) return _visitorEffectCache;
+  const out = {};
+  for (const f of visitors) {
+    const { key, val } = f.def.effect;
+    if (typeof val === 'number') {
+      out[key] = (out[key] === undefined) ? val : out[key] * val;
+    } else {
+      out[key] = true;
+    }
+  }
+  _visitorEffectCache = out;
+  _visitorEffectCacheSig = sig;
+  return out;
+}
+function visitorEffectVal(key, defaultVal = 1) {
+  const v = getActiveVisitorEffects()[key];
+  return v === undefined ? defaultVal : v;
 }
 
 function buildFishFinder() {
@@ -13235,6 +13320,13 @@ function buildAquapedia() {
         <div style="height:1px;background:linear-gradient(90deg,transparent,${vDef.c1}66,transparent);margin:4px 0 8px;"></div>
         <p style="font-family:Georgia,serif;font-size:9px;color:${seen?'#5a3828':'#8a7080'};line-height:1.6;font-style:italic;margin:0;">${seen ? lore : 'Encounter this visitor to unlock its entry.'}</p>
       </div>
+
+      ${(seen && vDef.effect) ? `<div class="aq-page-item" style="animation-delay:220ms;margin-top:8px;">
+        <div style="font-family:Georgia,serif;font-size:8px;color:#10b981;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);padding:5px 8px;border-radius:3px;">
+          <div style="font-size:7px;letter-spacing:1.5px;color:#10b98199;text-transform:uppercase;margin-bottom:2px;">Passive Effect (when tamed)</div>
+          ${vDef.effect.desc}
+        </div>
+      </div>` : ''}
 
       ${isAbyssal ? `<div class="aq-page-item" style="animation-delay:240ms;margin-top:8px;"><div style="font-family:Georgia,serif;font-size:8px;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);padding:4px 8px;border-radius:3px;text-align:center;">Abyssal Entity</div></div>` : ''}
     </div>`);
