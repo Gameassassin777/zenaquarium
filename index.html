@@ -2091,7 +2091,7 @@ let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
 let dailyStreak=0,lastDailyTs=0;
 let currentOrders=[],completedOrders=0,codesRedeemed=0;
-let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[],visitorsEncountered:{},dailyBuff:null};
+let sm={feeds:0,harmonySec:0,cleaned:0,hatched:0,rares:0,marketSales:0,bonded:0,visitorsTamed:0,abyssalTamed:0,homozyBred:0,clusterMastered:[],visitorsEncountered:{},dailyBuff:null,offlineMods:[]};
 let currentEra = 0;
 let visitorList = [];
 let _lastVisitorCheck = 0;
@@ -3272,21 +3272,147 @@ function calcOffline(s){
   if(s.sw_owned && Object.keys(s.sw_owned).some(k => k === 's_warp' && s.sw_owned[k] > 0)) offlineMult *= 3;
   if(offlineMult > 1) { total = Math.floor(total * offlineMult); items.forEach(it => { it.coins = Math.floor(it.coins * offlineMult); }); }
   const hrs=Math.floor(elapsed/3600),mins=Math.floor((elapsed%3600)/60);
-  return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`};
+  // Roll 0-2 offline events (1hr+ triggers 1, 4hr+ triggers 2)
+  const events = rollOfflineEvents(elapsed);
+  return{total,items,timeStr:hrs>0?`${hrs}h ${mins}m`:`${mins}m`,events};
 }
 
 function showWelcome(r){
   document.getElementById('wtime').textContent=`Away for ${r.timeStr} — here's what you earned:`;
-  document.getElementById('witems').innerHTML=r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${formatCoins(it.coins)}</span></div>`).join('');
-  document.getElementById('wtotal').innerHTML= ICONS.coin + formatCoins(r.total);
   offlinePend=r;
+  renderWelcomeModal();
+  document.getElementById('wtotal').innerHTML= ICONS.coin + formatCoins(r.total);
   document.getElementById('wmodal').classList.add('show');
 }
 
 function collectOffline(){
-  if(offlinePend){addCoins(offlinePend.total,W/2,H/3,true);offlinePend=null;}
+  if(offlinePend){
+    // Apply all pending offline events (good and bad) BEFORE collecting coins
+    if(offlinePend.events){
+      for(const e of offlinePend.events){ applyOfflineEvent(e); }
+    }
+    addCoins(offlinePend.total,W/2,H/3,true);
+    offlinePend=null;
+  }
   document.getElementById('wmodal').classList.remove('show');
   if(pendingDaily){pendingDaily=false;setTimeout(showDailyModal,420);}
+}
+
+// ── OFFLINE EVENTS ──────────────────────────────────────────────────────────
+// While away, 0-2 events may roll (scales with offline duration). Player can
+// pay coins to reroll one bad event before collecting. Good events apply
+// temporary buffs via sm.offlineMods {coinDebuff, coinBuff, xpBuff, expires}.
+const OFFLINE_EVENTS = [
+  { id:'rare_visitor',     kind:'good', weight:2, label:'A rare visitor appeared',     icon:'🐙' },
+  { id:'surprise_egg',     kind:'good', weight:2, label:'Bonded pair laid a surprise egg', icon:'🥚' },
+  { id:'algae_bloom',      kind:'bad',  weight:2, label:'Algae bloom — coin yield -30%',  icon:'🟢' },
+  { id:'cosmic_alignment', kind:'good', weight:1, label:'Cosmic alignment — XP +50%',     icon:'🌟' },
+];
+function rollOfflineEvents(elapsedSec){
+  // 1hr+ → 1 event; 4hr+ → 2 events. Each event rolls weighted-random from pool.
+  const events = [];
+  const n = elapsedSec >= 4*3600 ? 2 : (elapsedSec >= 1*3600 ? 1 : 0);
+  const pool = [...OFFLINE_EVENTS];
+  for(let i=0; i<n; i++){
+    const total = pool.reduce((s,e)=>s+e.weight, 0);
+    let r = Math.random() * total;
+    let chosen = null;
+    for(const e of pool){
+      r -= e.weight;
+      if(r <= 0){ chosen = e; break; }
+    }
+    if(chosen){
+      events.push({...chosen});
+      // Don't repeat the same event in one return
+      pool.splice(pool.indexOf(chosen), 1);
+    }
+  }
+  return events;
+}
+function applyOfflineEvent(event){
+  // Returns a description of side effects to apply at collect time
+  if(event.id === 'rare_visitor'){
+    // Force-spawn a random visitor immediately
+    const ks = Object.keys(VISITOR_SPECIES);
+    const k = ks[Math.floor(Math.random()*ks.length)];
+    const def = VISITOR_SPECIES[k];
+    if(def) spawnVisitor(k, def);
+    return { applied:'spawned_visitor', visitorKey:k };
+  }
+  if(event.id === 'surprise_egg'){
+    // Spawn a random egg from a bonded fish if any, else random species
+    const bonded = fishList.filter(f => !f.isVisitor && (f.bonded > 0 || (f._bondXP||0) > 0));
+    let type, rareMut = false;
+    if(bonded.length >= 2){
+      const mom = bonded[0], dad = bonded[1];
+      type = Math.random() < 0.5 ? mom.type : dad.type;
+      rareMut = Math.random() < 0.25; // surprise eggs have higher rare chance
+    } else if(bonded.length === 1){
+      type = bonded[0].type;
+      rareMut = Math.random() < 0.15;
+    } else if(fishList.length > 0){
+      type = fishList[Math.floor(Math.random()*fishList.length)].type;
+      rareMut = false;
+    } else {
+      const ks = Object.keys(TYPES);
+      type = ks[Math.floor(Math.random()*ks.length)];
+    }
+    const g = generateRandomGenes(type);
+    g.isRareMut = rareMut;
+    eggs.push({ x: W/2, y: H-85, type, hatchTime: getEggHatchTime(type), genes: g, isRareMut: rareMut, gen: 0, lineage: [] });
+    return { applied:'spawned_egg', type, rareMut };
+  }
+  if(event.id === 'algae_bloom'){
+    // Apply 30min coin debuff
+    if(!sm.offlineMods) sm.offlineMods = [];
+    sm.offlineMods.push({ type:'coinDebuff', mult:0.7, expires: Date.now() + 30*60*1000 });
+    return { applied:'coin_debuff', duration:'30m' };
+  }
+  if(event.id === 'cosmic_alignment'){
+    if(!sm.offlineMods) sm.offlineMods = [];
+    sm.offlineMods.push({ type:'xpBuff', mult:1.5, expires: Date.now() + 30*60*1000 });
+    return { applied:'xp_buff', duration:'30m' };
+  }
+  return { applied:'none' };
+}
+function offlineModVal(modType){
+  if(!sm.offlineMods) return 1;
+  const now = Date.now();
+  let mult = 1;
+  sm.offlineMods = sm.offlineMods.filter(m => m.expires > now);
+  for(const m of sm.offlineMods){
+    if(m.type === modType) mult *= m.mult;
+  }
+  return mult;
+}
+function rerollBadEvent(idx, cost){
+  // Player pays coins to swap a bad event for a random good one
+  if(coins < cost) return false;
+  if(!offlinePend?.events || !offlinePend.events[idx]) return false;
+  if(offlinePend.events[idx].kind !== 'bad') return false;
+  coins -= cost;
+  const goodPool = OFFLINE_EVENTS.filter(e => e.kind === 'good');
+  const newE = goodPool[Math.floor(Math.random()*goodPool.length)];
+  offlinePend.events[idx] = {...newE};
+  renderWelcomeModal();
+  return true;
+}
+function renderWelcomeModal(){
+  if(!offlinePend) return;
+  const r = offlinePend;
+  const eventHtml = (r.events && r.events.length)
+    ? `<div style="margin-top:15px; padding:12px; background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.3); border-radius:10px;">
+         <div style="font-size:11px; font-weight:900; color:#c4b5fd; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">While You Were Away</div>
+         ${r.events.map((e,i) => `
+           <div style="display:flex; align-items:center; gap:8px; padding:6px 0; ${e.kind==='bad'?'color:#fca5a5;':''}">
+             <span style="font-size:18px;">${e.icon}</span>
+             <span style="flex:1; font-size:12px;">${e.label}</span>
+             ${e.kind==='bad' ? `<button onclick="rerollBadEvent(${i}, ${Math.floor(r.total*0.25)+100})" style="background:#7c3aed; color:white; border:none; border-radius:6px; padding:4px 8px; font-size:10px; cursor:pointer;">Reroll (${formatCoins(Math.floor(r.total*0.25)+100)})</button>` : ''}
+           </div>
+         `).join('')}
+       </div>`
+    : '';
+  document.getElementById('witems').innerHTML = r.items.map(it=>`<div class="wrow"><span>${it.icon} ${it.label}</span><span>+${formatCoins(it.coins)}</span></div>`).join('') + eventHtml;
 }
 
 function needsDaily(){
@@ -12829,7 +12955,7 @@ function spawnJuice(x,y,html,color,scale=1){
   setTimeout(()=>el.remove(),1200);
 }
 function addCoins(amt,x,y,bonus=false){
-  amt = Math.floor(amt * dailyBuffVal('coin'));
+  amt = Math.floor(amt * dailyBuffVal('coin') * offlineModVal('coinDebuff') * offlineModVal('coinBuff'));
   coins+=amt;totalCoins+=amt;
   document.getElementById('cv').textContent=formatCoins(coins);
   checkLevel();
@@ -12885,6 +13011,7 @@ function giveXP(base){
     mult*=decorSynergy('nightXpMult');
   }
   mult*=dailyBuffVal('xp');
+  mult*=offlineModVal('xpBuff');
   playerXP+=Math.ceil(base*mult);
   checkLevel();
 }
