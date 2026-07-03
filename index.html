@@ -3247,7 +3247,8 @@ function updateEco(){
 function triggerEat(f,fd,def){
   fd.eaten=true;f.hunger=100;f.eat=18;sm.feeds++;
   _lastActiveFeed=Date.now();
-  giveXP(isHarmony?2:1);
+  const _pers = getPersonality(f).effects;
+  giveXP((isHarmony?2:1) * _pers.xpMult);
   combo++;comboTimer=getMaxCT();
   sm.comboTaps = (sm.comboTaps||0) + 1;
   sm.maxCombo = Math.max(sm.maxCombo||0, combo);
@@ -3321,7 +3322,7 @@ function triggerEat(f,fd,def){
   // coin_mag: +50% on feed, mastery → +70%/+90%/+120%
   const _magM = swMastery('a_magnet');
   const coinMagMult = swGetBonus('coin_mag') > 0 ? (1.5 + _magM * 0.23) : 1;
-  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * ecoSingMult * primordialMult);
+  const total = Math.ceil(def.val * cm * cappedMult * feedBonus * prismBonus * coinMagMult * singMult * ecoSingMult * primordialMult * _pers.coinMult);
   if (total > 0) {
     if (isBredGold) spawnJuice(f.x, f.y - 20, "LEGENDARY X20!", "#f59e0b", 1.5);
     addCoins(total, f.x, f.y, isHarmony || f.bonded>0 || isGold);
@@ -3355,6 +3356,8 @@ function updateFish(f){
   if(UPGRADES.oxygen && UPGRADES.oxygen.owned > 0) hDrain *= 0.8;
   if(trait === 'lazy') hDrain *= 0.8;
   if(trait === 'active') hDrain *= 1.2;
+  // Personality-driven drain (Calm = -20%, Grumpy = +10%, etc.)
+  hDrain *= getPersonality(f).effects.hungerDrainMult;
   // dome mastery: reduces online hunger drain (M1 -15%, M2 -30%, M3 -45%)
   const _domeM = typeof swMastery === 'function' ? swMastery('d_dome') : 0;
   if(swGetBonus('dome') > 0 && _domeM > 0) hDrain *= (1 - _domeM * 0.15);
@@ -3764,9 +3767,9 @@ function drawFish(f){
     // Stalked eyes
     ctx.strokeStyle=_c1; ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(s*.6,-s*.15);ctx.lineTo(s*.75,-s*.3);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(s*.6,s*.05);ctx.lineTo(s*.75,s*.15);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*.6,s*.15);ctx.lineTo(s*.75,s*.3);ctx.stroke();
     drawEye(ctx, s*.75, -s*.3, s*.05);
-    drawEye(ctx, s*.75, s*.15, s*.05);
+    drawEye(ctx, s*.75, s*.3, s*.05);
   }
   else if(_vk === 'nudibranch'){
     // Small colorful slug with cerata (spiky projections) and oral tentacles
@@ -3795,34 +3798,61 @@ function drawFish(f){
   }
   else if(_vk === 'scorpionfish'){
     // Lumpy ambush predator with elaborate camouflage fins and spines
-    // Dorsal spines
-    ctx.strokeStyle=_c1+'bb'; ctx.lineWidth=2; ctx.lineCap='round';
+    // Pre-compute spine tips so membrane + spines share identical geometry
+    const _sxTips=[];
     for(let i=0;i<7;i++){
-      const sx2=-s*.5+i*s*.18;
-      ctx.beginPath();ctx.moveTo(sx2,-s*.2);ctx.lineTo(sx2+s*.02,-s*.6-Math.sin(i)*s*.15+wag*.3);ctx.stroke();
-      // Webbing between spines
-      if(i>0){
-        ctx.fillStyle=_c2+'44';
-        ctx.beginPath();ctx.moveTo(sx2-s*.18,-s*.2);ctx.lineTo(sx2-s*.18+s*.02,-s*.6-Math.sin(i-1)*s*.15+wag*.3);
-        ctx.lineTo(sx2+s*.02,-s*.6-Math.sin(i)*s*.15+wag*.3);ctx.lineTo(sx2,-s*.2);ctx.fill();
-      }
+      const sxBase=-s*.5+i*s*.18;
+      _sxTips.push({x:sxBase, y:-s*.2, tx:sxBase+s*.02, ty:-s*.6-Math.sin(i)*s*.15+wag*.3});
     }
-    // Lumpy body
-    ctx.fillStyle=bg;
+    // Dorsal membrane: multi-stop gradient (clear → frosted c2 → clear) for smooth fin transition
+    const _dorsalGrad=ctx.createLinearGradient(0,-s*.65,0,-s*.18);
+    _dorsalGrad.addColorStop(0, _c2+'00');
+    _dorsalGrad.addColorStop(0.35, _c2+'55');
+    _dorsalGrad.addColorStop(0.75, _c2+'33');
+    _dorsalGrad.addColorStop(1, _c2+'00');
+    ctx.fillStyle=_dorsalGrad;
     ctx.beginPath();
-    ctx.moveTo(s*.7,0);
-    for(let a=0;a<=Math.PI*2;a+=Math.PI/8){
+    ctx.moveTo(_sxTips[0].x, _sxTips[0].y);
+    for(let i=0;i<7;i++){ ctx.lineTo(_sxTips[i].tx, _sxTips[i].ty); }
+    ctx.lineTo(_sxTips[6].x, _sxTips[6].y);
+    ctx.closePath();ctx.fill();
+    // Dorsal spines (over membrane, gradient strokes for depth)
+    const _spineGrad=ctx.createLinearGradient(0,-s*.65,0,-s*.18);
+    _spineGrad.addColorStop(0, _c1+'ff');
+    _spineGrad.addColorStop(1, _c1+'88');
+    ctx.strokeStyle=_spineGrad; ctx.lineWidth=2; ctx.lineCap='round';
+    for(let i=0;i<7;i++){
+      ctx.beginPath();ctx.moveTo(_sxTips[i].x,_sxTips[i].y);ctx.lineTo(_sxTips[i].tx,_sxTips[i].ty);ctx.stroke();
+    }
+    // Lumpy body with multi-stop gradient (replaces flat bg fill for premium depth)
+    const _bodyGrad=ctx.createRadialGradient(s*.15,-s*.15,s*.1, 0,0,s*.75);
+    _bodyGrad.addColorStop(0, _c1);
+    _bodyGrad.addColorStop(0.6, bg);
+    _bodyGrad.addColorStop(1, _c2);
+    ctx.fillStyle=_bodyGrad;
+    ctx.beginPath();
+    for(let a=0;a<=Math.PI*2;a+=Math.PI/16){
       const r=s*.7*(1+Math.sin(a*3)*0.12);
-      ctx.lineTo(Math.cos(a)*r*1.1, Math.sin(a)*r*.5);
+      const px=Math.cos(a)*r*1.1, py=Math.sin(a)*r*.5;
+      if(a===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
     }
     ctx.closePath();ctx.fill();
-    // Fleshy tassels under mouth
-    ctx.strokeStyle=_c2+'88'; ctx.lineWidth=1;
+    // Subtle dorsal highlight ridge along the back to mask any spine/body seam
+    ctx.strokeStyle='rgba(255,230,180,0.18)'; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(-s*.5,-s*.18);ctx.quadraticCurveTo(0,-s*.22,s*.55,-s*.16);ctx.stroke();
+    // Fleshy tassels under mouth (gradient strokes)
+    const _tassGrad=ctx.createLinearGradient(0,s*.15,0,s*.4);
+    _tassGrad.addColorStop(0, _c2+'cc');
+    _tassGrad.addColorStop(1, _c2+'44');
+    ctx.strokeStyle=_tassGrad; ctx.lineWidth=1;
     for(let i=0;i<3;i++){
       ctx.beginPath();ctx.moveTo(s*.5+i*s*.08,s*.15);ctx.lineTo(s*.5+i*s*.1,s*.4+paddle);ctx.stroke();
     }
-    // Pectoral fin (fan-like)
-    ctx.fillStyle=_c2+'55';
+    // Pectoral fin (fan-like, gradient membrane)
+    const _pectGrad=ctx.createLinearGradient(s*.1,s*.15,s*.6,s*.5);
+    _pectGrad.addColorStop(0, _c2+'66');
+    _pectGrad.addColorStop(1, _c2+'22');
+    ctx.fillStyle=_pectGrad;
     ctx.beginPath();ctx.moveTo(s*.1,s*.15);ctx.quadraticCurveTo(s*.3,s*.7+paddle,s*.6,s*.5);ctx.quadraticCurveTo(s*.4,s*.2,s*.1,s*.15);ctx.fill();
     drawEye(ctx, s*.55, -s*.1, s*.08);
   }
@@ -4096,6 +4126,235 @@ function drawFish(f){
     ctx.beginPath();ctx.ellipse(0,-s*.25,s*.2,s*.08,0,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.ellipse(0,s*.25,s*.15,s*.06,paddle*.2,0,Math.PI*2);ctx.fill();
     drawEye(ctx, s*.45, -s*.05, s*.06);
+  }
+  else if(_vk === 'glassfish'){
+    // ── GLASS CATFISH (Kryptopterus vitreolus) — translucent body with visible spine ──
+    // Sinuous body undulation (subtle)
+    const _ge = Math.sin(f.phase*0.9);
+    // ── 1. Long translucent body membrane (multi-stop alpha gradient) ──
+    ctx.save();
+    const mem = ctx.createLinearGradient(0,-s*.3,0,s*.3);
+    mem.addColorStop(0, _c1+'33');
+    mem.addColorStop(0.4, _c2+'66');
+    mem.addColorStop(0.6, _c2+'66');
+    mem.addColorStop(1, _c1+'22');
+    ctx.fillStyle = mem;
+    ctx.beginPath();
+    const _glen = s*1.6, _gh = s*.3;
+    ctx.moveTo(s*_glen*.5, 0);
+    ctx.bezierCurveTo(s*_glen*.5, -_gh, s*_glen*.1, -_gh*1.2, -s*_glen*.2, -_gh*.9 + _ge*s*.05);
+    ctx.bezierCurveTo(-s*_glen*.55, -_gh*.4 + _ge*s*.08, -s*_glen*.7, -_gh*.2, -s*_glen*.78, 0);
+    ctx.bezierCurveTo(-s*_glen*.7, _gh*.2, -s*_glen*.55, _gh*.4 + _ge*s*.08, -s*_glen*.2, _gh*.9 + _ge*s*.05);
+    ctx.bezierCurveTo(s*_glen*.1, _gh*1.2, s*_glen*.5, _gh, s*_glen*.5, 0);
+    ctx.closePath();
+    ctx.fill();
+    // ── 2. Forked caudal fin (with rays) at tail end ──
+    ctx.fillStyle = _c2+'44';
+    ctx.beginPath();
+    ctx.moveTo(-s*_glen*.75, _ge*s*.05);
+    ctx.lineTo(-s*_glen*1.05, -_gh*1.3 + wag*.4);
+    ctx.lineTo(-s*_glen*.95, -_gh*.4);
+    ctx.lineTo(-s*_glen*.7, 0);
+    ctx.lineTo(-s*_glen*.95, _gh*.4);
+    ctx.lineTo(-s*_glen*1.05, _gh*1.3 + wag*.4);
+    ctx.closePath();
+    ctx.fill();
+    // Caudal fin rays
+    ctx.strokeStyle = _c1+'55'; ctx.lineWidth = 0.8;
+    for(let i=0;i<5;i++){
+      const t = i/4;
+      ctx.beginPath();
+      ctx.moveTo(-s*_glen*.75, _ge*s*.05);
+      ctx.lineTo(-s*_glen*(.95 + t*.1), -_gh*1.3*(1-t*.4) + wag*.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-s*_glen*.75, _ge*s*.05);
+      ctx.lineTo(-s*_glen*(.95 + t*.1), _gh*1.3*(1-t*.4) + wag*.4);
+      ctx.stroke();
+    }
+    // ── 3. Visible vertebral spine (chain of small vertebrae down centerline) ──
+    const _spineY = _ge*s*.04;
+    ctx.strokeStyle = 'rgba(220,235,245,0.7)'; ctx.lineWidth = 1.2; ctx.lineCap='round';
+    ctx.beginPath();
+    for(let i=0;i<=14;i++){
+      const t=i/14, x=s*_glen*(0.45 - t*1.2), y=_spineY;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Vertebrae dots
+    ctx.fillStyle='rgba(180,210,230,0.55)';
+    for(let i=1;i<14;i++){
+      const t=i/14, x=s*_glen*(0.45 - t*1.2);
+      ctx.beginPath(); ctx.arc(x, _spineY, s*.025, 0, Math.PI*2); ctx.fill();
+    }
+    // Rib pairs (faint vertical strokes perpendicular to spine)
+    ctx.strokeStyle='rgba(190,215,235,0.28)'; ctx.lineWidth=0.7;
+    for(let i=1;i<9;i++){
+      const t=i/9, x=s*_glen*(0.35 - t*0.95);
+      const _rh = _gh*(0.85 - Math.abs(t-0.4)*0.5);
+      ctx.beginPath(); ctx.moveTo(x, _spineY - _rh*0.7); ctx.lineTo(x, _spineY + _rh*0.7); ctx.stroke();
+    }
+    // ── 4. Internal organ silhouette (warm tint behind gills/head) ──
+    const organG = ctx.createRadialGradient(s*_glen*.32, 0, 0, s*_glen*.32, 0, s*.18);
+    organG.addColorStop(0,'rgba(255,220,180,0.45)');
+    organG.addColorStop(1,'rgba(255,200,140,0)');
+    ctx.fillStyle = organG;
+    ctx.beginPath(); ctx.ellipse(s*_glen*.32, 0, s*.18, s*.12, 0, 0, Math.PI*2); ctx.fill();
+    // ── 5. Long cranial barbel whiskers (4 barbels: 2 dorsal, 2 ventral) ──
+    ctx.strokeStyle = _c1+'cc'; ctx.lineWidth = 1.2; ctx.lineCap='round';
+    const _bwig = Math.sin(f.phase*1.4);
+    // Upper barbels (longest)
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.5, -s*.05);
+    ctx.bezierCurveTo(s*_glen*.85, -s*.15 + _bwig*s*.05, s*_glen*1.15, -s*.3+_bwig*s*.08, s*_glen*1.45, -s*.45+_bwig*s*.06);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.5, -s*.02);
+    ctx.bezierCurveTo(s*_glen*.88, -s*.05+_bwig*s*.04, s*_glen*1.2, -s*.08+_bwig*s*.07, s*_glen*1.5, -s*.1+_bwig*s*.05);
+    ctx.stroke();
+    // Lower barbels (shorter, ventral)
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.48, s*.05);
+    ctx.bezierCurveTo(s*_glen*.78, s*.15+_bwig*s*.04, s*_glen*1.0, s*.32+_bwig*s*.06, s*_glen*1.25, s*.45+_bwig*s*.05);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.48, s*.02);
+    ctx.bezierCurveTo(s*_glen*.82, s*.06+_bwig*s*.03, s*_glen*1.08, s*.14+_bwig*s*.05, s*_glen*1.32, s*.18+_bwig*s*.04);
+    ctx.stroke();
+    // ── 6. Long anal fin (runs along ventral rear half) ──
+    ctx.fillStyle = _c2+'55';
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.2, _gh*.85);
+    for(let i=0;i<=12;i++){
+      const t=i/12, x=s*_glen*.2 - t*s*_glen*.75;
+      const _fh = Math.sin(f.phase*1.2 + t*5)*s*.05 + s*.15;
+      ctx.lineTo(x, _gh*.85 + _fh + _ge*s*.03);
+    }
+    ctx.lineTo(-s*_glen*.55, _gh*.5 + _ge*s*.04);
+    ctx.lineTo(s*_glen*.2, _gh*.6);
+    ctx.closePath();
+    ctx.fill();
+    // ── 7. Specular highlight along dorsal ridge ──
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(s*_glen*.45, -_gh*.85);
+    ctx.bezierCurveTo(s*_glen*.1, -_gh*1.1, -s*_glen*.4, -_gh*.85, -s*_glen*.7, -_gh*.3);
+    ctx.stroke();
+    // ── 8. Eye (large, since body is transparent) ──
+    drawEye(ctx, s*_glen*.4, -s*.08, s*.055);
+    ctx.restore();
+  }
+  else if(_vk === 'ribbonfish'){
+    // ── RIBBON EEL (Rhinomuraenuda quaesita) — long serpentine body, color phase blue w/ yellow snout ──
+    // 20-segment spine for full-body undulation
+    const _rlen = s*2.0, _rsegs = 20;
+    const _rknot = [];
+    for(let i=0;i<=_rsegs;i++){
+      const t=i/_rsegs;
+      const x=_rlen*.5 - t*_rlen;
+      const y=Math.sin(f.phase + t*Math.PI*1.8)*s*.18*(0.3 + t*0.7);
+      _rknot.push({x,y,t});
+    }
+    // ── 1. Long flowing dorsal fin membrane (full body length, taller anterior) ──
+    ctx.save();
+    const dorsalGrad = ctx.createLinearGradient(0,-s*.5,0,0);
+    dorsalGrad.addColorStop(0,'#facc15cc');  // yellow tint per ribbon eel lore
+    dorsalGrad.addColorStop(1,'#facc1533');
+    ctx.fillStyle = dorsalGrad;
+    ctx.beginPath();
+    ctx.moveTo(_rknot[0].x, _rknot[0].y - s*.06);
+    for(let i=0;i<_rknot.length;i++){
+      const k=_rknot[i];
+      const _fh = s*(0.42 - k.t*0.18) + Math.sin(f.phase*1.4 + i*0.6)*s*.04;
+      ctx.lineTo(k.x, k.y - _fh);
+    }
+    for(let i=_rknot.length-1;i>=0;i--){
+      ctx.lineTo(_rknot[i].x, _rknot[i].y - s*.06);
+    }
+    ctx.closePath();
+    ctx.fill();
+    // Dorsal fin rays
+    ctx.strokeStyle='#fde04777'; ctx.lineWidth=0.8;
+    for(let i=2;i<_rknot.length-1;i+=2){
+      const k=_rknot[i];
+      const _fh = s*(0.42 - k.t*0.18);
+      ctx.beginPath(); ctx.moveTo(k.x, k.y - s*.06); ctx.lineTo(k.x, k.y - _fh); ctx.stroke();
+    }
+    // ── 2. Main body — three-phase color gradient (yellow snout → blue middle → darker indigo tail) ──
+    const bodyGrad = ctx.createLinearGradient(_rknot[0].x, 0, _rknot[_rknot.length-1].x, 0);
+    bodyGrad.addColorStop(0, '#fde047');     // snout yellow
+    bodyGrad.addColorStop(0.08, _c1);        // head indigo
+    bodyGrad.addColorStop(0.45, _c1);        // body mid
+    bodyGrad.addColorStop(0.85, _c2);        // tail darker
+    bodyGrad.addColorStop(1, '#1e1b4b');     // tail tip almost black
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    // Body is a thick ribbon — uniform height with subtle taper
+    const _rh0 = s*0.16;
+    ctx.moveTo(_rknot[0].x + s*.05, _rknot[0].y - _rh0);
+    for(let i=0;i<_rknot.length;i++){
+      const k=_rknot[i];
+      const _hh = _rh0*(1.0 - k.t*0.15);
+      ctx.lineTo(k.x, k.y - _hh);
+    }
+    for(let i=_rknot.length-1;i>=0;i--){
+      const k=_rknot[i];
+      const _hh = _rh0*(1.0 - k.t*0.15);
+      ctx.lineTo(k.x, k.y + _hh);
+    }
+    ctx.closePath();
+    ctx.fill();
+    // ── 3. Anterior nostril flares (leaf-shaped fans on snout — ribbon eel signature) ──
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.ellipse(_rknot[0].x + s*.13, _rknot[0].y - s*.13, s*.07, s*.13, -Math.PI/6, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fde047cc';
+    ctx.beginPath();
+    ctx.ellipse(_rknot[0].x + s*.16, _rknot[0].y + s*.13, s*.06, s*.11, Math.PI/6, 0, Math.PI*2);
+    ctx.fill();
+    // ── 4. Tiny reduced caudal fin (small lunate tail) ──
+    ctx.fillStyle = _c2+'aa';
+    const _te = _rknot[_rknot.length-1];
+    ctx.beginPath();
+    ctx.moveTo(_te.x, _te.y);
+    ctx.quadraticCurveTo(_te.x - s*.08, _te.y - s*.1, _te.x - s*.15, _te.y - s*.06 + wag*.3);
+    ctx.quadraticCurveTo(_te.x - s*.12, _te.y, _te.x - s*.15, _te.y + s*.06 + wag*.3);
+    ctx.quadraticCurveTo(_te.x - s*.08, _te.y + s*.1, _te.x, _te.y);
+    ctx.closePath();
+    ctx.fill();
+    // ── 5. Tiny pectoral fins (mid-body, behind head) ──
+    ctx.fillStyle = _c1+'cc';
+    ctx.beginPath();
+    ctx.ellipse(_rknot[1].x - s*.05, _rknot[1].y + s*.14, s*.06, s*.03, Math.PI/5, 0, Math.PI*2);
+    ctx.fill();
+    // ── 6. White mid-lateral stripe (ribbon eel has a pale dorsal stripe) ──
+    ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<_rknot.length;i++){
+      const k=_rknot[i];
+      if(i===0) ctx.moveTo(k.x, k.y - _rh0*0.6);
+      else ctx.lineTo(k.x, k.y - _rh0*0.6*(1.0 - k.t*0.15));
+    }
+    ctx.stroke();
+    // ── 7. Specular highlight along dorsal ridge ──
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let i=0;i<_rknot.length;i++){
+      const k=_rknot[i];
+      const _hh = _rh0*(1.0 - k.t*0.15);
+      if(i===0) ctx.moveTo(k.x, k.y - _hh*0.7);
+      else ctx.lineTo(k.x, k.y - _hh*0.7);
+    }
+    ctx.stroke();
+    // ── 8. Small mouth and eye ──
+    ctx.strokeStyle = '#1e1b4b'; ctx.lineWidth=1.2;
+    ctx.beginPath();
+    ctx.moveTo(_rknot[0].x + s*.18, _rknot[0].y);
+    ctx.lineTo(_rknot[0].x + s*.04, _rknot[0].y - s*.02);
+    ctx.stroke();
+    drawEye(ctx, _rknot[0].x + s*.06, _rknot[0].y - s*.06, s*.04);
+    ctx.restore();
   }
   else if(f.type==='guppy'){
     // ── FANCY GUPPY (male Poecilia reticulata) — bespoke v2 ──
@@ -12045,11 +12304,12 @@ function doTap(x,y){
     if(hitFish) {
       hitFish._nameTs = Date.now();
       if(hitFish.bonded < 300) { 
-        hitFish.bonded = 3600;
+        hitFish.bonded = Math.floor(3600 * getPersonality(hitFish).effects.bondRate);
+        hitFish._bondXP = (hitFish._bondXP || 0) + 1;
         sm.bonded++;
         for(let i=0;i<6;i++) particles.push({x:x,y:y-30,vx:(Math.random()-.5)*3,vy:-1-Math.random()*2,life:1,c:'#fb7185'});
       }
-      return; 
+      return;
     }
     dropFood(x,y);
   }
@@ -12408,12 +12668,33 @@ function buildPanel(t){
   if(t==='finder') buildFishFinder();
 }
 
+// Personality axes — each generates mechanical effects, not just flavor.
+// Axis is deterministic per-fish (id hash) so it persists across reloads.
+const PERSONALITY_AXES = {
+  Playful: { coinMult: 1.20, xpMult: 1.00, hungerDrainMult: 1.00, bondRate: 1.10,
+             blurb: 'Earns +20% coins from feeding' },
+  Curious: { coinMult: 1.00, xpMult: 1.18, hungerDrainMult: 1.05, bondRate: 1.05,
+             blurb: 'Learns +18% faster from interactions' },
+  Loyal:   { coinMult: 1.00, xpMult: 1.00, hungerDrainMult: 0.95, bondRate: 1.60,
+             blurb: 'Bonds 60% faster when tapped' },
+  Vibrant: { coinMult: 1.10, xpMult: 1.05, hungerDrainMult: 1.00, bondRate: 1.10,
+             blurb: '+10% coins, +5% XP — a well-rounded star' },
+  Grumpy:  { coinMult: 1.30, xpMult: 0.85, hungerDrainMult: 1.10, bondRate: 0.65,
+             blurb: '+30% coins but bonds slowly and drains faster' },
+  Calm:    { coinMult: 1.00, xpMult: 1.05, hungerDrainMult: 0.80, bondRate: 1.05,
+             blurb: 'Drains hunger 20% slower — easy keeper' },
+};
+const PERSONALITY_P1 = ['Playful','Curious','Loyal','Vibrant','Grumpy','Calm'];
+const PERSONALITY_P2 = ['Bubbler','Explorer','Dancer','Watcher','Zinger','Floaty'];
+
 function getPersonality(f) {
-  const p1 = ['Playful','Calm','Curious','Vibrant','Loyal','Grumpy'][f.id % 6];
-  const p2 = ['Bubbler','Explorer','Dancer','Watcher','Zinger','Floaty'][Math.floor(f.id/10) % 6];
-  const likes = ['Green Algae','Bubbles','Sand','Snails','Food Plankton'][f.id % 5];
-  const dislikes = ['Dirty Water','Noise','Empty Tanks','Cold'][Math.floor(f.id/7) % 4];
-  return { desc: `${p1} ${p2}`, likes, dislikes };
+  const id = (typeof f.id === 'number') ? f.id : 0;
+  const p1 = PERSONALITY_P1[((id % 6) + 6) % 6];
+  const p2 = PERSONALITY_P2[(Math.floor(id / 10) % 6 + 6) % 6];
+  const likes = ['Green Algae','Bubbles','Sand','Snails','Food Plankton'][((id % 5) + 5) % 5];
+  const dislikes = ['Dirty Water','Noise','Empty Tanks','Cold'][((Math.floor(id / 7) % 4) + 4) % 4];
+  const effects = PERSONALITY_AXES[p1];
+  return { desc: `${p1} ${p2}`, p1, p2, likes, dislikes, effects, blurb: effects.blurb };
 }
 
 function buildFishFinder() {
@@ -12510,7 +12791,8 @@ function buildFishFinder() {
       })()}
           <div class="f-personality">
           <div style="font-weight:900; color:var(--card-text); margin-bottom:4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">${pers.desc}</div>
-          <div style="color:var(--text-sub);">Loves: <span style="color:#10b981">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
+          <div style="color:var(--text-sub); margin-bottom:3px;">Loves: <span style="color:#10b981">${pers.likes}</span> • Dislikes: <span style="color:#f43f5e">${pers.dislikes}</span></div>
+          <div style="color:#67e8f9; font-size:10px; font-style:italic;">${pers.blurb}</div>
         </div>
       `;
     } else {
