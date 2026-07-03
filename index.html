@@ -2796,61 +2796,184 @@ if(!uid){uid=Math.random().toString(36).slice(2,10).toUpperCase();localStorage.s
 // Conditions evaluated against live game state + sm stats module.
 // Rewards are one-time coin bonuses; unlock persists in sm.achievements.
 // ═══════════════════════════════════════════════════════════════════════════
+// Tiered achievements have metric() + tiers[] (numeric progress that escalates).
+// Boolean achievements have test() + reward (single-claim).
+// sm.achTiers[id] = highest tier index claimed (tiered only).
 const ACHIEVEMENTS = [
-  // ── First steps ──
-  { id:'first_feed',    name:'First Drops',     desc:'Feed your fish for the first time',     icon:'🥢', test:()=>sm.feeds >= 1,               reward:50 },
-  { id:'first_hatch',   name:'New Life',        desc:'Hatch your first egg',                  icon:'🥚', test:()=>sm.hatched >= 1,             reward:100 },
-  { id:'first_sell',    name:'First Sale',      desc:'Sell a fish on the market',             icon:'🪙', test:()=>sm.marketSales >= 1,         reward:100 },
-  { id:'first_rare',    name:'Sparkle!',        desc:'Hatch a rare mutation',                 icon:'✨', test:()=>sm.rares >= 1,               reward:250 },
-  { id:'first_bond',    name:'Connection',      desc:'Bond with a fish for the first time',   icon:'💗', test:()=>sm.bonded >= 1,              reward:50 },
-  { id:'first_clean',   name:'Tidy Tank',       desc:'Clean your first algae patch',          icon:'🧽', test:()=>sm.cleaned >= 1,             reward:50 },
-  // ── Collection milestones ──
-  { id:'own_5_types',   name:'Curator I',       desc:'Own 5 different fish species',          icon:'🐠', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 5,   reward:500 },
-  { id:'own_10_types',  name:'Curator II',      desc:'Own 10 different fish species',         icon:'🐡', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 10,  reward:2000 },
-  { id:'own_20_types',  name:'Curator III',     desc:'Own 20 different fish species',         icon:'🦈', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= 20,  reward:20000 },
-  { id:'own_all_types', name:'Complete Collection', desc:'Own every species in the catalog', icon:'🏆', test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= Object.keys(TYPES).length, reward:5000000 },
-  // ── Progression ──
-  { id:'level_10',      name:'Rising Naturalist',  desc:'Reach level 10',                     icon:'⭐', test:()=>playerLevel >= 10,          reward:5000 },
-  { id:'level_20',      name:'Master Aquarist',    desc:'Reach level 20',                     icon:'🌟', test:()=>playerLevel >= 20,          reward:50000 },
-  { id:'level_30',      name:'Abyssal Scholar',    desc:'Reach level 30',                     icon:'💠', test:()=>playerLevel >= 30,          reward:500000 },
-  { id:'era_2',         name:'Open Ocean Pioneer', desc:'Unlock the Open Ocean era',          icon:'🌊', test:()=>currentEra >= 2,             reward:1000 },
-  { id:'era_3',         name:'Twilight Explorer',  desc:'Unlock the Twilight Zone era',       icon:'🌀', test:()=>currentEra >= 3,             reward:15000 },
-  { id:'era_4',         name:'Midnight Voyager',   desc:'Unlock the Midnight Zone era',       icon:'🌑', test:()=>currentEra >= 4,             reward:200000 },
-  { id:'era_5',         name:'Abyssal Pioneer',    desc:'Unlock the Abyssal Trench era',      icon:'🐲', test:()=>currentEra >= 5,             reward:3000000 },
-  // ── Wealth ──
-  { id:'wealth_10k',    name:'Coin Collector',     desc:'Accumulate 10,000 lifetime coins',   icon:'💰', test:()=>totalCoins >= 10000,         reward:200 },
-  { id:'wealth_1m',     name:'Fish Tycoon',        desc:'Accumulate 1,000,000 lifetime coins',icon:'🏦', test:()=>totalCoins >= 1000000,       reward:50000 },
-  { id:'wealth_1b',     name:'Midas Aquarium',     desc:'Accumulate 1,000,000,000 lifetime coins', icon:'👑', test:()=>totalCoins >= 1000000000, reward:100000000 },
-  // ── Decor / cosmetics ──
-  { id:'decor_5',       name:'Interior Decorator', desc:'Own 5 cosmetics (themes/floors/bubbles/borders)', icon:'🎨', test:()=>(ownedThemes.length + ownedFloors.length + ownedBubbles.length + ownedBorders.length) >= 5, reward:1000 },
-  { id:'decor_15',      name:'Aesthetic Visionary',desc:'Own 15 cosmetics',                   icon:'🖼️', test:()=>(ownedThemes.length + ownedFloors.length + ownedBubbles.length + ownedBorders.length) >= 15, reward:25000 },
+  // ── First steps (boolean, single-shot) ──
+  { id:'first_feed',    name:'First Drops',  desc:'Feed your fish for the first time',   icon:'🥢', test:()=>sm.feeds >= 1,       reward:50 },
+  { id:'first_sell',    name:'First Sale',   desc:'Sell a fish on the market',           icon:'🪙', test:()=>sm.marketSales >= 1, reward:100 },
+  { id:'first_bond',    name:'Connection',   desc:'Bond with a fish for the first time', icon:'💗', test:()=>sm.bonded >= 1,      reward:50 },
+  { id:'first_clean',   name:'Tidy Tank',    desc:'Clean your first algae patch',        icon:'🧽', test:()=>sm.cleaned >= 1,     reward:50 },
+
+  // ── Collection (tiered) ──
+  { id:'collection', name:'Curator', icon:'🐠', desc:'Own N different fish species',
+    metric:()=>Object.values(boughtCounts).filter(c=>c>0).length,
+    tiers:[
+      {threshold:5,    reward:500,       name:'Curator I'},
+      {threshold:10,   reward:2000,      name:'Curator II'},
+      {threshold:20,   reward:20000,     name:'Curator III'},
+      {threshold:30,   reward:200000,    name:'Curator IV'}
+    ]},
+  { id:'own_all_types', name:'Complete Collection', desc:'Own every species in the catalog', icon:'🏆',
+    test:()=>Object.values(boughtCounts).filter(c=>c>0).length >= Object.keys(TYPES).length, reward:5000000 },
+
+  // ── Progression (tiered) ──
+  { id:'progression', name:'Naturalist', icon:'⭐', desc:'Reach player level N',
+    metric:()=>playerLevel,
+    tiers:[
+      {threshold:10,   reward:5000,      name:'Rising Naturalist'},
+      {threshold:20,   reward:50000,     name:'Master Aquarist'},
+      {threshold:30,   reward:500000,    name:'Abyssal Scholar'},
+      {threshold:50,   reward:5000000,   name:'Zen Master'}
+    ]},
+
+  // ── Eras (tiered) ──
+  { id:'eras', name:'Explorer', icon:'🌊', desc:'Unlock the N-th era',
+    metric:()=>currentEra,
+    tiers:[
+      {threshold:2,    reward:1000,      name:'Open Ocean Pioneer'},
+      {threshold:3,    reward:15000,     name:'Twilight Explorer'},
+      {threshold:4,    reward:200000,    name:'Midnight Voyager'},
+      {threshold:5,    reward:3000000,   name:'Abyssal Pioneer'}
+    ]},
+
+  // ── Wealth (tiered) ──
+  { id:'wealth', name:'Tycoon', icon:'💰', desc:'Accumulate N lifetime coins',
+    metric:()=>totalCoins,
+    tiers:[
+      {threshold:10000,        reward:200,           name:'Coin Collector'},
+      {threshold:1000000,      reward:50000,         name:'Fish Tycoon'},
+      {threshold:100000000,    reward:100000000,     name:'Midas Aquarium'},
+      {threshold:10000000000,  reward:1000000000,    name:'Aquatic Empire'}
+    ]},
+
+  // ── Decor (tiered) ──
+  { id:'decor', name:'Aesthete', icon:'🎨', desc:'Own N cosmetics',
+    metric:()=>ownedThemes.length+ownedFloors.length+ownedBubbles.length+ownedBorders.length,
+    tiers:[
+      {threshold:5,    reward:1000,      name:'Interior Decorator'},
+      {threshold:15,   reward:25000,     name:'Aesthetic Visionary'},
+      {threshold:30,   reward:500000,    name:'Curator of Beauty'}
+    ]},
+
   // ── Visitors ──
-  { id:'visitor_first', name:'Strange Encounter',  desc:'Encounter your first deep-sea visitor', icon:'👁️', test:()=>Object.values(sm.visitorsEncountered||{}).some(v=>v.seen), reward:500 },
-  { id:'visitor_tame',  name:'Beast Tamer',        desc:'Tame your first visitor',            icon:'🤝', test:()=>sm.visitorsTamed >= 1,        reward:5000 },
-  { id:'visitor_all',   name:'Mythographer',       desc:'Encounter every visitor species',    icon:'📖', test:()=>Object.keys(VISITOR_SPECIES).every(k=>sm.visitorsEncountered?.[k]?.seen), reward:1000000 },
-  // ── Breeding mastery ──
-  { id:'hatch_100',     name:'Geneticist I',       desc:'Hatch 100 eggs',                     icon:'🧬', test:()=>sm.hatched >= 100,           reward:10000 },
-  { id:'hatch_1000',    name:'Geneticist II',      desc:'Hatch 1,000 eggs',                   icon:'🧪', test:()=>sm.hatched >= 1000,          reward:250000 },
-  { id:'rare_50',       name:'Mutation Master',    desc:'Hatch 50 rare mutations',            icon:'🌈', test:()=>sm.rares >= 50,               reward:100000 },
+  { id:'visitor_first', name:'Strange Encounter', desc:'Encounter your first deep-sea visitor', icon:'👁️',
+    test:()=>Object.values(sm.visitorsEncountered||{}).some(v=>v.seen), reward:500 },
+  { id:'visitor_taming', name:'Beast Tamer', icon:'🤝', desc:'Tame N deep-sea visitors',
+    metric:()=>sm.visitorsTamed||0,
+    tiers:[
+      {threshold:1,    reward:5000,      name:'Beast Tamer'},
+      {threshold:5,    reward:50000,     name:'Beast Whisperer'},
+      {threshold:15,   reward:500000,    name:'Beast Lord'},
+      {threshold:30,   reward:5000000,   name:'Myth-Tamer'}
+    ]},
+  { id:'visitor_all', name:'Mythographer', desc:'Encounter every visitor species', icon:'📖',
+    test:()=>Object.keys(VISITOR_SPECIES).every(k=>sm.visitorsEncountered?.[k]?.seen), reward:1000000 },
+
+  // ── Breeding mastery (tiered) ──
+  { id:'hatching', name:'Geneticist', icon:'🧬', desc:'Hatch N eggs',
+    metric:()=>sm.hatched||0,
+    tiers:[
+      {threshold:1,     reward:100,        name:'New Life'},
+      {threshold:100,   reward:10000,      name:'Geneticist I'},
+      {threshold:1000,  reward:250000,     name:'Geneticist II'},
+      {threshold:10000, reward:5000000,    name:'Geneticist III'}
+    ]},
+  { id:'rares', name:'Mutation Master', icon:'🌈', desc:'Hatch N rare mutations',
+    metric:()=>sm.rares||0,
+    tiers:[
+      {threshold:1,    reward:250,         name:'Sparkle!'},
+      {threshold:10,   reward:10000,       name:'Mutation Master I'},
+      {threshold:50,   reward:100000,      name:'Mutation Master II'},
+      {threshold:250,  reward:1000000,     name:'Mutation Master III'},
+      {threshold:1000, reward:10000000,    name:'Mutation Master IV'}
+    ]}
 ];
 
+// Migration: legacy single-tier achievement IDs → [new tiered ID, tier index]
+// Applied on load so old saves keep their progress.
+const ACH_MIGRATION = {
+  first_hatch:    ['hatching',        0],
+  first_rare:     ['rares',           0],
+  own_5_types:    ['collection',      0],
+  own_10_types:   ['collection',      1],
+  own_20_types:   ['collection',      2],
+  level_10:       ['progression',     0],
+  level_20:       ['progression',     1],
+  level_30:       ['progression',     2],
+  era_2:          ['eras',            0],
+  era_3:          ['eras',            1],
+  era_4:          ['eras',            2],
+  era_5:          ['eras',            3],
+  wealth_10k:     ['wealth',          0],
+  wealth_1m:      ['wealth',          1],
+  wealth_1b:      ['wealth',          2],
+  decor_5:        ['decor',           0],
+  decor_15:       ['decor',           1],
+  visitor_tame:   ['visitor_taming',  0],
+  hatch_100:      ['hatching',        1],
+  hatch_1000:     ['hatching',        2],
+  rare_50:        ['rares',           2]
+};
+
 let _achToastQueue = [];
+function _toRomanTier(n) {
+  if(n <= 0) return '';
+  const map = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+  return map[n-1] || ('T' + n);
+}
 function checkAchievements() {
   if(!sm.achievements) sm.achievements = [];
-  for(const a of ACHIEVEMENTS) {
-    if(sm.achievements.includes(a.id)) continue;
-    try {
-      if(a.test()) {
-        sm.achievements.push(a.id);
-        coins += a.reward;
-        totalCoins += a.reward;
-        _achToastQueue.push(a);
+  if(!sm.achTiers) sm.achTiers = {};
+
+  // Migrate legacy single-tier achievements into tiered IDs (one-time)
+  for(const oldId in ACH_MIGRATION) {
+    const idx = sm.achievements.indexOf(oldId);
+    if(idx >= 0) {
+      const [newId, tierIdx] = ACH_MIGRATION[oldId];
+      if(sm.achTiers[newId] === undefined || sm.achTiers[newId] < tierIdx) {
+        sm.achTiers[newId] = tierIdx;
       }
-    } catch(e) { /* fail silently — never break the game loop */ }
+      sm.achievements.splice(idx, 1);
+    }
   }
+
+  for(const a of ACHIEVEMENTS) {
+    if(a.tiers) {
+      const currentTier = (sm.achTiers[a.id] === undefined) ? -1 : sm.achTiers[a.id];
+      const metricVal = a.metric();
+      let bestTier = -1;
+      for(let i = 0; i < a.tiers.length; i++) {
+        if(metricVal >= a.tiers[i].threshold) bestTier = i;
+      }
+      if(bestTier > currentTier) {
+        // Award every tier crossed since last check (rewards stack)
+        for(let i = currentTier + 1; i <= bestTier; i++) {
+          const t = a.tiers[i];
+          coins += t.reward;
+          totalCoins += t.reward;
+          _achToastQueue.push({name:t.name, icon:a.icon, reward:t.reward, tierNum:i+1, totalTiers:a.tiers.length});
+        }
+        sm.achTiers[a.id] = bestTier;
+      }
+    } else {
+      if(sm.achievements.includes(a.id)) continue;
+      try {
+        if(a.test()) {
+          sm.achievements.push(a.id);
+          coins += a.reward;
+          totalCoins += a.reward;
+          _achToastQueue.push({name:a.name, icon:a.icon, reward:a.reward, tierNum:0, totalTiers:0});
+        }
+      } catch(e) { /* fail silently — never break the game loop */ }
+    }
+  }
+
   if(_achToastQueue.length) {
     const a = _achToastQueue.shift();
-    toast(`🏆 ${a.name} — +${formatCoins(a.reward)} coins`, '#fbbf24');
+    const tierStr = a.totalTiers > 0 ? ` (Tier ${_toRomanTier(a.tierNum)}/${_toRomanTier(a.totalTiers)})` : '';
+    toast(`🏆 ${a.name}${tierStr} — +${formatCoins(a.reward)} coins`, '#fbbf24');
     updateHUD();
     saveGame();
   }
@@ -13571,9 +13694,56 @@ function buildAquapedia() {
 
   // ── Achievements page (lifetime registry) ──
   if(!sm.achievements) sm.achievements = [];
-  const achUnlocked = sm.achievements.length;
+  if(!sm.achTiers) sm.achTiers = {};
+  // Migrate any lingering legacy IDs for display consistency
+  for(const oldId in ACH_MIGRATION) {
+    const idx = sm.achievements.indexOf(oldId);
+    if(idx >= 0) {
+      const [newId, tierIdx] = ACH_MIGRATION[oldId];
+      if(sm.achTiers[newId] === undefined || sm.achTiers[newId] < tierIdx) sm.achTiers[newId] = tierIdx;
+      sm.achievements.splice(idx, 1);
+    }
+  }
+  let achUnlocked = sm.achievements.length;
+  for(const a of ACHIEVEMENTS) {
+    if(a.tiers && sm.achTiers[a.id] !== undefined && sm.achTiers[a.id] >= 0) achUnlocked++;
+  }
   const achTotal = ACHIEVEMENTS.length;
   const achRows = ACHIEVEMENTS.map(a => {
+    if(a.tiers) {
+      const currentTier = (sm.achTiers[a.id] === undefined) ? -1 : sm.achTiers[a.id];
+      const nextTier = currentTier + 1;
+      const maxed = nextTier >= a.tiers.length;
+      const metricVal = a.metric();
+      const cur = currentTier >= 0 ? a.tiers[currentTier] : null;
+      const nxt = maxed ? null : a.tiers[nextTier];
+      const displayName = cur ? cur.name : a.name;
+      const progressPct = maxed ? 100 : Math.min(100, Math.max(0, (metricVal / nxt.threshold) * 100));
+      const metricFmt = formatCoins(metricVal);
+      const nextFmt = nxt ? formatCoins(nxt.threshold) : '';
+      const rewardTxt = maxed
+        ? `<span style="color:#a8722a;">+${formatCoins(cur.reward)} earned</span>`
+        : (cur ? `<span style="color:#a08060;">+${formatCoins(cur.reward)} earned</span> · next +${formatCoins(nxt.reward)}` : `<span style="color:#a08060;">next +${formatCoins(nxt.reward)}</span>`);
+      const tierBadges = a.tiers.map((t, i) => {
+        const claimed = i <= currentTier;
+        return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${claimed?'#a8722a':'rgba(160,140,110,0.25)'};border:1px solid ${claimed?'#7a521a':'rgba(160,140,110,0.4)'};margin-right:2px;" title="${t.name}"></span>`;
+      }).join('');
+      return `<div class="aq-page-item" style="padding:7px 8px;margin-bottom:4px;background:${currentTier>=0?'rgba(180,140,60,0.08)':'rgba(0,0,0,0.03)'};border:1px solid ${currentTier>=0?'rgba(180,140,60,0.3)':'rgba(160,140,110,0.15)'};border-radius:3px;${currentTier>=0?'':'opacity:0.75;'}">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-size:16px;filter:${currentTier>=0?'none':'grayscale(1)'};min-width:20px;text-align:center;">${a.icon}</div>
+          <div style="flex:1;">
+            <div style="font-family:Georgia,serif;font-size:10px;font-weight:700;color:${currentTier>=0?'#5a3818':'#8a7050'};letter-spacing:0.3px;">${displayName}${maxed?' ★':''}</div>
+            <div style="font-family:Georgia,serif;font-size:8px;color:#8a7050;font-style:italic;line-height:1.3;">${a.desc}</div>
+            <div style="margin-top:3px;">${tierBadges}</div>
+          </div>
+          <div style="font-family:Georgia,serif;font-size:8px;letter-spacing:0.5px;white-space:nowrap;text-align:right;">${rewardTxt}</div>
+        </div>
+        ${!maxed ? `<div style="margin-top:4px;height:4px;background:rgba(160,140,110,0.15);border-radius:2px;overflow:hidden;">
+          <div style="width:${progressPct}%;height:100%;background:linear-gradient(90deg,#c8a870,#a8722a);"></div>
+        </div>
+        <div style="font-family:Georgia,serif;font-size:7px;color:#a09080;margin-top:2px;text-align:right;letter-spacing:0.3px;">${metricFmt} / ${nextFmt}</div>` : ''}
+      </div>`;
+    }
     const got = sm.achievements.includes(a.id);
     return `<div class="aq-page-item" style="display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:4px;background:${got?'rgba(180,140,60,0.08)':'rgba(0,0,0,0.03)'};border:1px solid ${got?'rgba(180,140,60,0.3)':'rgba(160,140,110,0.15)'};border-radius:3px;${got?'':'opacity:0.55;'}">
       <div style="font-size:16px;filter:${got?'none':'grayscale(1)'};min-width:20px;text-align:center;">${got?a.icon:'🔒'}</div>
