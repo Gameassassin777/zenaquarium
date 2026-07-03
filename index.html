@@ -2075,6 +2075,14 @@ let _rayGrads=null, _rayW=0, _rayH=0;
 let _loopRunning=true;
 let combo=0,comboTimer=0,maxCT=180;
 function getMaxCT(){ return 180 + (typeof swGetBonus==='function' && swGetBonus('overflow')>0 ? 300 : 0); }
+// Combo variety — three additional streak dimensions that stack multiplicatively into cm.
+let comboColor=null,comboColorCount=0,comboColorTimer=0;
+let comboTrait=null,comboTraitCount=0,comboTraitTimer=0;
+let speciesStreakSet=new Set(),speciesStreakTimer=0;
+const SPECIES_STREAK_WINDOW=60000;   // 60s to feed all 30 species
+const SPECIES_STREAK_TARGET=30;      // total catchable species count
+const COLOR_STREAK_REQ=3;            // 3 same-color-band feeds in a row
+const TRAIT_STREAK_REQ=3;            // 3 same-personality feeds in a row
 function getMaxFish(){ return Math.floor(baseMaxFish + (typeof swGetBonus==='function'?swGetBonus('tank'):UPGRADES.tank.owned)*3 + (typeof swGetBonus==='function' ? swGetBonus('evt_hor')*10 : 0)); }
 let _lastActiveFeed=0;
 let isHarmony=false,pDown=false,lx=0,ly=0;
@@ -3209,6 +3217,10 @@ function updateEco(){
     document.getElementById('cfill').style.transform=`scaleX(${comboTimer/getMaxCT()})`;
     if(comboTimer<=0){combo=0;document.getElementById('combo-ui').classList.remove('on');}
   }
+  // Color/trait streak timers tick with the combo timer (reset when combo expires)
+  if (comboColorTimer > 0) { comboColorTimer--; if (comboColorTimer <= 0) { comboColor = null; comboColorCount = 0; } }
+  if (comboTraitTimer > 0) { comboTraitTimer--; if (comboTraitTimer <= 0) { comboTrait = null; comboTraitCount = 0; } }
+  if (speciesStreakTimer > 0) { speciesStreakTimer--; if (speciesStreakTimer <= 0) speciesStreakSet.clear(); }
 
   if(time%15===0){
     const wq=Math.floor(100-algae);
@@ -3270,6 +3282,58 @@ function triggerEat(f,fd,def){
   const cu=document.getElementById('combo-ui');cu.classList.add('on');
   let cm=1+Math.min(combo*.1,2);
   if(f._colorBonus?.bonus === 'comboMult') cm *= f._colorBonus.val;
+
+  // ── Combo variety: color band streak (3+ same color in a row → +50%) ──
+  const _band = getColorBand(f.genes.c1[0]);
+  if (_band) {
+    if (comboColor === _band.name) {
+      comboColorCount++;
+      if (comboColorCount === COLOR_STREAK_REQ) {
+        spawnJuice(f.x, f.y - 28, `COLOR STREAK x${comboColorCount}!`, '#f472b6', 1.3);
+        for(let i=0;i<8;i++) particles.push({x:f.x,y:f.y-15,vx:(Math.random()-.5)*3,vy:-2-Math.random()*2,life:1,c:_band.name==='Crimson'?'#f87171':'#f472b6'});
+      }
+    } else {
+      comboColor = _band.name;
+      comboColorCount = 1;
+    }
+    comboColorTimer = getMaxCT();
+  }
+  const colorStreakMult = comboColorCount >= COLOR_STREAK_REQ ? 1.5 : 1;
+  cm *= colorStreakMult;
+
+  // ── Combo variety: personality trait streak (3+ same personality in a row → +50%) ──
+  const _persName = getPersonality(f).p1;
+  if (comboTrait === _persName) {
+    comboTraitCount++;
+    if (comboTraitCount === TRAIT_STREAK_REQ) {
+      spawnJuice(f.x, f.y - 50, `TRAIT STREAK x${comboTraitCount}!`, '#22d3ee', 1.3);
+      for(let i=0;i<8;i++) particles.push({x:f.x,y:f.y-30,vx:(Math.random()-.5)*3,vy:-2-Math.random()*2,life:1,c:'#22d3ee'});
+    }
+  } else {
+    comboTrait = _persName;
+    comboTraitCount = 1;
+  }
+  comboTraitTimer = getMaxCT();
+  const traitStreakMult = comboTraitCount >= TRAIT_STREAK_REQ ? 1.5 : 1;
+  cm *= traitStreakMult;
+
+  // ── Combo variety: species streak (progressive diversity bonus + JACKPOT at all 30) ──
+  speciesStreakSet.add(f.type);
+  speciesStreakTimer = SPECIES_STREAK_WINDOW;
+  const _uniqueCount = speciesStreakSet.size;
+  let speciesStreakMult = 1 + Math.min(2.0, _uniqueCount * 0.05); // up to +100% at 20 unique species
+  if (_uniqueCount === 10 || _uniqueCount === 20) {
+    spawnJuice(f.x, f.y - 50, `${_uniqueCount} SPECIES!`, '#fbbf24', 1.5);
+    for(let i=0;i<10;i++) particles.push({x:f.x,y:f.y-20,vx:(Math.random()-.5)*4,vy:-2-Math.random()*2,life:1,c:'#fbbf24'});
+  }
+  if (_uniqueCount >= SPECIES_STREAK_TARGET) {
+    speciesStreakMult = 5;
+    spawnJuice(f.x, f.y - 60, `SPECIES JACKPOT x5!`, '#fbbf24', 2.2);
+    for(let i=0;i<32;i++) particles.push({x:f.x,y:f.y-30,vx:(Math.random()-.5)*8,vy:-3-Math.random()*5,life:1,c:'#fbbf24'});
+    speciesStreakSet.clear();
+  }
+  cm *= speciesStreakMult;
+
   document.getElementById('ctxt').textContent=`Combo x${cm.toFixed(1)}`;
   cu.style.transform='translateX(-50%) scale(1.08)';setTimeout(()=>cu.style.transform='translateX(-50%) scale(1)',100);
   
