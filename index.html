@@ -2244,28 +2244,31 @@ function getFishPrice(type) {
 }
 
 const UPGRADES={
-  flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:500,        info:'Double base coin value',                       max:1,owned:0,req:2},
+  flakes:    {name:'Gourmet Flakes', icon:ICONS.flakes, cost:800,        info:'Double base coin value',                       max:1,owned:0,req:2},
   snail:     {name:'Cleaner Snail',  icon:ICONS.snail,  cost:350,        info:'Eats algae + small coin income',               max:5,owned:0,req:1},
-  snail_gilded:{name:'Gilded Snail', icon:ICONS.snail,  cost:8000,       info:'Triple coin income, no algae cleaning',        max:5,owned:0,req:6},
-  snail_scout:{name:'Scout Snail',   icon:ICONS.snail,  cost:50000,      info:'+15% rare visitor chance each, small income',  max:3,owned:0,req:9},
-  autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:2000,       info:'Drops food automatically',                     max:1,owned:0,req:3},
-  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:3000,       info:'+3 max fish capacity',                         max:5,owned:0,req:4,hidden:true},
-  filter:    {name:'Power Filter',   icon:ICONS.filter, cost:8000,       info:'Auto-reduces algae',                           max:1,owned:0,req:5},
-  nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:12000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:3},
-  clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:25000,      info:'Passive gold + filters water',                 max:3,owned:0,req:6},
-  clam_oyster:{name:'Oyster Clam',   icon:ICONS.clam,   cost:200000,     info:'Chance to produce rare eggs each cycle',       max:2,owned:0,req:12},
-  heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:50000,      info:'+25% coin value for all fish',                 max:1,owned:0,req:7},
-  kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:15000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,req:5},
-  coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:35000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,req:5},
-  oxygen:    {name:'Oxygen Pump',    icon:ICONS.drop,   cost:30000,      info:'Fish hunger drains 20% slower',                max:1,owned:0,req:6},
-  uvlight:   {name:'UV Light',       icon:ICONS.star,   cost:75000,      info:'Rare mutation chance +5%',                     max:1,owned:0,req:7},
+  snail_gilded:{name:'Gilded Snail', icon:ICONS.snail,  cost:7000,       info:'Triple coin income, no algae cleaning',        max:5,owned:0,req:5},
+  snail_scout:{name:'Scout Snail',   icon:ICONS.snail,  cost:30000,      info:'+15% rare visitor chance each',                max:3,owned:0,req:7},
+  autofeed:  {name:'Auto-Feeder',    icon:ICONS.gear,   cost:1500,       info:'Drops food automatically',                     max:1,owned:0,req:3},
+  tank:      {name:'Tank Expansion', icon:ICONS.ocean,  cost:2500,       info:'+3 max fish capacity',                         max:5,owned:0,req:4,hidden:true},
+  filter:    {name:'Power Filter',   icon:ICONS.filter, cost:7000,       info:'Auto-reduces algae',                           max:1,owned:0,req:4},
+  nest:      {name:'Breeding Slate', icon:ICONS.nest,   cost:10000,      info:'Adult fish naturally breed',                   max:1,owned:0,req:4},
+  clam:      {name:'Pearl Clam',     icon:ICONS.clam,   cost:22000,      info:'Passive gold + filters water',                 max:3,owned:0,req:5},
+  clam_oyster:{name:'Oyster Clam',   icon:ICONS.clam,   cost:150000,     info:'Chance to produce rare eggs each cycle',       max:2,owned:0,req:10},
+  heater:    {name:'Water Heater',   icon:ICONS.gear,   cost:60000,      info:'+25% coin value for all fish',                 max:1,owned:0,req:7},
+  spectrallens:{name:'Spectral Lens',icon:ICONS.crystal,cost:120000,     info:'+25% bond XP from every tap',                  max:1,owned:0,req:8,era:2},
+  kelp:      {name:'Purple Kelp',    icon:ICONS.decor,  cost:12000,      info:'Unlocks Purple Kelp in tank',                  max:1,owned:0,req:5},
+  coral:     {name:'Crimson Coral',  icon:ICONS.reef,   cost:28000,      info:'Unlocks Red Fan Coral in tank',                max:1,owned:0,req:5},
+  oxygen:    {name:'Oxygen Pump',    icon:ICONS.drop,   cost:25000,      info:'Fish hunger drains 20% slower',                max:1,owned:0,req:6},
+  uvlight:   {name:'UV Light',       icon:ICONS.star,   cost:60000,      info:'Rare mutation chance +5%',                     max:1,owned:0,req:7},
   // ── Mythic Upgrades ──
-  bioreactor:{name:'Bioreactor',     icon:ICONS.filter, cost:500000,     info:'Continuously purifies water (no algae)',       max:1,owned:0,req:11},
-  aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:1200000,    info:'+10% rare mutation chance',                    max:1,owned:0,req:12},
-  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:3000000,    info:'+50% coin value during Harmony',               max:1,owned:0,req:13},
-  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:5000000,    info:'Eggs hatch 35% faster',                        max:1,owned:0,req:13},
-  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:10000000,   info:'+100% income from all fish',                   max:1,owned:0,req:14},
-  prism:        {name:'Prism Lens',      icon:ICONS.crystal,cost:15000000,   info:'Daily quest rerolls are free',            max:1,owned:0,req:14},
+  bioreactor:{name:'Bioreactor',     icon:ICONS.filter, cost:350000,     info:'Continuously purifies water (no algae)',       max:1,owned:0,req:10},
+  aurastone: {name:'Aura Stone',     icon:ICONS.crystal,cost:850000,     info:'+10% rare mutation chance',                    max:1,owned:0,req:11},
+  magpump:   {name:'Magnetic Pump',  icon:ICONS.gear,   cost:2200000,    info:'+50% coin value during Harmony & Gold Rush',   max:1,owned:0,req:12},
+  ethkey:    {name:'Ethereal Key',   icon:ICONS.star,   cost:3500000,    info:'Eggs hatch 35% faster',                        max:1,owned:0,req:13},
+  leviathancore:{name:'Leviathan Core',icon:ICONS.abyss,cost:5000000,    info:'Offline income ×3',                            max:1,owned:0,req:12,era:4},
+  singularity:{name:'Quantum Core',  icon:ICONS.crystal,cost:8000000,    info:'+100% income from all fish',                   max:1,owned:0,req:14},
+  prism:        {name:'Prism Lens',      icon:ICONS.crystal,cost:12000000,   info:'Daily quest rerolls are free',            max:1,owned:0,req:15},
+  astralharmonizer:{name:'Astral Harmonizer',icon:ICONS.star,cost:25000000,info:'All era bonuses doubled',                 max:1,owned:0,req:16,era:5},
   // ── Skill Web purchasable upgrades (hidden from shop — unlocked only via skill tree) ──
   tidalcurrent: {name:'Swift Current',   icon:ICONS.drop,   cost:80000,     info:'Fish swim 30% faster',                    max:1,owned:0,hidden:true},
   symbiotic:    {name:'Symbiosis',       icon:ICONS.reef,   cost:200000,    info:'+10% coins when water quality is high',   max:1,owned:0,hidden:true},
@@ -2278,11 +2281,11 @@ const UPGRADES={
 const SNAIL_VARIANTS = {
   cleaner:  { algaeMult:1.0, coinMult:1.0, body:'#a1a1aa', shellHueBase:0,   shellHueRange:360, shellSat:90, shellLight:65, label:'Cleaner' },
   gilded:   { algaeMult:0.0, coinMult:3.0, body:'#fbbf24', shellHueBase:38,  shellHueRange:18,  shellSat:95, shellLight:60, label:'Gilded'  },
-  scout:    { algaeMult:0.2, coinMult:0.5, body:'#a78bfa', shellHueBase:268, shellHueRange:24,  shellSat:80, shellLight:55, label:'Scout'   },
+  scout:    { algaeMult:0.2, coinMult:1.0, body:'#a78bfa', shellHueBase:268, shellHueRange:24,  shellSat:80, shellLight:55, label:'Scout'   },
 };
 const CLAM_VARIANTS = {
   pearl:  { coinMult:1.0, eggChance:0.00, shellTop:'#f1f5f9', shellBot:'#64748b', interior0:'#38bdf8', interior1:'#8b5cf6', label:'Pearl'  },
-  oyster: { coinMult:0.3, eggChance:0.06, shellTop:'#cdc2a3', shellBot:'#3f2f1c', interior0:'#f0abfc', interior1:'#a855f7', label:'Oyster' },
+  oyster: { coinMult:0.3, eggChance:0.04, shellTop:'#cdc2a3', shellBot:'#3f2f1c', interior0:'#f0abfc', interior1:'#a855f7', label:'Oyster' },
 };
 function snailVariant(s){ return SNAIL_VARIANTS[s.variant || 'cleaner'] || SNAIL_VARIANTS.cleaner; }
 function clamVariant(c){ return CLAM_VARIANTS[c.variant || 'pearl'] || CLAM_VARIANTS.pearl; }
@@ -3857,10 +3860,10 @@ function triggerEat(f,fd,def){
   const decorCoinMult = decorSynergy('coinMult') * (_isNight ? decorSynergy('nightCoinMult') : 1);
   // Mastery-scaled bonuses
   const _heatM = swMastery('c_heater');
-  const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? (1.15 + _heatM * 0.08) : 1;
+  const heaterMult = UPGRADES.heater && UPGRADES.heater.owned > 0 ? (1.25 + _heatM * 0.08) : 1;
   const _flkM = swMastery('c_flakes');
-  const flakesMult = UPGRADES.flakes.owned > 0 ? (1.5 + _flkM * 0.25) : 1;
-  const magpumpBonus = (UPGRADES.magpump && UPGRADES.magpump.owned > 0 && isHarmony) ? 0.5 : 0;
+  const flakesMult = UPGRADES.flakes.owned > 0 ? (2.0 + _flkM * 0.25) : 1;
+  const magpumpBonus = (UPGRADES.magpump && UPGRADES.magpump.owned > 0 && (isHarmony || isGold)) ? 0.5 : 0;
   const harmonyMult= isHarmony ? (1.3 + magpumpBonus) : 1;
   let goldMult   = isGold ? 1.3 : 1;
   const isBredGold = isGold && f.isRare;
@@ -12993,7 +12996,7 @@ function doTap(x,y){
       if(hitFish.bonded < 300) {
         hitFish.bonded = Math.floor(3600 * getPersonality(hitFish).effects.bondRate);
         const _prevBondLv = bondLevel(hitFish);
-        hitFish._bondXP = (hitFish._bondXP || 0) + visitorEffectVal('bondMult', 1) * decorSynergy('bondMult') * dailyBuffVal('bond');
+        hitFish._bondXP = (hitFish._bondXP || 0) + visitorEffectVal('bondMult', 1) * decorSynergy('bondMult') * dailyBuffVal('bond') * (UPGRADES.spectrallens && UPGRADES.spectrallens.owned > 0 ? 1.25 : 1);
         hitFish._lastBondTs = Date.now();
         sm.bonded++;
         const _newBondLv = bondLevel(hitFish);
@@ -13459,8 +13462,13 @@ const ERA_BONUSES = [
 ];
 function eraBonus(key) {
   const e = ERA_BONUSES[currentEra] || {};
-  const v = e[key];
-  return v === undefined ? 1 : v;
+  let v = e[key];
+  if(v === undefined) return 1;
+  // Astral Harmonizer: doubles all era bonuses (additive on the delta from 1.0)
+  if(typeof UPGRADES !== 'undefined' && UPGRADES.astralharmonizer && UPGRADES.astralharmonizer.owned > 0) {
+    v = 1 + (v - 1) * 2;
+  }
+  return v;
 }
 
 // Decor synergy — multiplies when the equipped decor set has matching synergy keys.

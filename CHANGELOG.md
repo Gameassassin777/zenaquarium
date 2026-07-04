@@ -38,6 +38,26 @@ Each system deepened existing scaffolding into something that compounds with the
 - Performance: helper dispatch (snailVariant/clamVariant/scoutSnailCount/dailyBuffVal/offlineModVal) < 0.4μs/call.
 - Art: all 30 catchable + 13 visitor species re-rendered without errors; no drawFish changes in Phase 2.
 
+### Phase 4 — Upgrade-tree balance pass (addicting + enjoyable)
+
+Target payback windows grounded in idle-game design: early 2–5 min, mid 8–20 min, late 25–60 min, endgame 1–3 hr, grail 4 hr+. Variable-ratio reward cadence; no dominant strategy; no upgrade lies (info text matches mechanic); no orphan code; no traps (dead upgrades that never pay back).
+
+- **Info-text truth pass**: heater now actually +25% (was +15% in code, said +25% in UI). Flakes now actually ×2.0 (was ×1.5). Snail_scout description dropped the misleading "small income" line. Magpump description includes Gold Rush.
+- **3 new upgrades**:
+  - Spectral Lens (L8, Era 2, 120k) — +25% bond XP from every tap.
+  - Leviathan Core (L12, Era 4, 5M) — offline income ×3 (wires previously-orphan `leviathancore` flag in calcOffline).
+  - Astral Harmonizer (L16, Era 5, 25M) — all era bonuses doubled (delta-amplification: Reef +10% → +20%, Shallows +5% → +10%).
+- **Payback curve fixes**:
+  - Flakes 1500→800 (L2 fish payback 39 feeds ≈ 2 min at 3s/feed).
+  - Singularity 12M→8M, Magpump 4M→2.2M (harmony-window payback 43 feeds ≈ 22 min).
+  - Bioreactor 600k→350k, Aurastone 1.2M→850k, Ethkey 5M→3.5M.
+- **Variant tuning**:
+  - Scout Snail: coinMult 0.5→1.0 (no income penalty, just algae penalty — was strictly worse than Cleaner for 95% of players).
+  - Oyster Clam: eggChance 6%→4% (preserves rare-egg role without flooding late game).
+- **Magpump**: now applies during Gold Rush too (was Harmony-only, halving its trigger window).
+- **Heater + Flakes mastery**: heater base 1.25 + 0.08/sw level, flakes base 2.0 + 0.25/sw level.
+- **Verification**: 14-test Playwright suite covering costs, era-gating, info-truth (via source inspection), variant data, multiplier truth, bond boost, offline ×3, era amplification, save round-trip, legacy backward-compat, payback curves at L2/L12/L14.
+
 ### Out of scope (deferred to v2.8+)
 
 - Multiplayer / leaderboards
